@@ -1,3 +1,0 @@
-[submodule "modules"]
-	path = modules
-	url = git@github.com:amplejoe/py_utils.git
