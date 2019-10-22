@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2019-09-11T15:04:28+02:00
+# @Last modified time: 2019-10-22T17:51:46+02:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -251,6 +251,16 @@ def copy_to(src_path, dst_path, follow_symlinks=True):
 
 
 # # MISCELLANEOUS
+
+
+def get_attribute_from(file_name, attribute):
+    """ gets an attribute from a file name as string
+        format: a1_VAL1_a2_VAL2_a3_VAL3.EXT
+        Info: VALs cannot contain '_'; '.EXT' is optional
+    """
+    split_one = file_name.split(f"{attribute}_")[1]
+    split_two = split_one.split("_")[0]
+    return split_two
 
 
 def avg_list(lst):
