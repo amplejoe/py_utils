@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2019-10-22T17:51:46+02:00
+# @Last modified time: 2019-10-23T11:59:01+02:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -32,6 +32,7 @@
 
 # # IMPORTS
 import os
+import sys
 import errno
 import json
 from datetime import datetime
@@ -39,6 +40,7 @@ import shutil
 from natsort import natsorted
 import pathlib
 import re
+import subprocess
 
 
 # # USER INPUT RELATED
@@ -251,6 +253,27 @@ def copy_to(src_path, dst_path, follow_symlinks=True):
 
 
 # # MISCELLANEOUS
+
+def exec_shell_command(command, print_output=False):
+    """ Executes a shell command using the subprocess module.
+        command: standard shell command (SPACE separated)
+        print_output: output command result to console
+        returns: list containing all shell output lines
+    """
+    print(f"Exec shell command '{command}'")
+    command_list = command.split(" ")
+
+    process = subprocess.Popen(
+        command_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    output = []
+    # execute reading output line by line
+    for line in iter(process.stdout.readline, b''):
+        line = line.decode(sys.stdout.encoding)
+        output.append(line.replace("\n", ""))
+        if (print_output):
+            sys.stdout.write(line)
+    return output
 
 
 def get_attribute_from(file_name, attribute):
