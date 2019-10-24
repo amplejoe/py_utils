@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2019-10-23T11:59:01+02:00
+# @Last modified time: 2019-10-24T15:20:24+02:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -249,6 +249,10 @@ def remove_file(path):
 
 
 def copy_to(src_path, dst_path, follow_symlinks=True):
+    """ Copies src_path to dst_path.
+        If dst is a directory, a file with the same basename as src is created
+        (or overwritten) in the directory specified.
+    """
     shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
 
 
