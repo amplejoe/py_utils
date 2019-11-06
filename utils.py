@@ -27,7 +27,7 @@
     usage			:import module and use contained functions
     notes			:requirements: natsort, shutil
     python_version	:3.6
-    ==============================================================================
+    ===========================================================================
 """
 
 # # IMPORTS
@@ -362,6 +362,12 @@ def filter_list_by_partial_word(word, list_to_filter):
 
 def nat_sort_list(l):
     return natsorted(l, key=lambda y: y.lower())
+
+
+def set_environment_variable(key, value):
+    """ Sets an OS environment variable.
+    """
+    os.environ[key] = value
 
 
 def sort_list_nicely(l):
