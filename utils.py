@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2019-10-24T15:20:24+02:00
+# @Last modified time: 2019-11-06T12:39:02+01:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -119,6 +119,14 @@ def join_paths_str(path, *paths):
 
 
 def make_dir(path, confirm=False):
+    """ Creates a directory
+        Parameters
+        ----------
+        path:
+            the directory path
+        confirm:
+            prompt user to confirm overwrite (default=False)
+    """
     try:
         os.makedirs(path)
     except OSError as e:
@@ -316,7 +324,21 @@ def getTimeStamp():
 
 
 def get_current_dir():
+    """ Returns current working directory.
+    """
     return os.getcwd()
+
+
+def get_script_dir():
+    """ Returns directory of currently running script.
+    """
+    return os.path.dirname(os.path.realpath(__file__))
+
+
+def is_absolute_path(path):
+    """ Checks if path is absolute (also for non-existing paths!).
+    """
+    return os.path.isabs(path)
 
 
 def rel_to_abs_path(path):
