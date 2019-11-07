@@ -61,7 +61,7 @@ def confirm():
 def confirm_delete_file(path):
     p = to_path(path)
     if p.is_file():
-        print("File exists: %s, overwrite file?" % (path))
+        print("File exists: %s, delete file?" % (path))
         if (confirm()):
             remove_file(path)
 
@@ -69,13 +69,25 @@ def confirm_delete_file(path):
 def confirm_delete_path(path):
     p = to_path(path)
     if p.is_dir():
-        print("Path exists: %s, overwrite folder?" % (path))
+        print("Path exists: %s, delete folder?" % (path))
         if (confirm()):
             remove_dir(path)
         else:
             # user explicitly typed 'n'
             return False
     return True
+
+
+def confirm_overwrite(path):
+    p = to_path(path)
+    confirmed = False
+    if p.is_dir():
+        confirmed = confirm_delete_path(path)
+    elif p.is_file():
+        confirmed = confirm_delete_file(path)
+    if not confirmed:
+        return False
+    return make_dir(path, True)
 
 
 # # FILE OPERATIONS
@@ -118,16 +130,20 @@ def join_paths_str(path, *paths):
     return join_paths(path, *paths).as_posix()
 
 
-def make_dir(path, confirm=False):
+def make_dir(path, show_info=False, overwrite=False):
     """ Creates a directory
         Parameters
         ----------
         path:
             the directory path
-        confirm:
-            prompt user to confirm overwrite (default=False)
+        overwrite:
+            force directory overwrite (default=False)
+        show_info:
+            show creation user infos (default=False)
     """
     try:
+        if (overwrite):
+            remove_dir(path)
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
@@ -135,7 +151,7 @@ def make_dir(path, confirm=False):
             raise  # This was not a "directory exists" error..
         # print("Directory exists: %s", path)
         return False
-    if (confirm):
+    if (show_info):
         print(f"Created dir: {path}")
     return True
 
@@ -172,7 +188,7 @@ def get_immediate_subdirs(a_dir, full_path=True):
 def get_nth_parentdir(file_path, n=0, full_path=False):
     """ Get nth parent directory of a file path, starting from the back (file).
         (Default: 0, i.e. the first directory after a potential filename)
-        full_path: return full path until nth parent  dir
+        full_path: return full path until nth parent dir
     """
     p = to_path(file_path)
     ret_path = None
