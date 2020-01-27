@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2020-01-27T12:04:51+01:00
+# @Last modified time: 2020-01-27T12:08:47+01:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -85,6 +85,8 @@ def confirm_overwrite(path):
         confirmed = confirm_delete_path(path)
     elif p.is_file():
         confirmed = confirm_delete_file(path)
+    else:
+        confirmed = True
     if not confirmed:
         return False
     return make_dir(path, True)
