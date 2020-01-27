@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2019-10-24T15:20:24+02:00
+# @Last modified time: 2020-01-27T11:52:57+01:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -118,7 +118,7 @@ def join_paths_str(path, *paths):
     return join_paths(path, *paths).as_posix()
 
 
-def make_dir(path, confirm=False):
+def make_dir(path, show_confirmation=False):
     try:
         os.makedirs(path)
     except OSError as e:
