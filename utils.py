@@ -15,7 +15,7 @@
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
 # @Last modified by: aleibets
-# @Last modified time: 2020-02-04T12:02:53+01:00
+# @Last modified time: 2020-02-11T15:01:14+01:00
 # @description:  Utility class for common python tasks
 # @notes:  requires ntpath, natsort, shutil
 
@@ -335,6 +335,7 @@ def get_attribute_from(file_name, attribute):
         format: a1_VAL1_a2_VAL2_a3_VAL3.EXT
         Info: VALs cannot contain '_'; '.EXT' is optional
     """
+    file_name = get_file_name(file_name)  # make sure file_name is no path
     split_one = file_name.split(f"{attribute}_")[1]
     split_two = split_one.split("_")[0]
     return split_two
