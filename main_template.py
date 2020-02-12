@@ -1,5 +1,25 @@
 #!/usr/bin/env python
 
+# +++++++++++++++++++++++++++++++++++++++++++++++++
+#                         _       _
+#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
+#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
+#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
+#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
+#                  |_|         |__/
+#
+# +++++++++++++++++++++++++++++++++++++++++++++++++
+
+# @Author: Andreas <aleibets>
+# @Date: 2020-01-27T11:53:43+01:00
+# @Filename: main_template.py
+# @Last modified by: aleibets
+# @Last modified time: 2020-02-12T16:07:40+01:00
+# @description:
+
+
+#!/usr/bin/env python
+
 import argparse
 from py_utils import utils
 import sys
@@ -8,16 +28,33 @@ from tqdm import tqdm
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("in_root")
-    parser.add_argument("out_root")
-    args = parser.parse_args()
 
-    in_root = utils.to_path_str(args.in_root)
-    out_root = utils.to_path_str(args.out_root)
+    g_args["in"] = utils.to_path_str(g_args["in"])
+    g_args["out"] = utils.to_path_str(g_args["out"])
 
-    # in_files = utils.get_file_paths(in_root, ".jpg", ".png")
+    # in_files = utils.get_file_paths(g_args["in"], ".jpg", ".png")
 
 
-# call main function
-main()
+def exit(msg=None):
+    if (msg):
+        print(f"{msg}")
+    print("Exit script.")
+    sys.exit()
+
+
+def parse_args():
+    # construct the argument parser and parse the arguments
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--in", type=str,
+                    help="path to input folder", required=True)
+    ap.add_argument("-o", "--out", type=str,
+                    help="path to output folder", required=True)
+    args = vars(ap.parse_args())
+    return args
+
+
+if __name__ == "__main__":
+    # parse args
+    g_args = parse_args()   # can be accessed globally
+    # call main function
+    main()
