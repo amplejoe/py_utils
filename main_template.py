@@ -32,6 +32,9 @@ def main():
     g_args["in"] = utils.to_path_str(g_args["in"])
     g_args["out"] = utils.to_path_str(g_args["out"])
 
+    if g_args["in"] == g_args["out"]:
+        exit("IN cannot be the same as OUT path.")
+
     # if not (utils.confirm_overwrite(g_args["out"])):
     #     exit("Aborted folder creation.")
 
