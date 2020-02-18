@@ -26,6 +26,8 @@ import sys
 import numpy as np
 from tqdm import tqdm
 
+IN_EXTENSIONS = [".jpg", ".png"]
+
 
 def main():
 
@@ -38,7 +40,7 @@ def main():
     # if not (utils.confirm_overwrite(g_args["out"])):
     #     exit("Aborted folder creation.")
 
-    # in_files = utils.get_file_paths(g_args["in"], ".jpg", ".png")
+    # in_files = utils.get_file_paths(g_args["in"], *IN_EXTENSIONS)
 
 
 def exit(msg=None):
