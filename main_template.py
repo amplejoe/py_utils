@@ -17,9 +17,6 @@
 # @Last modified time: 2020-02-12T16:07:40+01:00
 # @description:
 
-
-#!/usr/bin/env python
-
 import argparse
 from py_utils import utils
 import sys

@@ -64,6 +64,10 @@ def confirm_delete_file(path):
         print("File exists: %s, delete file?" % (path))
         if (confirm()):
             remove_file(path)
+        else:
+            # user explicitly typed 'n'
+            return False
+    return True
 
 
 def confirm_delete_path(path):
@@ -110,8 +114,11 @@ def exists_file(*p):
 
 def to_path(*p):
     """ Convert string to pathlib path.
+        INFO: Path resolving removes stuff like ".." with 'strict=False' the
+        path is resolved as far as possible -- any remainder is appended
+        without checking whether it really exists.
     """
-    return pathlib.Path(*p)
+    return pathlib.Path(*p).resolve(strict=False)
 
 
 def to_path_str(*p):
@@ -310,6 +317,16 @@ def get_size(obj, seen=None):
 
 # # MISCELLANEOUS
 
+
+def exit(msg=None):
+    """ Exits script with optional message.
+    """
+    if (msg):
+        print(f"{msg}")
+    print("Exit script.")
+    sys.exit()
+
+
 def exec_shell_command(command, print_output=False):
     """ Executes a shell command using the subprocess module.
         command: standard shell command (SPACE separated)
@@ -350,10 +367,24 @@ def avg_list(lst):
     return sum(lst) / len(lst)
 
 
-def create_dict_key(split_dict, key, value=0):
+def create_dict_key(dict, key, value=0):
     """Adds key to dict if necessary, init'd with value"""
-    if key not in split_dict.keys():
-        split_dict[f'{key}'] = value
+    if key not in dict.keys():
+        dict[f'{key}'] = value
+
+
+def increment_dict_key(dict, key, by_value=1):
+    """Increments a dict key (default: by 1), if necessary, initializes it first"""
+    if key not in dict.keys():
+        create_dict_key(dict, key)
+    dict[key] = dict[key] + by_value
+
+
+def add_to_dict_key(dict, key, object):
+    """Adds an object to the list of a dict key, if necessary, initializes it first"""
+    if key not in dict.keys():
+        create_dict_key(dict, key, [])
+    dict[key].append(object)
 
 
 def safe_div(x, y):
@@ -371,13 +402,13 @@ def getTimeStamp():
 def get_current_dir():
     """ Returns current working directory.
     """
-    return os.getcwd()
+    return to_path_str(os.getcwd())
 
 
 def get_script_dir():
     """ Returns directory of currently running script.
     """
-    return os.path.dirname(os.path.realpath(__file__))
+    return to_path_str(os.path.dirname(os.path.realpath(__file__)))
 
 
 def is_absolute_path(path):
@@ -423,6 +454,13 @@ def sort_list_nicely(l):
     def alphanum_key(key): return [convert(c)
                                    for c in re.split('([0-9]+)', key)]
     l.sort(key=alphanum_key)
+
+
+# https://www.geeksforgeeks.org/python-find-most-frequent-element-in-a-list/
+def find_most_frequent(List):
+    """ Finds most frequent element in a list
+    """
+    return max(set(List), key=List.count)
 
 
 def get_attribute_from_json(path, attr):
