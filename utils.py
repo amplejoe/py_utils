@@ -193,7 +193,7 @@ def get_immediate_subdirs(a_dir, full_path=True):
     if full_path:
         return [f.as_posix() for f in path.iterdir() if f.is_dir()]
     else:
-        return [f.stem for f in path.iterdir() if f.is_dir()]
+        return [get_nth_parentdir(f) for f in path.iterdir() if f.is_dir()]
 
 
 def get_nth_parentdir(file_path, n=0, full_path=False):
