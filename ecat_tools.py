@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import json
-from py_utils import utils
 import pandas as pd
+from . import utils
 
 SHELL_CMD_GET_FPS = "ffprobe -v 0 -of csv=p=0 -select_streams 0 -show_entries stream=r_frame_rate"
 

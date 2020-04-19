@@ -22,8 +22,8 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 import cv2
-import utils
 import imutils
+from . import utils
 
 COLORS_FILE = "colors.txt"
 LABELS_FILE = "labels.txt"
