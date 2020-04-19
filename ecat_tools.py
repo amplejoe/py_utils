@@ -70,15 +70,16 @@ def get_info(frame_or_vid):
     ret_dict["file_ext"] = utils.get_file_ext(frame_or_vid)
 
     # find last aoccurrence of '_video'
-    tmp = frame_or_vid.rsplit("video_")[1].replace(".mp4_", "")
+    tmp = frame_or_vid.rsplit("video_")[1].replace(".mp4", "")
     tmp_parts = tmp.split("/")[0].split("_")  # remove frame part if existent
-    ret_dict["start_time"] = float(tmp_parts[0])
+    ret_dict["video_id"] = tmp_parts[0]
+    ret_dict["start_time"] = float(tmp_parts[1])
     ret_dict["end_time"] = ret_dict["start_time"]
-    if len(tmp_parts) > 1:
-        ret_dict["end_time"] = float(tmp_parts[1])
+    if len(tmp_parts) > 2:
+        ret_dict["end_time"] = float(tmp_parts[2])
 
-    if ret_dict["file_ext"] == "jpg":
-        ret_dict["frame"] = float(ret_dict["file_name"].split("_")[1])
+    if ret_dict["file_ext"] == ".jpg":
+        ret_dict["frame"] = int(ret_dict["file_name"].split("_")[1])
     else:
         ret_dict["fps"] = get_fps(ret_dict["path"])
         ret_dict["start_frame"] = time_to_frame(ret_dict["start_time"], ret_dict["fps"])
