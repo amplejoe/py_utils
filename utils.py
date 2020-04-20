@@ -46,12 +46,14 @@ import subprocess
 # # USER INPUT RELATED
 
 
-def confirm():
+def confirm(msg=None):
     """
     Ask user to enter Y or N (case-insensitive).
     :return: True if the answer is Y.
     :rtype: bool
     """
+    if msg is not None:
+        print(msg)
     answer = ""
     while answer not in ["y", "n"]:
         answer = input("[y/n]").lower()
