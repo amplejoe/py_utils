@@ -22,6 +22,7 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 import cv2
+from PIL import Image  # (pip install Pillow)
 import imutils
 from . import utils
 
@@ -74,6 +75,12 @@ class ColorLabeler:
 
     def label_to_color(self, label):
         return self.colors[label]
+
+    def color_to_label(self, color):
+        for k, v in self.colors.items():
+            if v == color:
+                return k
+        return "unknown"
 
     def to_bgr(self, color_value):
         return tuple(reversed(color_value))
@@ -144,3 +151,34 @@ class ColorLabeler:
 
         # return the name of the color with the smallest distance
         return self.colorNames[minDist[1]]
+
+    # https://stackoverflow.com/questions/54802089/convert-an-rgb-mask-image-to-coco-json-polygon-format
+    def create_sub_masks(self, mask_image, bg_color=(0, 0, 0)):
+        """ Takes in a mask Image object and returns a dictionary of sub-masks,
+            keyed by RGB color.
+        """
+        width, height = mask_image.size
+
+        # Initialize a dictionary of sub-masks indexed by RGB colors
+        sub_masks = {}
+        for x in range(width):
+            for y in range(height):
+                # Get the RGB values of the pixel
+                pixel = mask_image.getpixel((x, y))[:3]
+
+                # If the pixel is not the same as the background color
+                if pixel != bg_color:
+                    # Check to see if we've created a sub-mask...
+                    pixel_str = str(pixel)
+                    sub_mask = sub_masks.get(pixel_str)
+                    if sub_mask is None:
+                        # Create a sub-mask (one bit per pixel) and add to the dictionary
+                        # Note: we add 1 pixel of padding in each direction
+                        # because the contours module doesn't handle cases
+                        # where pixels bleed to the edge of the image
+                        sub_masks[pixel_str] = Image.new('1', (width + 2, height + 2))
+
+                    # Set the pixel value to 1 (default is 0), accounting for padding
+                    sub_masks[pixel_str].putpixel((x + 1, y + 1), 1)
+
+        return sub_masks
