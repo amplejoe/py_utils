@@ -85,18 +85,18 @@ class ColorLabeler:
     def to_bgr(self, color_value):
         return tuple(reversed(color_value))
 
-    def find_image_objects(self, image, use_bgr=False):
+    def find_image_objects(self, image_path, use_bgr=False):
         """ Extracts labels, colors, bounding boxes from an image.
             input: OpenCV image
             return: array of dicts({label, color, box})
         """
+        cv_image = cv2.imread(image_path)
 
-        altered_img = image.copy()
         # # CROP ANNOTS and detect COLORS
 
         # blur the resized image slightly, then convert it to both
         # grayscale and the L*a*b* color spaces
-        blurred = cv2.GaussianBlur(altered_img, (5, 5), 0)
+        blurred = cv2.GaussianBlur(cv_image, (5, 5), 0)
         gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
         lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
         thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY)[1]
@@ -117,7 +117,7 @@ class ColorLabeler:
             # box: tuple (x,y,w,h), color: tuple (r, g, b)
             results.append({'label': label, 'color': color_value,
                             'box': cv2.boundingRect(c)})
-
+        del cv_image  # make sure to free memory
         return results
 
     def get_dominant_class(self, image):
@@ -125,15 +125,15 @@ class ColorLabeler:
         all_labels = [x['label'] for x in res]
         return utils.find_most_frequent(all_labels)
 
-    def label(self, image, c):
-        """ Label single annotation image
+    def label(self, cv_lab_image, contour):
+        """ Label single countour in lab image
         """
         # construct a mask for the contour, then compute the
         # average L*a*b* value for the masked region
-        mask = np.zeros(image.shape[:2], dtype="uint8")
-        cv2.drawContours(mask, [c], -1, 255, -1)
+        mask = np.zeros(cv_lab_image.shape[:2], dtype="uint8")
+        cv2.drawContours(mask, [contour], -1, 255, -1)
         mask = cv2.erode(mask, None, iterations=2)
-        mean = cv2.mean(image, mask=mask)[:3]
+        mean = cv2.mean(cv_lab_image, mask=mask)[:3]
 
         # initialize the minimum distance found thus far
         minDist = (np.inf, None)
@@ -148,23 +148,23 @@ class ColorLabeler:
             # then update the bookkeeping variable
             if d < minDist[0]:
                 minDist = (d, i)
-
         # return the name of the color with the smallest distance
         return self.colorNames[minDist[1]]
 
     # https://stackoverflow.com/questions/54802089/convert-an-rgb-mask-image-to-coco-json-polygon-format
-    def create_sub_masks(self, mask_image, bg_color=(0, 0, 0)):
+    def get_rgb_sub_masks(self, mask_image_path, bg_color=(0, 0, 0)):
         """ Takes in a mask Image object and returns a dictionary of sub-masks,
             keyed by RGB color.
         """
-        width, height = mask_image.size
+        pil_image = Image.open(mask_image_path)
+        width, height = pil_image.size
 
         # Initialize a dictionary of sub-masks indexed by RGB colors
         sub_masks = {}
         for x in range(width):
             for y in range(height):
                 # Get the RGB values of the pixel
-                pixel = mask_image.getpixel((x, y))[:3]
+                pixel = pil_image.getpixel((x, y))[:3]
 
                 # If the pixel is not the same as the background color
                 if pixel != bg_color:
@@ -180,5 +180,5 @@ class ColorLabeler:
 
                     # Set the pixel value to 1 (default is 0), accounting for padding
                     sub_masks[pixel_str].putpixel((x + 1, y + 1), 1)
-
+        del pil_image  # make sure to free memory
         return sub_masks
