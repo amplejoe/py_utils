@@ -73,6 +73,9 @@ class ColorLabeler:
     def get_colors(self):
         return self.colors
 
+    def get_labels(self):
+        return list(self.colors.keys())
+
     def label_to_color(self, label):
         return self.colors[label]
 
@@ -81,6 +84,33 @@ class ColorLabeler:
             if v == color:
                 return k
         return "unknown"
+
+    def mask_from_contours(self, contours, width, height):
+        """ 1 channel mask from contour(s)
+        """
+        c_image = np.zeros((height, width, 1), np.uint8)
+        for c in contours:
+            # only draws contour outline
+            # cv2.drawContours(c_image, [contour], 0, (255,255,255), 3)
+            cv2.fillPoly(c_image, pts=[c], color=(255))
+        return c_image
+
+    def image_from_contours(self, contours, width, height, color=(255, 255, 255)):
+        """ 3 channel mask from contour(s) with custom color
+        """
+        c_image = np.zeros((height, width, 3), np.uint8)
+        for c in contours:
+            # only draws contour outline
+            # cv2.drawContours(c_image, [contour], 0, (255,255,255), 3)
+            cv2.fillPoly(c_image, pts=[c], color=color)
+        return c_image
+
+    def show_contours(self, contours, width, height):
+        img = self.image_from_contours(contours, width, height)
+        win_title = f"contours ({len(contours)})"
+        cv2.imshow(win_title, img)
+        cv2.waitKey(0)
+        cv2.destroyWindow(win_title)
 
     def to_bgr(self, color_value):
         return tuple(reversed(color_value))
@@ -91,6 +121,8 @@ class ColorLabeler:
             return: array of dicts({label, color, box})
         """
         cv_image = cv2.imread(image_path)
+        height = cv_image.shape[0]
+        width = cv_image.shape[1]
 
         # # CROP ANNOTS and detect COLORS
 
@@ -116,7 +148,8 @@ class ColorLabeler:
                 color_value = self.to_bgr(color_value)
             # box: tuple (x,y,w,h), color: tuple (r, g, b)
             results.append({'label': label, 'color': color_value,
-                            'box': cv2.boundingRect(c)})
+                            'height': height, 'width': width,
+                            'box': cv2.boundingRect(c), 'contour': c})
         del cv_image  # make sure to free memory
         return results
 
@@ -151,6 +184,7 @@ class ColorLabeler:
         # return the name of the color with the smallest distance
         return self.colorNames[minDist[1]]
 
+    # TODO: remove, it's crap!
     # https://stackoverflow.com/questions/54802089/convert-an-rgb-mask-image-to-coco-json-polygon-format
     def get_rgb_sub_masks(self, mask_image_path, bg_color=(0, 0, 0)):
         """ Takes in a mask Image object and returns a dictionary of sub-masks,
