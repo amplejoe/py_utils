@@ -114,6 +114,20 @@ def exists_file(*p):
     return to_path(*p).is_file()
 
 
+def to_path_url(*p):
+    """ Convert URL to pathlib path.
+        INFO: Use this with URLS, as to_path will raise an error with URLS
+    """
+    return pathlib.Path(*p)
+
+
+def to_path_url_str(*p):
+    """ Convert URL string to pathlib path.
+        Returns string representation.
+    """
+    return to_path_url(*p).as_posix()
+
+
 def to_path(*p):
     """ Convert string to pathlib path.
         INFO: Path resolving removes stuff like ".." with 'strict=False' the
