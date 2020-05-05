@@ -85,24 +85,36 @@ class ColorLabeler:
                 return k
         return "unknown"
 
+    def mask_from_contour(self, contour, width, height):
+        """ 3 channel mask from contour(s) with custom color
+        """
+        c_image = np.zeros((height, width, 1), np.uint8)
+        # only draws contour outline
+        # cv2.drawContours(c_image, [c], 0, (255), 1)
+        cv2.fillPoly(c_image, pts=[contour], color=(255))
+        return c_image
+
     def mask_from_contours(self, contours, width, height):
         """ 1 channel mask from contour(s)
         """
-        c_image = np.zeros((height, width, 1), np.uint8)
+        final_img = np.zeros((height, width, 1), np.uint8)
         for c in contours:
-            # only draws contour outline
-            # cv2.drawContours(c_image, [contour], 0, (255,255,255), 3)
-            cv2.fillPoly(c_image, pts=[c], color=(255))
-        return c_image
+            final_img += self.mask_from_contour(c, width, height)
+        return final_img
 
     def image_from_contours(self, contours, width, height, color=(255, 255, 255)):
+        final_img = np.zeros((height, width, 3), np.uint8)
+        for c in contours:
+            final_img += self.image_from_contour(c, width, height, color)
+        return final_img
+
+    def image_from_contour(self, contour, width, height, color=(255, 255, 255)):
         """ 3 channel mask from contour(s) with custom color
         """
         c_image = np.zeros((height, width, 3), np.uint8)
-        for c in contours:
-            # only draws contour outline
-            # cv2.drawContours(c_image, [contour], 0, (255,255,255), 3)
-            cv2.fillPoly(c_image, pts=[c], color=color)
+        # only draws contour outline
+        # cv2.drawContours(c_image, [c], 0, (255,255,255), 3)
+        cv2.fillPoly(c_image, pts=[contour], color=color)
         return c_image
 
     def show_contours(self, contours, width, height):
@@ -186,19 +198,21 @@ class ColorLabeler:
 
     # TODO: remove, it's crap!
     # https://stackoverflow.com/questions/54802089/convert-an-rgb-mask-image-to-coco-json-polygon-format
-    def get_rgb_sub_masks(self, mask_image_path, bg_color=(0, 0, 0)):
+    def get_rgb_sub_masks(self, cv_mask, bg_color=(0, 0, 0)):
         """ Takes in a mask Image object and returns a dictionary of sub-masks,
             keyed by RGB color.
         """
-        pil_image = Image.open(mask_image_path)
-        width, height = pil_image.size
+        # pil_image = Image.open(mask_image_path)
+        cv_mask = cv2.cvtColor(cv_mask, cv2.COLOR_BGR2RGB)
+        pil_mask = Image.fromarray(cv_mask)
+        width, height = pil_mask.size
 
         # Initialize a dictionary of sub-masks indexed by RGB colors
         sub_masks = {}
         for x in range(width):
             for y in range(height):
                 # Get the RGB values of the pixel
-                pixel = pil_image.getpixel((x, y))[:3]
+                pixel = pil_mask.getpixel((x, y))[:3]
 
                 # If the pixel is not the same as the background color
                 if pixel != bg_color:
@@ -214,5 +228,5 @@ class ColorLabeler:
 
                     # Set the pixel value to 1 (default is 0), accounting for padding
                     sub_masks[pixel_str].putpixel((x + 1, y + 1), 1)
-        del pil_image  # make sure to free memory
+        del pil_mask  # make sure to free memory
         return sub_masks
