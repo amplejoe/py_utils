@@ -493,6 +493,16 @@ def format_number(number, precision=3, width=3):
     return opts.format(number)
 
 
+def remove_invalid_file_chars(input):
+    """
+    Removes invalid chars (Windows) from string.
+    """
+    invalid = '<>:"/\\|?* '
+    for char in invalid:
+        input = input.replace(char, '')
+    return input
+
+
 class switch(object):
     """ This class provides switch functionality.
     """
