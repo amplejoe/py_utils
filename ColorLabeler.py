@@ -136,32 +136,41 @@ class ColorLabeler:
         height = cv_image.shape[0]
         width = cv_image.shape[1]
 
-        # # CROP ANNOTS and detect COLORS
+        # find contours
+        # https://docs.opencv.org/trunk/d4/d73/tutorial_py_contours_begin.html
 
         # blur the resized image slightly, then convert it to both
+        # blurred = cv2.GaussianBlur(cv_image, (5, 5), 0)
+
         # grayscale and the L*a*b* color spaces
-        blurred = cv2.GaussianBlur(cv_image, (5, 5), 0)
-        gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-        lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
-        thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY)[1]
+        lab = cv2.cvtColor(cv_image, cv2.COLOR_BGR2LAB)
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
         # find contours in the thresholded image
-        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
-        cnts = imutils.grab_contours(cnts)
+        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                cv2.CHAIN_APPROX_NONE)
+        # https://www.pyimagesearch.com/2016/02/01/opencv-center-of-contour/
+        # cnts = imutils.grab_contours(cnts)
 
         # loop over the contours
         # {box, color}
         results = []
         for c in cnts:
+
+            # approximation: approximate polygonic curves with specific precision
+            # https://www.youtube.com/watch?v=mVWQNeY1Pb4
+            # accuracy: 0.001
+            approx = cv2.approxPolyDP(c, 0.001 * cv2.arcLength(c, True), True)
+
             # detect the shape of the contour and label the color
-            label = self.label(lab, c)
+            label = self.label(lab, approx)
             color_value = self.label_to_color(label)
             if use_bgr:
                 color_value = self.to_bgr(color_value)
             # box: tuple (x,y,w,h), color: tuple (r, g, b)
             results.append({'label': label, 'color': color_value,
                             'height': height, 'width': width,
-                            'box': cv2.boundingRect(c), 'contour': c})
+                            'box': cv2.boundingRect(approx), 'contour': approx})
         del cv_image  # make sure to free memory
         return results
 
