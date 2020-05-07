@@ -146,9 +146,9 @@ class ColorLabeler:
         lab = cv2.cvtColor(cv_image, cv2.COLOR_BGR2LAB)
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
-        # find contours in the thresholded image
-        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
-                                cv2.CHAIN_APPROX_NONE)
+        # find contours in the thresholded image (ONLY use external here the others will break finding labels!!)
+        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+                                cv2.CHAIN_APPROX_SIMPLE)
         # https://www.pyimagesearch.com/2016/02/01/opencv-center-of-contour/
         # cnts = imutils.grab_contours(cnts)
 
@@ -204,38 +204,3 @@ class ColorLabeler:
                 minDist = (d, i)
         # return the name of the color with the smallest distance
         return self.colorNames[minDist[1]]
-
-    # TODO: remove, it's crap!
-    # https://stackoverflow.com/questions/54802089/convert-an-rgb-mask-image-to-coco-json-polygon-format
-    def get_rgb_sub_masks(self, cv_mask, bg_color=(0, 0, 0)):
-        """ Takes in a mask Image object and returns a dictionary of sub-masks,
-            keyed by RGB color.
-        """
-        # pil_image = Image.open(mask_image_path)
-        cv_mask = cv2.cvtColor(cv_mask, cv2.COLOR_BGR2RGB)
-        pil_mask = Image.fromarray(cv_mask)
-        width, height = pil_mask.size
-
-        # Initialize a dictionary of sub-masks indexed by RGB colors
-        sub_masks = {}
-        for x in range(width):
-            for y in range(height):
-                # Get the RGB values of the pixel
-                pixel = pil_mask.getpixel((x, y))[:3]
-
-                # If the pixel is not the same as the background color
-                if pixel != bg_color:
-                    # Check to see if we've created a sub-mask...
-                    pixel_str = str(pixel)
-                    sub_mask = sub_masks.get(pixel_str)
-                    if sub_mask is None:
-                        # Create a sub-mask (one bit per pixel) and add to the dictionary
-                        # Note: we add 1 pixel of padding in each direction
-                        # because the contours module doesn't handle cases
-                        # where pixels bleed to the edge of the image
-                        sub_masks[pixel_str] = Image.new('1', (width + 2, height + 2))
-
-                    # Set the pixel value to 1 (default is 0), accounting for padding
-                    sub_masks[pixel_str].putpixel((x + 1, y + 1), 1)
-        del pil_mask  # make sure to free memory
-        return sub_masks
