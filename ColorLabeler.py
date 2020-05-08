@@ -127,6 +127,30 @@ class ColorLabeler:
     def to_bgr(self, color_value):
         return tuple(reversed(color_value))
 
+    def debug_annotation(self, image_path):
+        cv_image = cv2.imread(image_path)
+        height = cv_image.shape[0]
+        width = cv_image.shape[1]
+        cv2.imshow(f"original: {image_path}", cv_image)
+        lab = cv2.cvtColor(cv_image, cv2.COLOR_BGR2LAB)
+        cv2.imshow(f"lab: {image_path}", lab)
+        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        cv2.imshow(f"gray: {image_path}", gray)
+        ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+        cv2.imshow(f"tresh: {image_path}", thresh)
+        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+                                cv2.CHAIN_APPROX_SIMPLE)
+        cv2.waitKey(0)
+        for i, c in enumerate(cnts):
+            approx = cv2.approxPolyDP(c, 0.001 * cv2.arcLength(c, True), True)
+            label = self.label(lab, approx)
+            mask = np.zeros(lab.shape[:2], dtype="uint8")
+            cv2.drawContours(mask, [c], -1, 255, -1)
+            mask = cv2.erode(mask, None, iterations=2)
+            cv2.imshow(f"annot {i}, label {label}", mask)
+            cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
     def find_image_objects(self, image_path, use_bgr=False):
         """ Extracts labels, colors, bounding boxes from an image.
             input: OpenCV image
