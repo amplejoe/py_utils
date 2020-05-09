@@ -24,11 +24,12 @@ import numpy as np
 import cv2
 from PIL import Image  # (pip install Pillow)
 import imutils
+import copy
 from . import utils
 
 COLORS_FILE = "colors.txt"
 LABELS_FILE = "labels.txt"
-
+BACKGROUND_LABELS = ["background", "bg"]
 
 class ColorLabeler:
     def __init__(self, init_file_path=None):
@@ -70,11 +71,18 @@ class ColorLabeler:
                 result_dict[f"{la}"] = tuple(cl)
         return result_dict
 
-    def get_colors(self):
-        return self.colors
+    def get_colors(self, include_bg=True):
+        ret = copy.deepcopy(self.colors)
+        if not include_bg:
+            for n in BACKGROUND_LABELS:
+                del ret[n]
+        return ret
 
-    def get_labels(self):
-        return list(self.colors.keys())
+    def get_labels(self, include_bg=True):
+        ret = list(self.colors.keys())
+        if not include_bg:
+            ret = [x for x in ret if x not in BACKGROUND_LABELS]
+        return ret
 
     def label_to_color(self, label):
         return self.colors[label]
