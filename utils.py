@@ -46,18 +46,26 @@ import subprocess
 # # USER INPUT RELATED
 
 
-def confirm(msg=None):
+def confirm(msg=None, default=None):
     """
     Ask user to enter Y or N (case-insensitive).
     :return: True if the answer is Y.
     :rtype: bool
     """
+    accepted_answers = ["y", "n"]
+    user_prompt = "[y/n]"
+    if default is not None and default in accepted_answers:
+        default = default.lower()
+        accepted_answers.append("")  # alows users to press enter
+        user_prompt = user_prompt.replace(default, default.upper())
     if msg is not None:
         print(msg)
-    answer = ""
-    while answer not in ["y", "n"]:
-        answer = input("[y/n]").lower()
-    return answer == "y"
+    answer = None
+    while answer not in accepted_answers:
+        answer = input(user_prompt).lower()
+        if answer == "":
+            answer = default
+    return (answer == "y")
 
 
 def confirm_delete_file(path):
