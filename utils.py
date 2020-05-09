@@ -99,13 +99,16 @@ def confirm_overwrite(path):
     confirmed = False
     if p.is_dir():
         confirmed = confirm_delete_path(path)
+        make_dir(path, True)
     elif p.is_file():
         confirmed = confirm_delete_file(path)
     else:
         confirmed = True
-    if not confirmed:
-        return False
-    return make_dir(path, True)
+        # check if a dir needs to be created
+        ext = get_file_ext(path)
+        if ext == '':
+            make_dir(path, True)
+    return confirmed
 
 
 # # FILE OPERATIONS
