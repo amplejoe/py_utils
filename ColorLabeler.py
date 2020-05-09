@@ -75,7 +75,8 @@ class ColorLabeler:
         ret = copy.deepcopy(self.colors)
         if not include_bg:
             for n in BACKGROUND_LABELS:
-                del ret[n]
+                if n in ret:
+                    del ret[n]
         return ret
 
     def get_labels(self, include_bg=True):
