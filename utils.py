@@ -68,11 +68,10 @@ def confirm(msg=None, default=None):
     return (answer == "y")
 
 
-def confirm_delete_file(path):
+def confirm_delete_file(path, default=None):
     p = to_path(path)
     if p.is_file():
-        print("File exists: %s, delete file?" % (path))
-        if (confirm()):
+        if (confirm("File exists: %s, delete file?" % (path), default)):
             remove_file(path)
         else:
             # user explicitly typed 'n'
@@ -80,11 +79,10 @@ def confirm_delete_file(path):
     return True
 
 
-def confirm_delete_path(path):
+def confirm_delete_path(path, default=None):
     p = to_path(path)
     if p.is_dir():
-        print("Path exists: %s, delete folder?" % (path))
-        if (confirm()):
+        if (confirm("Path exists: %s, delete folder?" % (path), default)):
             remove_dir(path)
         else:
             # user explicitly typed 'n'
@@ -92,16 +90,16 @@ def confirm_delete_path(path):
     return True
 
 
-def confirm_overwrite(path):
+def confirm_overwrite(path, default=None):
     """ Confirms overwriting a path or a file.
     """
     p = to_path(path)
     confirmed = False
     if p.is_dir():
-        confirmed = confirm_delete_path(path)
+        confirmed = confirm_delete_path(path, default)
         make_dir(path, True)
     elif p.is_file():
-        confirmed = confirm_delete_file(path)
+        confirmed = confirm_delete_file(path, default)
     else:
         confirmed = True
         # check if a dir needs to be created
