@@ -488,13 +488,28 @@ def find_most_frequent(List):
     return max(set(List), key=List.count)
 
 
+def read_json(path):
+    """ Loads a json file into a variable.
+    """
+    data = None
+    with open(path) as json_file:
+        data = json.load(json_file)
+    return data
+
+
 def get_attribute_from_json(path, attr):
     """ gets attribute from json file
     """
-    # get fps
-    with open(path) as json_file:
-        data = json.load(json_file)
-        return data[attr]
+    return read_json(path)[attr]
+
+
+def read_file_to_array(path):
+    """ Reads all lines of a file into an array.
+    """
+    arr = None
+    with open(path) as file:
+        arr = file.readlines()
+    return arr
 
 
 def format_number(number, precision=3, width=3):
