@@ -512,6 +512,43 @@ def read_file_to_array(path):
     return arr
 
 
+def find_similar_folder(target_path, folder_list):
+    """ Finds similar subfolder name in a directory from a list of names.
+        Parameters
+        ----------
+        target_path : string
+            path that should be searched
+        folder_list : list
+            list of potential folder names (will also partially match)
+    """
+    all_subdirs = get_immediate_subdirs(target_path, False)
+    for sdir in all_subdirs:
+        for f in folder_list:
+            if (sdir in f) or (f in sdir):
+                return sdir
+    return None
+
+
+def prompt_folder_confirm(target_path, folder_list, name):
+    """ Prompts user to confirm or enter a folder name.
+    """
+    all_subdirs = get_immediate_subdirs(target_path, False)
+    print(f"Finding '{name}' folder:")
+    print(f"Found {len(all_subdirs)} directories: {all_subdirs}")
+    sim_folder = find_similar_folder(target_path, folder_list)
+    if sim_folder is not None:
+        print(f"Suggested dir: '{sim_folder}' ({name})")
+        if not confirm("Is this correct?", "y"):
+            sim_folder = None
+    if sim_folder is None:
+        while sim_folder not in all_subdirs:
+            sim_folder = input(f"Please enter {name} dir: ")
+            if sim_folder not in all_subdirs:
+                print("Dir not found, please try again (Ctrl+C to quit).")
+    print(f"Using {sim_folder} ({name}).")
+    return sim_folder
+
+
 def format_number(number, precision=3, width=3):
     opts = "{:%s.%sf}" % (str(width), str(precision))
     return opts.format(number)
