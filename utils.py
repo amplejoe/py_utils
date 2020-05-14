@@ -497,6 +497,16 @@ def read_json(path):
     return data
 
 
+def read_json_arr(json_path):
+    """ Load json as array of lines
+    """
+    lines = []
+    with open(json_path, 'r') as f:
+        for line in f:
+            lines.append(json.loads(line))
+    return lines
+
+
 def get_attribute_from_json(path, attr):
     """ gets attribute from json file
     """

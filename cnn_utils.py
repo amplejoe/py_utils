@@ -2,6 +2,7 @@ from tqdm import tqdm
 from . import utils
 import copy
 import itertools
+import functools
 
 # detectron2 imports
 from detectron2.data.datasets import register_coco_instances
@@ -33,23 +34,50 @@ def cart_product_dict(**kwargs):
         yield dict(zip(keys, instance))
 
 
+def dump_cfg(cfg):
+    if not utils.exists_dir(cfg.OUTPUT_DIR):
+        print("Cannot dump cfg, dir does not exists!")
+        return
+    cfg_out = utils.join_paths_str(cfg.OUTPUT_DIR, "config.yaml")
+    with open(cfg_out, "w") as co:
+        co.write(cfg.dump())
+
+
 def params_list_to_dict(params):
     params_dict = {}
     for item in params:
-        # evaluate items if flag is set
-        if "eval" in item and item["eval"]:
+        # evaluate items if 'eval' flag is set
+        if is_key_enabled(item, "eval"):
             item["values"] = [eval(i) for i in item["values"]]
         params_dict[item["detectron_field"]] = item["values"]
     return params_dict
 
 
-def set_d2_cfg_field(cfg, setting, evaluate=False):
+def is_key_set(dict, key):
+    return key in dict and dict[key] is not None
+
+
+def is_key_enabled(dict, key):
+    return key in dict and dict[key]
+
+
+# src: https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def get_d2_cfg_attr(cfg, attr, *args):
+    def _getattr(cfg, attr):
+        return getattr(cfg, attr, *args)
+    return functools.reduce(_getattr, [cfg] + attr.split('.'))
+
+
+# src: https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def set_d2_cfg_attr(cfg, setting, evaluate=False):
+    """ Recudsively set attribute for d2 cfg
+    """
     field = setting["detectron_field"]
     value = setting["value"]
     if evaluate:
         value = eval(value)
-    setattr(cfg, field, value)
-    # print(getattr(cfg, field, value))
+    pre, _, post = field.rpartition('.')
+    return setattr(get_d2_cfg_attr(cfg, pre) if pre else cfg, post, value)
 
 
 def create_d2_cfgs(ds_settings, d2_configs_root):
@@ -74,30 +102,32 @@ def create_d2_cfgs(ds_settings, d2_configs_root):
         cnn_cfgs[cnn["name"]] = []
         base_cfg = get_cfg()
 
-        base_cfg.merge_from_file(
-            utils.join_paths_str(d2_configs_root, cnn["cfg_url"])
-        )
+        if is_key_set(cnn, "cfg_url"):
+            base_cfg.merge_from_file(
+                utils.join_paths_str(d2_configs_root, cnn["cfg_url"])
+            )
 
         base_cfg.DATASETS.TRAIN = (f"{ds_settings['ds_name']}_train",)
         base_cfg.DATASETS.TEST = (f"{ds_settings['ds_name']}_val", )
-        base_cfg.MODEL.WEIGHTS = cnn["weight_url"]
+        if is_key_set(cnn, "weight_url"):
+            base_cfg.MODEL.WEIGHTS = cnn["weight_url"]
         base_cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
 
         for setting in global_settings:
-            set_d2_cfg_field(base_cfg, setting, "eval" in setting and setting["eval"])
+            set_d2_cfg_attr(base_cfg, setting, is_key_enabled(setting, "eval"))
 
         params_dict = params_list_to_dict(ds_settings["parameters"])
 
         # get cartesian product of all parameters
         param_permuts = list(cart_product_dict(**params_dict))
 
-        # create configs
-        cfg = copy.deepcopy(base_cfg)
         for perm in param_permuts:
+            # create configs
+            cfg = copy.deepcopy(base_cfg)
 
             out_dir_name = ""
             for d2_key, val in perm.items():
-                set_d2_cfg_field(cfg, {"detectron_field": d2_key, "value": val})
+                set_d2_cfg_attr(cfg, {"detectron_field": d2_key, "value": val})
                 parts = d2_key.split(".")
                 field = parts[1] if len(parts) > 1 else parts[0]
                 out_dir_name += f"{field}_{val}" if out_dir_name == "" else f"_{field}_{val}"
@@ -105,9 +135,7 @@ def create_d2_cfgs(ds_settings, d2_configs_root):
             out_path = utils.join_paths_str(ds_settings["ds_path"], OUT_DIR_ROOT, out_dir_name)
 
             cfg.OUTPUT_DIR = out_path
-
             cnn_cfgs[cnn["name"]].append(cfg)
-
     return cnn_cfgs
 
 
