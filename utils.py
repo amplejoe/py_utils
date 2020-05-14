@@ -546,7 +546,7 @@ def prompt_folder_confirm(target_path, folder_list, name):
             if sim_folder not in all_subdirs:
                 print("Dir not found, please try again (Ctrl+C to quit).")
     print(f"Using {sim_folder} ({name}).")
-    return sim_folder
+    return join_paths_str(target_path, sim_folder)
 
 
 def format_number(number, precision=3, width=3):
