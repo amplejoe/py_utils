@@ -44,6 +44,8 @@ def dump_cfg(cfg):
 
 
 def params_list_to_dict(params):
+    """ Creates {D2_param -> [v1, v2, ...]}
+    """
     params_dict = {}
     for item in params:
         # evaluate items if 'eval' flag is set
@@ -80,46 +82,62 @@ def set_d2_cfg_attr(cfg, setting, evaluate=False):
     return setattr(get_d2_cfg_attr(cfg, pre) if pre else cfg, post, value)
 
 
-def create_d2_cfgs(ds_settings, d2_configs_root):
+def register_datasets(ds_info):
+    """ WARNING: don't do this multiple times
+    """
+    img_folder = utils.prompt_folder_confirm(ds_info['ds_path'], IN_IMG_FOLDERS, 'images')
+    register_coco_instances(f"{ds_info['ds_name']}_train", {}, ds_info["ds_train"], img_folder)
+    register_coco_instances(f"{ds_info['ds_name']}_val", {}, ds_info["ds_val"], img_folder)
+    register_coco_instances(f"{ds_info['ds_name']}_test", {}, ds_info["ds_test"], img_folder)
+
+
+def load_d2_cfg(ds_info, config_file):
+    config = get_cfg()
+    config.merge_from_file(
+        config_file
+    )
+    return config
+
+
+def create_d2_cfgs(ds_info, d2_configs_root, cnns, parameters):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
     """
-    img_folder = utils.prompt_folder_confirm(ds_settings['ds_path'], IN_IMG_FOLDERS, 'images')
 
-    coco_ds = utils.read_json(ds_settings["ds_train"])
+    coco_ds = utils.read_json(ds_info["ds_train"])
     num_classes = len(coco_ds["categories"])
 
-    # register datasets
-    register_coco_instances(f"{ds_settings['ds_name']}_train", {}, ds_settings["ds_train"], img_folder)
-    register_coco_instances(f"{ds_settings['ds_name']}_val", {}, ds_settings["ds_val"], img_folder)
-    register_coco_instances(f"{ds_settings['ds_name']}_test", {}, ds_settings["ds_test"], img_folder)
-
-    script_dir = utils.get_script_dir()
-    global_settings_path = utils.join_paths_str(script_dir, GLOBAL_SETTINGS)
-    global_settings = utils.read_json(global_settings_path)
+    # script_dir = utils.get_script_dir()
+    # global_settings_path = utils.join_paths_str(script_dir, GLOBAL_SETTINGS)
+    # global_settings = utils.read_json(global_settings_path)
 
     cnn_cfgs = {}
-    for cnn in ds_settings["cnns"]:
+    for cnn in cnns:
         cnn_cfgs[cnn["name"]] = []
         base_cfg = get_cfg()
 
+        # D2 settings
         if is_key_set(cnn, "cfg_url"):
             base_cfg.merge_from_file(
                 utils.join_paths_str(d2_configs_root, cnn["cfg_url"])
             )
+        # my base settings
+        base_cfg.merge_from_file(
+            ds_info["base_cfg"]
+        )
 
-        base_cfg.DATASETS.TRAIN = (f"{ds_settings['ds_name']}_train",)
-        base_cfg.DATASETS.TEST = (f"{ds_settings['ds_name']}_val", )
+        base_cfg.DATASETS.TRAIN = (f"{ds_info['ds_name']}_train",)
+        base_cfg.DATASETS.TEST = (f"{ds_info['ds_name']}_val", )
+        #  D2 weights
         if is_key_set(cnn, "weight_url"):
             base_cfg.MODEL.WEIGHTS = cnn["weight_url"]
         base_cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
 
-        for setting in global_settings:
-            set_d2_cfg_attr(base_cfg, setting, is_key_enabled(setting, "eval"))
-
-        params_dict = params_list_to_dict(ds_settings["parameters"])
+        # for setting in global_settings:
+        #     set_d2_cfg_attr(base_cfg, setting, is_key_enabled(setting, "eval"))
+        # params_dict = params_list_to_dict(parameters)
 
         # get cartesian product of all parameters
-        param_permuts = list(cart_product_dict(**params_dict))
+        param_permuts = list(cart_product_dict(**parameters))
 
         for perm in param_permuts:
             # create configs
@@ -132,14 +150,14 @@ def create_d2_cfgs(ds_settings, d2_configs_root):
                 field = parts[1] if len(parts) > 1 else parts[0]
                 out_dir_name += f"{field}_{val}" if out_dir_name == "" else f"_{field}_{val}"
 
-            out_path = utils.join_paths_str(ds_settings["ds_path"], OUT_DIR_ROOT, out_dir_name)
+            out_path = utils.join_paths_str(ds_info["ds_path"], OUT_DIR_ROOT, cnn["name"], out_dir_name)
 
             cfg.OUTPUT_DIR = out_path
             cnn_cfgs[cnn["name"]].append(cfg)
     return cnn_cfgs
 
 
-def get_ds_settings(ds_path):
+def get_ds_info(ds_path, base_cfg=None):
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info = {}
     dataset_info["ds_name"] = ds_name
@@ -148,7 +166,9 @@ def get_ds_settings(ds_path):
     dataset_info["ds_train"] = utils.join_paths_str(ds_path, COCO_TRAIN)
     dataset_info["ds_val"] = utils.join_paths_str(ds_path, COCO_VAL)
     dataset_info["ds_test"] = utils.join_paths_str(ds_path, COCO_TEST)
-    settings_file = utils.join_paths_str(dataset_info["ds_path"], SETTINGS_FILE)
-    ds_settings = utils.read_json(settings_file)
-    ds_settings = {**dataset_info, **ds_settings}  # merge dicts
-    return ds_settings
+    if base_cfg:
+        dataset_info["base_cfg"] = base_cfg
+    # settings_file = utils.join_paths_str(dataset_info["ds_path"], SETTINGS_FILE)
+    # ds_settings = utils.read_json(settings_file)
+    # ds_settings = {**dataset_info, **ds_settings}  # merge dicts
+    return dataset_info
