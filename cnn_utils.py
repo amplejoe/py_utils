@@ -198,6 +198,12 @@ def create_d2_cfgs(ds_info, script_dir):
     num_images = len(utils.get_file_paths(ds_info["image_path"], *DEFAULT_IMG_EXT))
     # print(f"#images: {num_images}")
 
+    # ds pixel mean, pixel std
+    px_mean, px_std = calc_pixel_mean_std(ds_info)
+
+    # get cartesian product of all parameters
+    param_permuts = list(cart_product_dict(**ds_info["cfg"]["params"]))
+
     cnn_cfgs = {}
     for cnn in ds_info["cfg"]["cnns"]:
         cnn_cfgs[cnn["name"]] = []
@@ -220,17 +226,13 @@ def create_d2_cfgs(ds_info, script_dir):
         # base_cfg.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128  # faster, good enough for a toy dataset
         base_cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
 
-        # ds pixel mean, pixel std
-        px_mean, px_std = calc_pixel_mean_std(ds_info)
+        # set pixel mean and std
         base_cfg.MODEL.PIXEL_MEAN = px_mean
         base_cfg.MODEL.PIXEL_STD = px_std
 
         # set max_iter to resemple ds_info['cfg']['training']['num_epochs']
         one_epoch = num_images / base_cfg.SOLVER.IMS_PER_BATCH
         base_cfg.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
-
-        # get cartesian product of all parameters
-        param_permuts = list(cart_product_dict(**ds_info["cfg"]["params"]))
 
         for perm in param_permuts:
             # create configs
