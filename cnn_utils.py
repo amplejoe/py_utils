@@ -5,6 +5,7 @@ import itertools
 import functools
 import cv2
 import numpy as np
+import math
 
 # detectron2 imports
 from detectron2.data.datasets import register_coco_instances
@@ -12,17 +13,8 @@ from detectron2.config import get_cfg
 import ctypes
 ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
-SETTINGS_FILE = "settings.json"
-IN_IMG_FOLDERS = ['img', 'imag', 'frame', 'pic', 'phot']
-IN_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
-
-COCO = "coco.json"
-COCO_TRAIN = "coco_train.json"
-COCO_VAL = "coco_val.json"
-COCO_TEST = "coco_test.json"
-GLOBAL_SETTINGS = "config.json"
-
-OUT_DIR_ROOT = "models"
+DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
+DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
 
 
 # pass a list of dicts (default)
@@ -102,11 +94,18 @@ def load_d2_cfg(ds_info, config_file):
 
 
 # based on https://gist.github.com/jdhao/9a86d4b9e4f79c5330d54de991461fd6
-def calc_pixel_mean_std(ds_info, num_channels=3):
+def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
     """ Calculates the pixel mean of the input dataset in BGR format.
-        Return : tuple(list[bgr_mean], list[bgr_std])
+        Parameters
+        ----------
+        ds_info : dict
+            contains property 'img_path', which is the DS image root
+        img_ext : list of str
+            image extensions as a list, e.g. [".jpg", ".png"]
+        Return : tuple of list of float
+            (list) bgr_mean, (list) bgr_std
     """
-    img_paths = utils.get_file_paths(ds_info['image_path'], *IN_IMG_EXT)
+    img_paths = utils.get_file_paths(ds_info['image_path'], *img_ext)
     channel_sum = np.zeros(num_channels)
     channel_sum_squared = np.zeros(num_channels)
 
@@ -133,8 +132,18 @@ def calc_pixel_mean_std(ds_info, num_channels=3):
     return ([float(round(x, 3)) for x in list(bgr_mean)]), [float(round(x, 3)) for x in list(bgr_std)]
 
 
-def calc_min_max_pixel_vals(ds_info, num_channels=3):
-    img_paths = utils.get_file_paths(ds_info['image_path'], *IN_IMG_EXT)
+def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3):
+    """ Calculates the pixel min and max pixel values of the input dataset in BGR format.
+        Parameters
+        ----------
+        ds_info : dict
+            contains property 'img_path', which is the DS image root
+        img_ext : list of str
+            image extensions as a list, e.g. [".jpg", ".png"]
+        Return : tuple of list of float
+            (list) min_px_values, (list) max_px_values
+    """
+    img_paths = utils.get_file_paths(ds_info['image_path'], *in_img_ext)
     max_total = np.zeros((num_channels, 1))
     min_total = np.zeros((num_channels, 1))
     for file in tqdm(img_paths, desc="Calculating min max values"):
@@ -175,27 +184,36 @@ def calc_min_max_pixel_vals(ds_info, num_channels=3):
 #     return list(mean_total.flatten()), list(std_total.flatten())
 
 
-def create_d2_cfgs(ds_info, d2_configs_root, cnns, parameters):
+def create_d2_cfgs(ds_info, script_dir):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
+        Parameters
+        ----------
+
+        script_dir : str
+            path of executing script
     """
 
     coco_ds = utils.read_json(ds_info["ds_train"])
     num_classes = len(coco_ds["categories"])
 
     cnn_cfgs = {}
-    for cnn in cnns:
+    for cnn in ds_info["cfg"]["cnns"]:
         cnn_cfgs[cnn["name"]] = []
         base_cfg = get_cfg()
 
-        # D2 config
-        if is_key_set(cnn, "cfg_url"):
-            base_cfg.merge_from_file(
-                utils.join_paths_str(d2_configs_root, cnn["cfg_url"])
-            )
-        # my base config (e.g. base_configs/cfg_lz.yaml)
-        base_cfg.merge_from_file(
-            ds_info["base_cfg"]
-        )
+        # # BASE YAML configs
+        # D2 config files
+        # (custom cfgs should be last in list as not to override settings by d2 base cfgs)
+        if is_key_set(cnn, "cfg_urls"):
+            for c in cnn["cfg_urls"]:
+                base_cfg.merge_from_file(
+                    utils.join_paths_str(script_dir, c)
+                )
+        # custom base config (e.g. base_configs/cfg_lz.yaml)
+        # if is_key_set(ds_info, "base_cfg"):
+        #     base_cfg.merge_from_file(
+        #         ds_info["base_cfg"]
+        #     )
 
         base_cfg.DATASETS.TRAIN = (f"{ds_info['ds_name']}_train",)
         base_cfg.DATASETS.TEST = (f"{ds_info['ds_name']}_val", )
@@ -210,7 +228,7 @@ def create_d2_cfgs(ds_info, d2_configs_root, cnns, parameters):
         base_cfg.MODEL.PIXEL_STD = px_std
 
         # get cartesian product of all parameters
-        param_permuts = list(cart_product_dict(**parameters))
+        param_permuts = list(cart_product_dict(**ds_info["cfg"]["params"]))
 
         for perm in param_permuts:
             # create configs
@@ -223,23 +241,37 @@ def create_d2_cfgs(ds_info, d2_configs_root, cnns, parameters):
                 field = parts[1] if len(parts) > 1 else parts[0]
                 out_dir_name += f"{field}_{val}" if out_dir_name == "" else f"_{field}_{val}"
 
-            out_path = utils.join_paths_str(ds_info["ds_path"], OUT_DIR_ROOT, cnn["name"], out_dir_name)
-
+            out_root = ds_info["cfg"]["training"]["output_root"]
+            out_path = utils.join_paths_str(ds_info["ds_path"], out_root, cnn["name"], out_dir_name)
             cfg.OUTPUT_DIR = out_path
+
+            # checkpointing (save checkpoint after 'checkpoint_perc' * MAX_ITER)
+            cfg.SOLVER.CHECKPOINT_PERIOD = int(math.ceil(cfg.SOLVER.MAX_ITER * ds_info["cfg"]["training"]["checkpoint_perc"]))
+
             cnn_cfgs[cnn["name"]].append(cfg)
     return cnn_cfgs
 
 
-def get_ds_info(ds_path, base_cfg=None):
+def get_ds_info(ds_path, ds_cfg):
+    """ Creat dataset info dict with various fields used within cnn_utils.
+        Parameters
+        ----------
+        ds_path : str
+            path to dataset root (should contain COCO files)
+        ds_cfg : dict
+            dict containing individual DS settings, as accessed below
+        return : dict
+            dataset info
+
+    """
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info = {}
+    dataset_info["cfg"] = ds_cfg
     dataset_info["ds_name"] = ds_name
     dataset_info["ds_path"] = ds_path
-    dataset_info["ds_full"] = utils.join_paths_str(ds_path, COCO)
-    dataset_info["ds_train"] = utils.join_paths_str(ds_path, COCO_TRAIN)
-    dataset_info["ds_val"] = utils.join_paths_str(ds_path, COCO_VAL)
-    dataset_info["ds_test"] = utils.join_paths_str(ds_path, COCO_TEST)
-    if base_cfg:
-        dataset_info["base_cfg"] = base_cfg
-    dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], IN_IMG_FOLDERS, 'images')
+    dataset_info["ds_full"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["full"])
+    dataset_info["ds_train"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["train"])
+    dataset_info["ds_val"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["val"])
+    dataset_info["ds_test"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["test"])
+    dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
     return dataset_info
