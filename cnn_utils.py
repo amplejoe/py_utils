@@ -210,6 +210,10 @@ def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3)
 #
 #     return list(mean_total.flatten()), list(std_total.flatten())
 
+def iter_to_epoch(iteration, data_size, cfg):
+    one_epoch = data_size / cfg.SOLVER.IMS_PER_BATCH
+    return iteration / one_epoch
+
 
 def create_d2_cfgs(ds_info, script_dir):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
@@ -222,7 +226,7 @@ def create_d2_cfgs(ds_info, script_dir):
 
     coco_ds = utils.read_json(ds_info["ds_train"])
     num_classes = len(coco_ds["categories"])
-    num_images = len(utils.get_file_paths(ds_info["image_path"], *DEFAULT_IMG_EXT))
+
     # print(f"#images: {num_images}")
 
     # ds pixel mean, pixel std
@@ -258,7 +262,7 @@ def create_d2_cfgs(ds_info, script_dir):
         base_cfg.MODEL.PIXEL_STD = px_std
 
         # set max_iter to resemple ds_info['cfg']['training']['num_epochs']
-        one_epoch = num_images / base_cfg.SOLVER.IMS_PER_BATCH
+        one_epoch = ds_info["num_images"] / base_cfg.SOLVER.IMS_PER_BATCH
         base_cfg.SOLVER.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
 
         for perm in param_permuts:
@@ -305,4 +309,5 @@ def get_ds_info(ds_path, ds_cfg):
     dataset_info["ds_val"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["val"])
     dataset_info["ds_test"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["test"])
     dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
+    dataset_info["num_images"] = len(utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT))
     return dataset_info

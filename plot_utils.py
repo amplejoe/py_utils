@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
 from . import utils
+from . import cnn_utils
+
 # import seaborn as sns
 # sns.set(style="whitegrid")
 matplotlib.use('TkAgg')  # necessary to prevent plots not showing,
@@ -23,19 +25,22 @@ def test_plot():
 
 
 # orig src: https://gist.github.com/ortegatron/c0dad15e49c2b74de8bb09a5615d9f6b#file-mytrainer-py
-def save_train_val_loss(model_folder, show=False):
+def save_train_val_loss(model_folder, ds_info, config, show=False):
     experiment_metrics = utils.read_json_arr(model_folder + '/metrics.json')
 
     # change fig size before 'plot'
     plt.figure(figsize=(4, 3), dpi=300)
+    # plot (epochs instead of just iterations)
     plt.plot(
-        [x['iteration'] for x in experiment_metrics],
+        [cnn_utils.iter_to_epoch(x['iteration'], ds_info['num_images'], config) for x in experiment_metrics],
         [x['total_loss'] for x in experiment_metrics])
     plt.plot(
-        [x['iteration'] for x in experiment_metrics if 'validation_loss' in x],
+        [cnn_utils.iter_to_epoch(x['iteration'], ds_info['num_images'], config) for x in experiment_metrics if 'validation_loss' in x],
         [x['validation_loss'] for x in experiment_metrics if 'validation_loss' in x])
-    plt.legend(['total_loss', 'validation_loss'], loc='upper left')
+    plt.legend(['training', 'validation'], loc='upper right')
     out_path = utils.join_paths_str(model_folder, "train_val_loss.jpg")
+    plt.xlabel("epoch")
+    plt.ylabel("loss (smooth-L1)")
     plt.savefig(out_path)
     if show:
         plt.show()
