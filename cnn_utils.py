@@ -16,7 +16,7 @@ ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
 DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
 DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
-PIXEL_MEAN_FILE = "pixel_means.csv"
+PIXEL_MEAN_FILE = "pixel_means_train.csv"
 
 
 # pass a list of dicts (default)
@@ -97,7 +97,7 @@ def load_d2_cfg(config_file):
 
 # based on https://gist.github.com/jdhao/9a86d4b9e4f79c5330d54de991461fd6
 def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
-    """ Calculates the pixel mean of the input dataset in BGR format.
+    """ Calculates the pixel mean of the training dataset in BGR format.
         Parameters
         ----------
         ds_info : dict
@@ -122,12 +122,13 @@ def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
             print(f"Loaded pixel means from file: {mean_file_url}")
             return data_dict["color_mean"], data_dict["std_mean"]
 
-    img_paths = utils.get_file_paths(ds_info['image_path'], *img_ext)
+    # img_paths = utils.get_file_paths(ds_info['image_path'], *img_ext)
+    train_img_paths = [utils.join_paths_str(ds_info['image_path'], x["file_name"]) for x in ds_info["train_images_json"]]
     channel_sum = np.zeros(num_channels)
     channel_sum_squared = np.zeros(num_channels)
 
     pixel_num = 0  # store all pixel number in the dataset
-    for file in tqdm(img_paths, desc="Calculating DS pixel means"):
+    for file in tqdm(train_img_paths, desc="Calculating DS pixel means"):
         im = cv2.imread(file)  # image in M*N*CHANNEL_NUM shape, channel in BGR order
         im = im/255.0
         pixel_num += (im.size/num_channels)
@@ -160,7 +161,7 @@ def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
 
 
 def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3):
-    """ Calculates the pixel min and max pixel values of the input dataset in BGR format.
+    """ Calculates the pixel min and max pixel values of the training dataset in BGR format.
         Parameters
         ----------
         ds_info : dict
@@ -170,10 +171,12 @@ def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3)
         Return : tuple of list of float
             (list) min_px_values, (list) max_px_values
     """
-    img_paths = utils.get_file_paths(ds_info['image_path'], *in_img_ext)
+
+    # img_paths = utils.get_file_paths(ds_info['image_path'], *in_img_ext)
+    train_img_paths = [utils.join_paths_str(ds_info['image_path'], x["file_name"]) for x in ds_info["train_images_json"]]
     max_total = np.zeros((num_channels, 1))
     min_total = np.zeros((num_channels, 1))
-    for file in tqdm(img_paths, desc="Calculating min max values"):
+    for file in tqdm(train_img_paths, desc="Calculating min max values"):
         image = cv2.imread(file)
         # max, min channel values
         # tmp = [0] * num_channels
@@ -227,7 +230,7 @@ def create_d2_cfgs(ds_info, script_dir):
     coco_ds = utils.read_json(ds_info["ds_train"])
     num_classes = len(coco_ds["categories"])
 
-    # print(f"#images: {num_images}")
+    # print(f"#images: {num_train_images}")
 
     # ds pixel mean, pixel std
     px_mean, px_std = calc_pixel_mean_std(ds_info)
@@ -262,7 +265,7 @@ def create_d2_cfgs(ds_info, script_dir):
         base_cfg.MODEL.PIXEL_STD = px_std
 
         # set max_iter to resemple ds_info['cfg']['training']['num_epochs']
-        one_epoch = ds_info["num_images"] / base_cfg.SOLVER.IMS_PER_BATCH
+        one_epoch = ds_info["num_train_images"] / base_cfg.SOLVER.IMS_PER_BATCH
         base_cfg.SOLVER.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
 
         for perm in param_permuts:
@@ -309,5 +312,7 @@ def get_ds_info(ds_path, ds_cfg):
     dataset_info["ds_val"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["val"])
     dataset_info["ds_test"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["test"])
     dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
-    dataset_info["num_images"] = len(utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT))
+    dataset_info["num_total_images"] = len(utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT))
+    dataset_info["train_images_json"] = utils.get_attribute_from_json(dataset_info["ds_train"], "images")
+    dataset_info["num_train_images"] = len(dataset_info["train_images_json"])
     return dataset_info
