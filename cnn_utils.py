@@ -6,6 +6,7 @@ import functools
 import cv2
 import numpy as np
 import math
+import csv
 
 # detectron2 imports
 from detectron2.data.datasets import register_coco_instances
@@ -15,6 +16,7 @@ ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
 DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
 DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
+PIXEL_MEAN_FILE = "pixel_means.csv"
 
 
 # pass a list of dicts (default)
@@ -85,7 +87,7 @@ def register_datasets(ds_info):
     register_coco_instances(f"{ds_info['ds_name']}_test", {}, ds_info["ds_test"], ds_info['image_path'])
 
 
-def load_d2_cfg(ds_info, config_file):
+def load_d2_cfg(config_file):
     config = get_cfg()
     config.merge_from_file(
         config_file
@@ -105,12 +107,27 @@ def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
         Return : tuple of list of float
             (list) bgr_mean, (list) bgr_std
     """
+
+    # load potentially saved DS mean file
+    mean_file_url = utils.join_paths_str(ds_info['ds_path'], PIXEL_MEAN_FILE)
+    if utils.exists_file(mean_file_url):
+        with open(mean_file_url, newline='') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            headers = next(csv_reader)
+            data_rows = [row for row in csv_reader]
+            data_dict = {}
+            for row in data_rows:
+                data = [float(x) for i, x in enumerate(row) if i > 0]
+                data_dict[row[0]] = data
+            print(f"Loaded pixel means from file: {mean_file_url}")
+            return data_dict["color_mean"], data_dict["std_mean"]
+
     img_paths = utils.get_file_paths(ds_info['image_path'], *img_ext)
     channel_sum = np.zeros(num_channels)
     channel_sum_squared = np.zeros(num_channels)
 
     pixel_num = 0  # store all pixel number in the dataset
-    for file in tqdm(img_paths, desc="Calculating DS pixel mean"):
+    for file in tqdm(img_paths, desc="Calculating DS pixel means"):
         im = cv2.imread(file)  # image in M*N*CHANNEL_NUM shape, channel in BGR order
         im = im/255.0
         pixel_num += (im.size/num_channels)
@@ -128,8 +145,18 @@ def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
     # rgb_mean = list(bgr_mean)[::-1]
     # rgb_std = list(bgr_std)[::-1]
 
+    color_mean = [float(round(x, 3)) for x in list(bgr_mean)]
+    std_mean = [float(round(x, 3)) for x in list(bgr_std)]
+
+    with open(mean_file_url, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile, delimiter=',')
+        csv_writer.writerow(['type', 'b', 'g', 'r'])
+        csv_writer.writerow(['color_mean'] + color_mean)
+        csv_writer.writerow(['std_mean'] + std_mean)
+        print(f"Saved pixel means: {mean_file_url}")
+
     # limit to 3 decimals
-    return ([float(round(x, 3)) for x in list(bgr_mean)]), [float(round(x, 3)) for x in list(bgr_std)]
+    return color_mean, std_mean
 
 
 def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3):

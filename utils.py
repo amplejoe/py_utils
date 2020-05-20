@@ -420,8 +420,13 @@ def safe_div(x, y):
     return x / y
 
 
-def getTimeStamp():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+def getTimeStamp(file_name_friendly=False):
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if file_name_friendly:
+        ts = ts.replace(" ", "-")
+        return remove_invalid_file_chars(ts)
+    else:
+        return ts
 
 
 def get_current_dir():
@@ -520,6 +525,11 @@ def read_file_to_array(path):
     with open(path) as file:
         arr = file.readlines()
     return arr
+
+
+def write_string_to_file(str_to_write, file_path):
+    with open(file_path, 'w', newline='') as file:
+        file.write(str_to_write)
 
 
 def find_similar_folder(target_path, folder_list):
