@@ -210,8 +210,8 @@ def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3)
 #
 #     return list(mean_total.flatten()), list(std_total.flatten())
 
-def iter_to_epoch(iteration, data_size, cfg):
-    one_epoch = data_size / cfg.SOLVER.IMS_PER_BATCH
+def iter_to_epoch(iteration, data_size, batch_size):
+    one_epoch = data_size / batch_size
     return iteration / one_epoch
 
 
