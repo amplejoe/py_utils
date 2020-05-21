@@ -266,6 +266,7 @@ def create_d2_cfgs(ds_info, script_dir):
 
         # set max_iter to resemple ds_info['cfg']['training']['num_epochs']
         one_epoch = ds_info["num_train_images"] / base_cfg.SOLVER.IMS_PER_BATCH
+        base_cfg.TEST.EVAL_PERIOD = int(one_epoch)  # validate after on epoch
         base_cfg.SOLVER.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
 
         for perm in param_permuts:
