@@ -29,8 +29,8 @@ def test_plot():
 def save_train_val_loss(model_folder, num_train_images, batch_size, out_file="train_val_loss.jpg", plot_epoch=True, show=False):
     experiment_metrics = utils.read_json_arr(model_folder + '/metrics.json')
 
-    # change fig size before 'plot'
-    plt.figure(figsize=(4, 3), dpi=300, num=out_file) #.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+    # change fig size before 'plot'                    # force integer:
+    plt.figure(figsize=(4, 3), dpi=300, num=out_file)  # .gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
     total_x_axis = [cnn_utils.iter_to_epoch(x['iteration'], num_train_images, batch_size) for x in experiment_metrics]
     val_x_axis = [cnn_utils.iter_to_epoch(x['iteration'], num_train_images, batch_size) for x in experiment_metrics if 'validation_loss' in x]

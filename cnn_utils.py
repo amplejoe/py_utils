@@ -218,6 +218,11 @@ def iter_to_epoch(iteration, data_size, batch_size):
     return iteration / one_epoch
 
 
+def get_last_n_metrics(model_folder, n=10):
+    experiment_metrics = utils.read_json_arr(model_folder + '/metrics.json')
+    return experiment_metrics[-n:]
+
+
 def create_d2_cfgs(ds_info, script_dir):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
         Parameters
