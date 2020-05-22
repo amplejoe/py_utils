@@ -273,7 +273,12 @@ def create_d2_cfgs(ds_info, script_dir):
         one_epoch = ds_info["num_train_images"] / base_cfg.SOLVER.IMS_PER_BATCH
         base_cfg.SOLVER.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
         # validation period (validate after after 'validation_perc' * ITERS_PER_EPOCH)
-        base_cfg.TEST.EVAL_PERIOD = int(one_epoch * ds_info["cfg"]["training"]["validation_perc"])
+        # INFO: every 20 iterations an entry is made to 'metrics.json', so be sure to set EVAL_PERIOD to a multiple of 20
+        # (see: https://github.com/facebookresearch/detectron2/blob/master/tools/plain_train_net.py#L186)
+        log_interval = 20
+        eval_period = int(one_epoch * ds_info["cfg"]["training"]["validation_perc"] / log_interval) * log_interval
+        eval_period = log_interval if eval_period < 20 else eval_period
+        base_cfg.TEST.EVAL_PERIOD = eval_period
 
         for perm in param_permuts:
             # create configs

@@ -55,3 +55,4 @@ def save_train_val_loss(model_folder, num_train_images, batch_size, out_file="tr
     plt.savefig(out_path)
     if show:
         plt.show()
+    plt.clf()
