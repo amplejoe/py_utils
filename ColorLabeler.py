@@ -31,6 +31,7 @@ COLORS_FILE = "colors.txt"
 LABELS_FILE = "labels.txt"
 BACKGROUND_LABELS = ["background", "bg"]
 
+
 class ColorLabeler:
     def __init__(self, init_file_path=None):
 
@@ -207,8 +208,8 @@ class ColorLabeler:
         del cv_image  # make sure to free memory
         return results
 
-    def get_dominant_class(self, image):
-        res = self.find_image_objects(image)
+    def get_dominant_class(self, image_path):
+        res = self.find_image_objects(image_path)
         all_labels = [x['label'] for x in res]
         return utils.find_most_frequent(all_labels)
 
