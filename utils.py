@@ -495,11 +495,30 @@ def find_most_frequent(List):
 
 def read_json(path):
     """ Loads a json file into a variable.
+        Parameters:
+        ----------
+        path : str
+            path to json file
+        Return : dict
+            dict containing all json fields and attributes
     """
     data = None
     with open(path) as json_file:
         data = json.load(json_file)
     return data
+
+
+def write_json(path, data):
+    """ Writes a json dict variable to a file.
+        Parameters:
+        ----------
+        path : str
+            path to json output file
+        data : dict
+            data compliant with json format
+    """
+    with open(path, 'w') as outfile:
+        json.dump(data, outfile)
 
 
 def read_json_arr(json_path):
