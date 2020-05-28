@@ -429,6 +429,19 @@ def getTimeStamp(file_name_friendly=False):
         return ts
 
 
+def get_date():
+    """ Get today date object.
+    """
+    return datetime.today()
+
+
+def get_date_str():
+    """ Get today's date as string in form of YYYY/MM/DD
+    """
+    today = get_date()
+    return today.strftime("%Y/%m/%d")
+
+
 def get_current_dir():
     """ Returns current working directory.
     """
