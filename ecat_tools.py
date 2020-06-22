@@ -174,7 +174,9 @@ def prepare_svg(svg_tag, color_rgb):
 def create_svg(svg_tag, img_width, img_height, out_path):
     """ creates an svg from an xml tag describing a drawing (ECAT export)
     """
-    with open("template.svg", "rt") as fin:
+    script_dir = utils.get_script_dir()
+    svg_template_path = utils.join_paths_str(script_dir, "template.svg")
+    with open(svg_template_path, "rt") as fin:
         with open(out_path, "wt") as fout:
             for line in fin:
                 fout.write(line.replace("INSERT_WIDTH", str(img_width))
