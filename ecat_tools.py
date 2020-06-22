@@ -184,29 +184,6 @@ def create_svg(svg_tag, img_width, img_height, out_path):
                            .replace("INSERT_OBJECT", svg_tag))
 
 
-# https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
-# does not generate very distinct colors, use random_colors.py instead
-# def get_distinct_colors(num_colors):
-#     """ Generate num_colors random distinct RGB colors
-#     """
-#     ret = []
-#     # don't generate black (0,0,0) or white (255,255,255)
-#     # ORIGINAL: int(random.random() * 256)
-#     r = random.randint(1, 255)
-#     g = random.randint(1, 255)
-#     b = random.randint(1, 255)
-#     step = 256 / num_colors
-#     for i in range(num_colors):
-#         r += step
-#         g += step
-#         b += step
-#         r = int(r) % 256
-#         g = int(g) % 256
-#         b = int(b) % 256
-#         ret.append((r, g, b))
-#     return ret
-
-
 def get_sketch_frame_mapping(frame_list, sketch_list, classes_list, frames_root):
     """ Creates a sketch-frame mapping for ECAT annotation output,
         i.e. segment frames with corresponding json annotations (1 file per annotation)
