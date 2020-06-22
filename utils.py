@@ -52,6 +52,7 @@ def confirm(msg=None, default=None):
     :return: True if the answer is Y.
     :rtype: bool
     """
+    default = default.lower()
     accepted_answers = ["y", "n"]
     user_prompt = "[y/n]"
     if default is not None and default in accepted_answers:
@@ -474,7 +475,7 @@ def is_number(s):
 
 
 def filter_list_by_partial_word(word, list_to_filter):
-    """ partially matches a word with a list and returnes filtered list
+    """ partially matches a word with a list and returns filtered list
     """
     return list(filter(lambda x: word in x, list_to_filter))
 
@@ -583,6 +584,15 @@ def find_similar_folder(target_path, folder_list):
 
 def prompt_folder_confirm(target_path, folder_list, name):
     """ Prompts user to confirm or enter a folder name.
+        Parameters
+        ----------
+
+        target_path: string
+            target root directory where folder should be searched
+        folder_list: list of strings
+            list of potential (partial) matches for the searched folder
+        name: string
+            display name as user information (e.g. 'images')
     """
     all_subdirs = get_immediate_subdirs(target_path, False)
     print(f"Finding '{name}' folder:")
