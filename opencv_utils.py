@@ -8,6 +8,8 @@ import numpy as np
 import sys
 
 BLEND_ALPHA = 0.5
+NUM_CHANNELS = 3
+BB_COLOR = (255, 255, 255)
 
 def get_image(path_or_image):
     """ Returns an OpenCV image, whether a path or an image is provided.
@@ -28,7 +30,40 @@ def get_image(path_or_image):
     else:
         # path must have been provided (TODO: error handling)
         return cv2.imread(path_or_image)
-        
+
+
+def get_img_dimensions(img):
+    """ Get image dimensions in form of a dictionary.
+        Parameters
+        ----------
+        img: np.array
+            input image
+        return: dict of numbers
+            {"width": img_width, "height": img_height, "channels": num_channels}
+    """
+    dims = img.shape
+    return {"width": dims[0], "height": dims[1], "channels": dims[2]}
+
+
+def create_blank_image(width, height, num_channels = NUM_CHANNELS):
+    return np.zeros(shape=(width, height, num_channels), dtype=np.uint8)
+
+def draw_rectangle(img, bb, color = BB_COLOR):
+    """ Draws a rectangle to an image in a desired color (default: white)
+        Parameters
+        ----------
+        img: np array (Opencv image) or path     
+        bb: 4-tuple
+            bounding box of format (x, y, w, h)
+        color: 3-tuple
+            RGB color values
+    """
+    img = get_image(img)
+    x2 = bb[0] + bb[2] 
+    y2 = bb[1] + bb[3]
+    cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=cv2.FILLED)
+    return img
+
 
 def concatenate_images(img1, img2):
     """ Concatanates two images horizontally
@@ -46,7 +81,7 @@ def concatenate_images(img1, img2):
 
 
 def get_transparent_img(img):
-    """ Makes (black) annot bg transparent.
+    """ Makes img transparent.
         Parameters
         ----------
         img: image or path
@@ -105,7 +140,7 @@ def add_text_to_image(img, txt, x_pos=10, y_offset=10):
 
 
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
-def overlay_image(img_bg, img_overlay):
+def overlay_image(img_bg, img_overlay, blend = BLEND_ALPHA):
     """ Overlays an image over another.
 
         Parameters:
@@ -116,6 +151,8 @@ def overlay_image(img_bg, img_overlay):
         img_overlay: string
             overlay image (path or image itself)
             All transparent areas must be black (0, 0, 0)
+        blend: float
+            1.0 - 0.0 most to least amount of transparency applied
     """
     bg_img =  get_image(img_bg)
     img_overlay = get_image(img_overlay)
@@ -123,6 +160,6 @@ def overlay_image(img_bg, img_overlay):
     bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGR2BGRA)
     img_overlay_rgba = get_transparent_img(img_overlay)
     # blend_images
-    beta = (1.0 - BLEND_ALPHA)
-    result = cv2.addWeighted(bg_img, BLEND_ALPHA, img_overlay_rgba, beta, 0.0)
+    beta = (1.0 - blend)
+    result = cv2.addWeighted(bg_img, blend, img_overlay_rgba, beta, 0.0)
     return result
