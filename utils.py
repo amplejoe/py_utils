@@ -10,7 +10,7 @@
 #
 # +++++++++++++++++++++++++++++++++++++++++++++++++
 
-# @Author: Andy <amplejoe>
+# @Author: Andreas <aleibets>
 # @Date:   2019-07-27
 # @Email:  aleibets@itec.aau.at
 # @Filename: utils.py
