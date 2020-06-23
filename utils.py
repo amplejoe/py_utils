@@ -22,7 +22,7 @@
 """
     title			:utils.py
     description     :Utility class for common python tasks
-    author			:Andreas Leibetseder (aleibets@itec.aau.at)
+    author			:Andreas <aleibets>
     version         :1.0
     usage			:import module and use contained functions
     notes			:requirements: natsort, shutil
