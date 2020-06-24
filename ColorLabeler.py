@@ -21,7 +21,7 @@
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
-import cv2
+from cv2 import cv2
 from PIL import Image  # (pip install Pillow)
 import imutils
 import copy
@@ -208,9 +208,13 @@ class ColorLabeler:
         del cv_image  # make sure to free memory
         return results
 
-    def get_dominant_class(self, image_path):
+    def get_classes(self, image_path):
         res = self.find_image_objects(image_path)
         all_labels = [x['label'] for x in res]
+        return all_labels
+
+    def get_dominant_class(self, image_path):
+        all_labels = self.get_classes(image_path)
         return utils.find_most_frequent(all_labels)
 
     def label(self, cv_lab_image, contour):

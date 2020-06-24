@@ -122,41 +122,46 @@ def show_image(image, title, pos=None):
         sys.exit()
 
 
-def add_text_to_image(img, txt, x_pos=10, y_offset=10):
-    """ Adds text to an opencv image.
+def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255)):
+    """ Overlays text on an opencv image, does not change original image.
         Parameters
         ----------
         img: path or opencv image
         txt: string
+        Returns: np.array
+            image with a text overlay
     """
     img = get_image(img)
-    height, width, channels = img.shape
+    altered_img = img.copy()
+    # height, _, _ = altered_img.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
-    bottomLeftCornerOfText = (x_pos, height - y_offset)
-    fontScale = 1
-    fontColor = (255, 255, 255)
+    bottomLeftCornerOfText = (x_pos, y_pos)
+    fontScale = scale
+    fontColor = color
     lineType = 2
 
-    cv2.putText(img, txt,
+    cv2.putText(altered_img, txt,
                 bottomLeftCornerOfText,
                 font,
                 fontScale,
                 fontColor,
                 lineType)
-    return img
+    return altered_img
+
 
 # src: https://gist.github.com/clungzta/b4bbb3e2aa0490b0cfcbc042184b0b4e
 def overlay_image(background_img, img_to_overlay, x, y, overlay_size=None):
-    """
-    @brief      Overlays a potentially transparant PNG onto another image using CV2
-    
-    @param      background_img    The background image or path
-    @param      img_to_overlay    The image/path to overlay (is converted to be transparent if needed via 'get_transparent_img')
-    @param      x                 x location to place the top-left corner of our overlay
-    @param      y                 y location to place the top-left corner of our overlay
-    @param      overlay_size      The size to scale our overlay to (tuple), no scaling if None
-    
-    @return     Background image with overlay on top
+    """Overlays a potentially transparant PNG onto another image using CV2
+
+    Args:
+        background_img (Union[string, np.array]): The background image or path
+        img_to_overlay ([type]): The image/path to overlay (is converted to be transparent if needed via 'get_transparent_img')
+        x ([integer]): x location to place the top-left corner of our overlay
+        y ([integer]): y location to place the top-left corner of our overlay
+        overlay_size ([type], optional): The size to scale our overlay to (tuple), no scaling if None. Defaults to None.
+
+    Returns:
+        [np.array]: Background image with overlay on top
     """
     background_img = get_image(background_img)
     img_to_overlay = get_transparent_img(img_to_overlay)
@@ -167,22 +172,24 @@ def overlay_image(background_img, img_to_overlay, x, y, overlay_size=None):
         img_to_overlay = cv2.resize(img_to_overlay.copy(), overlay_size)
 
     # Extract the alpha mask of the RGBA image, convert to RGB 
-    b,g,r,a = cv2.split(img_to_overlay)
-    overlay_color = cv2.merge((b,g,r))
+    b, g, r, a = cv2.split(img_to_overlay)
+    overlay_color = cv2.merge((b, g, r))
     
     # Apply some simple filtering to remove edge noise
-    mask = cv2.medianBlur(a,5)
+    # mask = cv2.medianBlur(a, 5)
 
     h, w, _ = overlay_color.shape
     roi = bg_img[y:y+h, x:x+w]
 
-    # Black-out the area behind the logo in our original ROI
-    img1_bg = cv2.bitwise_and(roi.copy(),roi.copy(),mask = cv2.bitwise_not(mask))
+    # Black-out the area behind the overlay in our original ROI
+    # img1_bg = cv2.bitwise_and(roi.copy(), roi.copy(), mask = cv2.bitwise_not(mask))
+    img1_bg = cv2.bitwise_and(roi.copy(), roi.copy())
     
-    # Mask out the logo from the logo image.
-    img2_fg = cv2.bitwise_and(overlay_color,overlay_color,mask = mask)
+    # Mask out the overlay from the overlay image.
+    # img2_fg = cv2.bitwise_and(overlay_color, overlay_color, mask = mask)
+    img2_fg = cv2.bitwise_and(overlay_color, overlay_color)
 
-    # Update the original image with our new ROI
+    # Update the original image with the new ROI
     bg_img[y:y+h, x:x+w] = cv2.add(img1_bg, img2_fg)
 
     return bg_img
@@ -194,7 +201,6 @@ def blend_image(img_bg, img_overlay, blend = BLEND_ALPHA):
 
         Parameters
         ----------
-
         img_bg: string or image
             background image (path or image itself)
         img_overlay: string or image
