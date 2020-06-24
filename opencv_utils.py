@@ -87,11 +87,17 @@ def get_transparent_img(img):
         img: image or path
     """
     img = get_image(img)
-    tmp = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, alpha = cv2.threshold(tmp, 0, 255, cv2.THRESH_BINARY)
-    b, g, r = cv2.split(img)
-    rgba = [b, g, r, alpha]
-    dst = cv2.merge(rgba, 4)
+    dims = get_img_dimensions(img)
+    dst = None
+    # check if image has alpha channel or not
+    if dims["channels"] < 4:
+        tmp = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, alpha = cv2.threshold(tmp, 0, 255, cv2.THRESH_BINARY)
+        b, g, r = cv2.split(img)
+        bgra = [b, g, r, alpha]
+        dst = cv2.merge(bgra, 4)
+    else:
+        dst = img
     return dst
 
 
@@ -143,12 +149,12 @@ def add_text_to_image(img, txt, x_pos=10, y_offset=10):
 def overlay_image(img_bg, img_overlay, blend = BLEND_ALPHA):
     """ Overlays an image over another.
 
-        Parameters:
+        Parameters
         ----------
 
-        img_bg: string
+        img_bg: string or image
             background image (path or image itself)
-        img_overlay: string
+        img_overlay: string or image
             overlay image (path or image itself)
             All transparent areas must be black (0, 0, 0)
         blend: float
@@ -157,9 +163,35 @@ def overlay_image(img_bg, img_overlay, blend = BLEND_ALPHA):
     bg_img =  get_image(img_bg)
     img_overlay = get_image(img_overlay)
 
-    bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGR2BGRA)
-    img_overlay_rgba = get_transparent_img(img_overlay)
+    # copy images as to no alter originals
+    bg_img_copy = bg_img.copy()
+    img_overlay_copy = img_overlay.copy()
+
+    bg_img_copy = cv2.cvtColor(bg_img_copy, cv2.COLOR_BGR2BGRA)
+    img_overlay_bgra = get_transparent_img(img_overlay_copy)
     # blend_images
     beta = (1.0 - blend)
-    result = cv2.addWeighted(bg_img, blend, img_overlay_rgba, beta, 0.0)
+    result = cv2.addWeighted(bg_img_copy, blend, img_overlay_bgra, beta, 0.0)
     return result
+
+
+def overlay_images(img, img_overlay_array, blend = BLEND_ALPHA):
+    """ Overlays an array of images over another.
+
+        Parameters
+        ----------
+
+        img_bg: string or image
+            background image (path or image itself)
+        img_overlay: list of strings of images
+            overlay images (paths or images themselves)
+            All transparent areas must be black (0, 0, 0)
+        blend: float
+            1.0 - 0.0 most to least amount of transparency applied
+    """
+    img = get_image(img)
+    res = img
+    for o in img_overlay_array:
+        o = get_image(o)
+        res = overlay_image(res, o, blend)
+    return res

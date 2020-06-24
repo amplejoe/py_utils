@@ -41,6 +41,7 @@ from natsort import natsorted
 import pathlib
 import re
 import subprocess
+import numpy as np
 
 
 # # USER INPUT RELATED
@@ -340,6 +341,26 @@ def get_size(obj, seen=None):
         size += sum([get_size(i, seen) for i in obj])
     return size
 
+# # Numpy specific
+
+def is_np_arr_in_list(np_array, lst):
+    """ Checks if a list of numpy arrays contains a specific numpy array (Identity).
+    """
+    return next((True for elem in lst if elem is np_array), False)
+
+
+def remove_np_from_list(lst, np_array):
+    """ Removes a numpy array from a list.
+    """
+    ind = 0
+    size = len(lst)
+    while ind != size and not np.array_equal(lst[ind], np_array):
+        ind += 1
+    if ind != size:
+        lst.pop(ind)
+    else:
+        pass
+        # raise ValueError('array not found in list.')
 
 # # MISCELLANEOUS
 
