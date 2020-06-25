@@ -121,13 +121,18 @@ def show_image(image, title, pos=None):
     if key == 27:
         sys.exit()
 
+def RGB_to_BGR(rgb):
+    r, g, b = rgb 
+    return b, g, r
 
-def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255)):
-    """ Overlays text on an opencv image, does not change original image.
+
+def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255), color_mix=None, thickness=1):
+    """ Overlays text on an opencv image, does not change original image. Supports multiline text using '\n'.
         Parameters
         ----------
         img: path or opencv image
         txt: string
+        color_mix: list of RGB color tuples overriding 'color' (each line is created in a different color out of the mix)
         Returns: np.array
             image with a text overlay
     """
@@ -137,19 +142,35 @@ def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255)):
     font = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (x_pos, y_pos)
     fontScale = scale
-    fontColor = color
-    lineType = 2
+    fontColors = [color]
+    lineType = cv2.FILLED
 
-    cv2.putText(altered_img, txt,
-                bottomLeftCornerOfText,
-                font,
-                fontScale,
-                fontColor,
-                lineType)
+    if color_mix is not None and len(color_mix) > 0:
+        fontColors = color_mix
+
+    for i, line in enumerate(txt.split('\n')):
+        cur_color_idx = i % len(fontColors)
+        cur_color = fontColors[cur_color_idx]
+        cur_color = RGB_to_BGR(cur_color)
+        cv2.putText(img=altered_img, 
+                text=line,
+                org=bottomLeftCornerOfText,
+                fontFace=font,
+                fontScale=fontScale,
+                color=cur_color,
+                lineType=lineType,
+                thickness = thickness)
+        size, _ = cv2.getTextSize(txt, font, fontScale, lineType)
+        # baseline += thickness
+        w, h = size
+        x_pos, y_pos = bottomLeftCornerOfText
+        bottomLeftCornerOfText = (x_pos, y_pos + h + 5 + thickness)
+
     return altered_img
 
 
 # src: https://gist.github.com/clungzta/b4bbb3e2aa0490b0cfcbc042184b0b4e
+# src2: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_core/py_image_arithmetics/py_image_arithmetics.html
 def overlay_image(background_img, img_to_overlay, x, y, overlay_size=None):
     """Overlays a potentially transparant PNG onto another image using CV2
 

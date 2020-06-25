@@ -25,24 +25,29 @@ from cv2 import cv2
 from PIL import Image  # (pip install Pillow)
 import imutils
 import copy
+from yattag import Doc # for html out
 from . import utils
 
 COLORS_FILE = "colors.txt"
 LABELS_FILE = "labels.txt"
+HTML_FILE = "label_colors.html"
 BACKGROUND_LABELS = ["background", "bg"]
+
+DEFAULT_COLORS = OrderedDict({
+    "background": (0, 0, 0),        # black (bg)
+    "peritoneum": (228, 26, 28),    # red
+    "ovary": (55, 126, 184),        # blue
+    "die": (77, 175, 74),           # green
+    "uterus": (152, 78, 163)        # violet
+})
 
 
 class ColorLabeler:
-    def __init__(self, init_file_path=None):
+    def __init__(self, init_file_path=None, init_color_dict=DEFAULT_COLORS):
 
-        # default initialization of the colors dictionary, containing the color
+        # default initialization of the colors dictionary (if no init_file_path given), containing the color
         # name as the key and the RGB tuple as the value
-        self.colors = OrderedDict({
-            "peritoneum": (228, 26, 28),    # red
-            "ovary": (55, 126, 184),        # blue
-            "die": (77, 175, 74),           # green
-            "uterus": (152, 78, 163)        # violet
-        })
+        self.colors = init_color_dict
         if init_file_path is not None:
             self.colors = self.get_colors_from_init_files(init_file_path)
 
@@ -94,6 +99,47 @@ class ColorLabeler:
             if v == color:
                 return k
         return "unknown"
+    
+    def exist_color_files(self, path):
+        out_color = utils.join_paths_str(path, COLORS_FILE)
+        out_label = utils.join_paths_str(path, LABELS_FILE)
+        html_file = utils.join_paths_str(path, HTML_FILE)
+        return utils.exists_file(out_color) and utils.exists_file(out_label) and utils.exists_file(html_file)
+
+    def save_colors(self, out_path):
+        out_color = utils.join_paths_str(out_path, COLORS_FILE)
+        out_label = utils.join_paths_str(out_path, LABELS_FILE)
+        html_file = utils.join_paths_str(out_path, HTML_FILE)
+        utils.confirm_overwrite(out_color, "n")
+        utils.confirm_overwrite(out_label, "n")
+        utils.confirm_overwrite(html_file, "n")
+
+        with open(out_color, 'w', newline='') as c_out, open(out_label, 'w', newline='') as l_out:
+            for label, color in self.colors.items():
+                l_out.write(f"{label}\n")
+                c_out.write(" ".join(str(v) for v in color) + "\n")
+        print(f"Wrote {out_label}")
+        print(f"Wrote {out_color}")
+        
+        # HTML out (.html)
+        doc, tag, text = Doc().tagtext()
+        with tag('html'):
+            with tag('body'):
+                with tag('table'):
+                    for label, color in self.colors.items():
+                        with tag('tr'):
+                            css_color = f"rgb{color}"
+                            with tag('td', style=f"background-color:{css_color};"):
+                                # blend mode: guarantess visibility of label but fucks up looks
+                                # with tag('span', style="color:white;mix-blend-mode: difference;"):
+                                # -> us shadow instead (https://jsfiddle.net/dimitriadisg/agnfz7qt/)
+                                with tag('span', style="color:white;text-shadow: 0.05em 0 black, 0 0.05em black, -0.05em 0 black, 0 -0.05em black, -0.05em -0.05em black, -0.05em 0.05em black, 0.05em -0.05em black, 0.05em 0.05em black;"):
+                                    text(label)
+        result = doc.getvalue()
+        with open(html_file, 'w') as hwriter:
+            hwriter.write(result)
+        print(f"Wrote {html_file}")
+        
 
     def mask_from_contour(self, contour, width, height):
         """ 3 channel mask from contour(s) with custom color

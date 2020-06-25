@@ -46,6 +46,45 @@ import numpy as np
 
 # # USER INPUT RELATED
 
+def select_option(options, *, msg=None, default=None):
+    """
+    Ask user to select one of several options.
+    Parameters
+    ----------
+    options: list of strings
+        options to select
+    msg: string
+        user prompt message
+    default: integer
+        default selected idx
+    return: tuple (integer, object)
+        idx and value of selected option
+    
+    """
+    if default < 0 or default > len(options)-1:
+        default = None
+    accepted_answers = list(range(0, len(options)))
+    user_prompt = f"[0-{len(options)-1}]"
+    if default is not None and default in accepted_answers:
+        accepted_answers.append("")  # alows users to press enter
+        user_prompt = user_prompt + f" ({default})"
+    if msg is not None:
+        print(msg)
+    answer = -1
+
+    for i, o in enumerate(options):
+        if default == i:
+            print(f"{i}. [{o}]")
+        else:
+            print(f"{i}. {o}")    
+
+    while answer not in accepted_answers:
+        answer = input(f"user_prompt ")
+        if answer == "":
+            answer = default
+        answer = int(answer)
+    return answer, options[answer]
+
 
 def confirm(msg=None, default=None):
     """
@@ -552,7 +591,7 @@ def write_json(path, data):
         data : dict
             data compliant with json format
     """
-    with open(path, 'w') as outfile:
+    with open(path, 'w', newline='') as outfile:
         json.dump(data, outfile)
 
 
