@@ -41,7 +41,7 @@ def main():
 
 
 def exit(msg=None):
-    if (msg):
+    if msg:
         print(f"{msg}")
     print("Exit script.")
     sys.exit()
