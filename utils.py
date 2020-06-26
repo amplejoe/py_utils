@@ -66,7 +66,7 @@ def select_option(options, *, msg=None, default=None):
     accepted_answers = list(range(0, len(options)))
     user_prompt = f"[0-{len(options)-1}]"
     if default is not None and default in accepted_answers:
-        accepted_answers.append("")  # alows users to press enter
+        accepted_answers.append("")  # allows users to press enter
         user_prompt = user_prompt + f" ({default})"
     if msg is not None:
         print(msg)
@@ -346,7 +346,9 @@ def get_file_ext(file_path):
 
 
 def remove_file(path):
-    to_path(path).unlink()
+    p = to_path(path)
+    if exists_file(p):
+        p.unlink()
 
 
 def copy_to(src_path, dst_path, follow_symlinks=True):

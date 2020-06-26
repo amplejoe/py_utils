@@ -11,6 +11,97 @@ BLEND_ALPHA = 0.5
 NUM_CHANNELS = 3
 BB_COLOR = (255, 255, 255)
 
+# Opencv Keycodes
+KEY_ESCAPE = 27
+KEY_ENTER = 13
+KEY_SPACE = 32
+
+# TODO: LINUX (find codes using waitKeyEx)
+WIN_ARROW_KEY_CODES = {
+    "up": 2490368,
+    "down": 2621440,
+    "left": 2424832,
+    "right": 2555904
+}
+MAC_ARROW_KEY_CODES = {
+    "up": 63232,
+    "down": 63233,
+    "left": 63234,
+    "right": 63235
+}
+
+
+def get_options_txt_image(img, options, selected, msg=None):
+    if selected < 0 or selected > len(options)-1:
+        selected = 0
+    user_prompt = ""
+    if msg is not None:
+        user_prompt += f"{msg}\n"
+
+    for i, o in enumerate(options):
+        if selected == i:
+            user_prompt += f"{i}. [{o}]\n"
+        else:
+            user_prompt += f"{i}. {o}\n"
+    
+    user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
+    res = overlay_text(img, user_prompt, scale=0.5, y_pos = 20)
+    return res
+
+
+def gui_select_option(options, bg_image, *, window_title="Option Select", msg=None, default=0):
+    """
+    Ask user to select one of several options using .
+    Parameters
+    ----------
+    bg_image: string or np.array
+        background image (path or image)
+    window: string
+        the window on which to show the select 
+    options: list of strings
+        options to select
+    msg: string
+        user prompt message
+    default: integer
+        default selected idx
+    return: tuple (integer, object)
+        idx and value of selected option
+    
+    """
+    bg = get_image(bg_image)
+    bg_dims = get_img_dimensions(bg)
+    overlay = create_blank_image(bg_dims["width"], bg_dims["height"])
+    
+    # user prompt
+    sel_idx = default
+    sel_option = None  
+    key = -1
+    while (key != KEY_SPACE and key != KEY_ENTER):        
+        prompt_img = get_options_txt_image(overlay, options, sel_idx, msg=msg)
+        display_img = overlay_image(bg, prompt_img)
+        cv2.imshow(window_title, display_img)
+        # wait and listen to keypresses
+        key = cv2.waitKeyEx(0) # & 0xFF -> don't use here, disables arrow key use
+        # use for finding out platform specific keycodes
+        # key = cv2.waitKeyEx(), print(key) 
+        if key == ord("w") or key == WIN_ARROW_KEY_CODES["up"]:
+            sel_idx -= 1 
+            sel_idx %= len(options)        
+        elif key == ord("s") or key == WIN_ARROW_KEY_CODES["down"]:
+            sel_idx += 1
+            sel_idx %= len(options)
+        elif key == ord("q") or key == KEY_ESCAPE:
+            # reset selection
+            print("Aborted...")
+            sel_idx = -1
+            sel_option = None
+            break
+        # update selected value
+        sel_option = options[sel_idx]
+
+    return sel_idx, sel_option
+
+
 def get_image(path_or_image):
     """ Returns an OpenCV image, whether a path or an image is provided.
         Ensures that most methods can be used by passing the image path OR the image itself.
@@ -46,6 +137,16 @@ def get_img_dimensions(img):
 
 
 def create_blank_image(width, height, num_channels = NUM_CHANNELS):
+    """Creates a blank (black) image
+
+    Args:
+        width (integer): the width
+        height (integer): the height
+        num_channels (integer, optional): Number of channels. Defaults to NUM_CHANNELS.
+
+    Returns:
+        np.array: A blank black image of size width x height.
+    """
     return np.zeros(shape=(width, height, num_channels), dtype=np.uint8)
 
 def draw_rectangle(img, bb, color = BB_COLOR):
@@ -136,7 +237,7 @@ def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255), 
         Returns: np.array
             image with a text overlay
     """
-    img = get_image(img)
+    img = get_image(img)    
     altered_img = img.copy()
     # height, _, _ = altered_img.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -171,7 +272,7 @@ def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255), 
 
 # src: https://gist.github.com/clungzta/b4bbb3e2aa0490b0cfcbc042184b0b4e
 # src2: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_core/py_image_arithmetics/py_image_arithmetics.html
-def overlay_image(background_img, img_to_overlay, x, y, overlay_size=None):
+def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
     """Overlays a potentially transparant PNG onto another image using CV2
 
     Args:
@@ -184,10 +285,11 @@ def overlay_image(background_img, img_to_overlay, x, y, overlay_size=None):
     Returns:
         [np.array]: Background image with overlay on top
     """
-    background_img = get_image(background_img)
+    background_img = get_image(background_img)    
     img_to_overlay = get_transparent_img(img_to_overlay)
     
     bg_img = background_img.copy()
+    bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGRA2BGR) # ensure bg picture is RGB only
     
     if overlay_size is not None:
         img_to_overlay = cv2.resize(img_to_overlay.copy(), overlay_size)
