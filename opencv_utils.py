@@ -16,7 +16,7 @@ KEY_ESCAPE = 27
 KEY_ENTER = 13
 KEY_SPACE = 32
 
-# TODO: LINUX (find codes using waitKeyEx)
+# all opencv keycodes on different systems
 WIN_ARROW_KEY_CODES = {
     "up": 2490368,
     "down": 2621440,
@@ -28,6 +28,12 @@ MAC_ARROW_KEY_CODES = {
     "down": 63233,
     "left": 63234,
     "right": 63235
+}
+LINUX_ARROW_KEY_CODES = {
+    "up": 82,
+    "down": 84,
+    "left": 81,
+    "right": 83
 }
 
 
@@ -48,6 +54,19 @@ def get_options_txt_image(img, options, selected, msg=None):
     res = overlay_text(img, user_prompt, scale=0.5, y_pos = 20)
     return res
 
+def is_arrow_key_pressed(direction, pressed_keycode):
+    """Checks if pressed key matches up/down/left/right key on any system.
+
+    Args:
+        direction (string): desired direction ("up", "down", "left", "right")
+        pressed_keycode (integer): the keycode as recorded by OpenCV's waitKeyEx
+
+    Returns:
+        boolean: True if matching, false if not.
+    """
+    if direction not in WIN_ARROW_KEY_CODES.keys():
+        return False
+    return (pressed_keycode == WIN_ARROW_KEY_CODES[direction] or pressed_keycode == MAC_ARROW_KEY_CODES[direction] or pressed_keycode == LINUX_ARROW_KEY_CODES[direction])
 
 def gui_select_option(options, bg_image, *, window_title="Option Select", msg=None, default=0):
     """
@@ -84,10 +103,10 @@ def gui_select_option(options, bg_image, *, window_title="Option Select", msg=No
         key = cv2.waitKeyEx(0) # & 0xFF -> don't use here, disables arrow key use
         # use for finding out platform specific keycodes
         # key = cv2.waitKeyEx(), print(key) 
-        if key == ord("w") or key == WIN_ARROW_KEY_CODES["up"]:
+        if key == ord("w") or is_arrow_key_pressed("up", key):
             sel_idx -= 1 
             sel_idx %= len(options)        
-        elif key == ord("s") or key == WIN_ARROW_KEY_CODES["down"]:
+        elif key == ord("s") or is_arrow_key_pressed("down", key):
             sel_idx += 1
             sel_idx %= len(options)
         elif key == ord("q") or key == KEY_ESCAPE:
