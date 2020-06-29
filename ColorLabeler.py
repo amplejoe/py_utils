@@ -260,6 +260,7 @@ class ColorLabeler:
         return all_labels
 
     def get_dominant_class(self, image_path):
+        # TODO: judge by area not by class frequency
         all_labels = self.get_classes(image_path)
         return utils.find_most_frequent(all_labels)
 
