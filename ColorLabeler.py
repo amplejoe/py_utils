@@ -259,10 +259,27 @@ class ColorLabeler:
         all_labels = [x['label'] for x in res]
         return all_labels
 
+
     def get_dominant_class(self, image_path):
-        # TODO: judge by area not by class frequency
-        all_labels = self.get_classes(image_path)
-        return utils.find_most_frequent(all_labels)
+         # old: count frequency of classes
+        # all_labels = self.get_classes(image_path)
+        # dominant_class =  utils.find_most_frequent(all_labels)
+
+        # new: judge dominance by area        
+        objs = self.find_image_objects(image_path)
+        class_area_totals = {}
+        dominant_class = None
+        max_area = 0
+        for o in objs:
+            label = o['label']
+            box = o['box']
+            box_area = box[2] * box[3] 
+            utils.increment_dict_key(class_area_totals, label, box_area)
+            if class_area_totals[label] > max_area:
+                max_area = class_area_totals[label]
+                dominant_class = label
+
+        return dominant_class
 
     def label(self, cv_lab_image, contour):
         """ Label single countour in lab image
