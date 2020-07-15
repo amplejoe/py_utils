@@ -21,7 +21,7 @@
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
-from cv2 import cv2
+import cv2
 from PIL import Image  # (pip install Pillow)
 import imutils
 import copy

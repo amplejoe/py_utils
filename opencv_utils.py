@@ -3,7 +3,7 @@
 # Utilities using OpenCV functions. Working OpenCV installation required.
 
 from . import utils
-from cv2 import cv2
+import cv2
 import numpy as np
 import sys
 
