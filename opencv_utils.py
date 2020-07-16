@@ -30,10 +30,10 @@ MAC_ARROW_KEY_CODES = {
     "right": 63235
 }
 LINUX_ARROW_KEY_CODES = {
-    "up": 82,
-    "down": 84,
-    "left": 81,
-    "right": 83
+    "up": 65362,
+    "down": 65364,
+    "left": 65361,
+    "right": 65363
 }
 
 
@@ -102,7 +102,7 @@ def gui_select_option(options, bg_image, *, window_title="Option Select", msg=No
         # wait and listen to keypresses
         key = cv2.waitKeyEx(0) # & 0xFF -> don't use here, disables arrow key use
         # use for finding out platform specific keycodes
-        # key = cv2.waitKeyEx(), print(key) 
+        print(key) 
         if key == ord("w") or is_arrow_key_pressed("up", key):
             sel_idx -= 1 
             sel_idx %= len(options)        
