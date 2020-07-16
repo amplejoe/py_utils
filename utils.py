@@ -92,7 +92,8 @@ def confirm(msg=None, default=None):
     :return: True if the answer is Y.
     :rtype: bool
     """
-    default = default.lower()
+    if default != None:
+        default = default.lower()
     accepted_answers = ["y", "n"]
     user_prompt = "[y/n]"
     if default is not None and default in accepted_answers:
