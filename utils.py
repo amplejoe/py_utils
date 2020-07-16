@@ -184,7 +184,15 @@ def to_path(*p):
         path is resolved as far as possible -- any remainder is appended
         without checking whether it really exists.
     """
-    return pathlib.Path(*p).resolve(strict=False)
+    pl_path = pathlib.Path(*p)
+    if pl_path.is_absolute():
+        return pl_path.resolve(strict=False)
+    else:
+        # Hack: prevent relative paths from resolving to script dir
+        # by making it absolute during resolution
+        resolved_abs_str = pathlib.Path(f"/{pl_path.as_posix()}").resolve(strict=False).as_posix() # add '/' for resolve
+        resolved_rel_str = resolved_abs_str[1:] # remove '/' making path relative again
+        return pathlib.Path(resolved_rel_str)
 
 
 def to_path_str(*p):
@@ -196,8 +204,9 @@ def to_path_str(*p):
 
 def join_paths(path, *paths):
     """ Joins path with arbitrary amount of other paths.
-    """
+    """    
     return to_path(path).joinpath(to_path(*paths))
+
 
 
 def join_paths_str(path, *paths):
@@ -508,7 +517,7 @@ def get_date_str():
 def get_current_dir():
     """ Returns current working directory.
     """
-    return to_path_str(os.getcwd())
+    return to_path_str(pathlib.Path.cwd())
 
 
 def get_script_dir():
