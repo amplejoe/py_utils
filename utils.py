@@ -111,7 +111,7 @@ def confirm(msg=None, default=None):
 
 
 def confirm_delete_file(path, default=None):
-    p = to_path(path)
+    p = to_path(path, as_string=False)
     if p.is_file():
         if (confirm("File exists: %s, delete file?" % (path), default)):
             remove_file(path)
@@ -122,7 +122,7 @@ def confirm_delete_file(path, default=None):
 
 
 def confirm_delete_path(path, default=None):
-    p = to_path(path)
+    p = to_path(path, as_string=False)
     if p.is_dir():
         if (confirm("Path exists: %s, delete folder?" % (path), default)):
             remove_dir(path)
@@ -135,7 +135,7 @@ def confirm_delete_path(path, default=None):
 def confirm_overwrite(path, default=None):
     """ Confirms overwriting a path or a file.
     """
-    p = to_path(path)
+    p = to_path(path, as_string=False)
     confirmed = False
     if p.is_dir():
         confirmed = confirm_delete_path(path, default)
@@ -156,65 +156,84 @@ def confirm_overwrite(path, default=None):
 def exists_dir(*p):
     """ Checks whether a directory really exists.
     """
-    return to_path(*p).is_dir()
+    return to_path(*p, as_string=False).is_dir()
 
 
 def exists_file(*p):
     """ Checks whether a file really exists.
     """
-    return to_path(*p).is_file()
+    return to_path(*p, as_string=False).is_file()
 
 
-def to_path_url(*p):
+def to_path_url(*p, as_string=True):
     """ Convert URL to pathlib path.
         INFO: Use this with URLS, as to_path will raise an error with URLS
     """
-    return pathlib.Path(*p)
+    pth = pathlib.Path(*p)
+    if as_string:
+        return pth.as_posix()
+    else:
+        return pth
 
 
 def to_path_url_str(*p):
     """ Convert URL string to pathlib path.
         Returns string representation.
+        ------
+        deprecated - to_path_url already per default returns string
     """
-    return to_path_url(*p).as_posix()
+    return to_path_url(*p)
 
 
-def to_path(*p):
+def to_path(*p, as_string=True):
     """ Convert string to pathlib path.
         INFO: Path resolving removes stuff like ".." with 'strict=False' the
         path is resolved as far as possible -- any remainder is appended
         without checking whether it really exists.
     """
     pl_path = pathlib.Path(*p)
-    if pl_path.is_absolute():
-        return pl_path.resolve(strict=False)
-    else:
+    ret = pl_path.resolve(strict=False) # default return in case it is absolute path
+
+    if not pl_path.is_absolute():
         # Hack: prevent relative paths from resolving to script dir
         # by making it absolute during resolution
-        resolved_abs_str = pathlib.Path(f"/{pl_path.as_posix()}").resolve(strict=False).as_posix() # add '/' for resolve
-        resolved_rel_str = resolved_abs_str[1:] # remove '/' making path relative again
-        return pathlib.Path(resolved_rel_str)
+        cwd = pathlib.Path.cwd()
+        resolved_abs = pathlib.Path(f"{cwd.as_posix()}/{pl_path.as_posix()}").resolve(strict=False) # add cwd for resolve
+        relative_to_cwd = resolved_abs.relative_to(cwd) # remove cwd again
+        ret = relative_to_cwd
+    
+    if as_string:
+        return ret.as_posix()
+    else:
+        return ret
 
 
 def to_path_str(*p):
     """ Convert string to pathlib path.
         Returns string representation.
+        --------
+        deprecated - 'to_path' does the same with as_string=True
     """
-    return to_path(*p).as_posix()
+    return to_path(*p)
 
 
-def join_paths(path, *paths):
+def join_paths(path, *paths, as_string=True):
     """ Joins path with arbitrary amount of other paths.
-    """    
-    return to_path(path).joinpath(to_path(*paths))
-
+    """
+    joined = to_path(path, as_string=False).joinpath(to_path(*paths, as_string=False))
+    if as_string:
+        return joined.as_posix()
+    else:   
+        return joined
 
 
 def join_paths_str(path, *paths):
     """ Joins path with arbitrary amount of other paths.
         Returns string representation.
+        --------
+        deprecated - 'join_paths' does the same with as_string=True
     """
-    return join_paths(path, *paths).as_posix()
+    return join_paths(path, *paths)
 
 
 def make_dir(path, show_info=False, overwrite=False):
@@ -263,7 +282,7 @@ def get_immediate_subdirs(a_dir, full_path=True):
     """ Returns a list of immediate sub-directories of a path.
         full_path (Default: True): get full path or sub-dir names only
     """
-    path = to_path(a_dir)
+    path = to_path(a_dir, as_string=False)
     if not path.is_dir():
         return []
     if full_path:
@@ -277,7 +296,7 @@ def get_nth_parentdir(file_path, n=0, full_path=False):
         (Default: 0, i.e. the first directory after a potential filename)
         full_path: return full path until nth parent dir
     """
-    p = to_path(file_path)
+    p = to_path(file_path, as_string=False)
     ret_path = None
     if p.is_dir():
         n = n - 1
@@ -304,7 +323,7 @@ def is_dir_empty(path):
 def get_file_path(file_path):
     """file path only (strips file from its path)
     """
-    p = to_path(file_path)
+    p = to_path(file_path, as_string=False)
     return p.parents[0].as_posix()
 
 
@@ -314,7 +333,7 @@ def get_file_paths(directory, *extensions):
         changes:
             - 2019: using pathlib (python3) now
     """
-    dir = to_path(directory)
+    dir = to_path(directory, as_string=False)
 
     all_files = []
     for currentFile in dir.glob('**/*'):
@@ -332,31 +351,31 @@ def get_file_paths(directory, *extensions):
 def path_to_relative_path(path, relative_to_path):
     """ Return sub-path relative to input path
     """
-    path = to_path(path)
-    rel_to = to_path(relative_to_path)
+    path = to_path(path, as_string=False)
+    rel_to = to_path(relative_to_path, as_string=False)
     return path.relative_to(rel_to).as_posix()
 
 
 def get_full_file_name(file_path):
     """full file name plus extension
     """
-    return to_path(file_path).name
+    return to_path(file_path, as_string=False).name
 
 
 def get_file_name(file_path):
     """ Get file name of file
     """
-    return to_path(file_path).stem
+    return to_path(file_path, as_string=False).stem
 
 
 def get_file_ext(file_path):
     """ Get file extension of file
     """
-    return to_path(file_path).suffix
+    return to_path(file_path, as_string=False).suffix
 
 
 def remove_file(path):
-    p = to_path(path)
+    p = to_path(path, as_string=False)
     if exists_file(p):
         p.unlink()
 
@@ -518,13 +537,13 @@ def get_date_str():
 def get_current_dir():
     """ Returns current working directory.
     """
-    return to_path_str(pathlib.Path.cwd())
+    return to_path(pathlib.Path.cwd())
 
 
 def get_script_dir():
     """ Returns directory of currently running script.
     """
-    return to_path_str(os.path.dirname(os.path.realpath(__file__)))
+    return to_path(os.path.dirname(os.path.realpath(__file__)))
 
 
 def is_absolute_path(path):
