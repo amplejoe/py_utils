@@ -195,12 +195,8 @@ def to_path(*p, as_string=True):
     ret = pl_path.resolve(strict=False) # default return in case it is absolute path
 
     if not pl_path.is_absolute():
-        # Hack: prevent relative paths from resolving to script dir
-        # by making it absolute during resolution
-        cwd = pathlib.Path.cwd()
-        resolved_abs = pathlib.Path(f"{cwd.as_posix()}/{pl_path.as_posix()}").resolve(strict=False) # add cwd for resolve
-        relative_to_cwd = resolved_abs.relative_to(cwd) # remove cwd again
-        ret = relative_to_cwd
+        # don't resolve relative paths (pathlib makes them absolute otherwise)
+        ret = pl_path
     
     if as_string:
         return ret.as_posix()
@@ -221,10 +217,11 @@ def join_paths(path, *paths, as_string=True):
     """ Joins path with arbitrary amount of other paths.
     """
     joined = to_path(path, as_string=False).joinpath(to_path(*paths, as_string=False))
+    joined_resolved = to_path(joined, as_string=False)
     if as_string:
-        return joined.as_posix()
+        return joined_resolved.as_posix()
     else:   
-        return joined
+        return joined_resolved
 
 
 def join_paths_str(path, *paths):

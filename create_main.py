@@ -37,7 +37,7 @@ def main():
 
     template_path = utils.join_paths_str(scd, TEMPLATE_FILE)
 
-    out_path = utils.to_path_str(args.target_path)
+    out_path = utils.to_path(args.target_path)
     if not utils.is_absolute_path(out_path):
         out_path = utils.join_paths_str(cwd, out_path)
     out_dir = utils.get_file_path(out_path)
@@ -56,9 +56,9 @@ def main():
 
     if out_dir not in cwd:
         # py_utils path is not relative to created file
-        print(f"Important: Please copy and import python utils. E.g.:")
-        print(f"cd {utils.get_file_path(out_path)}")
-        print(f"git clone https://github.com/amplejoe/py_utils.git")
+        print("Important: Please make sure that python utils are available, i.e. inside PYTHONPATH.")
+        print("Clone repository via:")
+        print("git clone https://github.com/amplejoe/py_utils.git")
     else:
         # py_utils path is relative to created file
         replace_string = REPLACE_TEXT
