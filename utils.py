@@ -562,6 +562,11 @@ def is_number(s):
         return False
 
 
+def is_partial_word_in_list(word, lst):
+    res = filter_list_by_partial_word(word, lst)
+    return len(res) > 0
+
+
 def filter_list_by_partial_word(word, list_to_filter):
     """ partially matches a word with a list and returns filtered list
     """
