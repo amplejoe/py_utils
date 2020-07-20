@@ -469,9 +469,13 @@ def get_attribute_from(file_name, attribute):
         Info: VALs cannot contain '_'; '.EXT' is optional
     """
     file_name = get_file_name(file_name)  # make sure file_name is no path
-    split_one = file_name.split(f"{attribute}_")[1]
-    split_two = split_one.split("_")[0]
-    return split_two
+    attribute_split = file_name.split(f"{attribute}_")
+    ret_value = None
+    if len(attribute_split) > 1:
+        # attribute has been found in string
+        split_one = attribute_split[1]
+        ret_value = split_one.split("_")[0]
+    return ret_value
 
 
 def avg_list(lst):
