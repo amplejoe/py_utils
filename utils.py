@@ -288,6 +288,19 @@ def get_immediate_subdirs(a_dir, full_path=True):
         return [get_nth_parentdir(f) for f in path.iterdir() if f.is_dir()]
 
 
+def get_immediate_subfiles(a_dir, full_path=True):
+    """ Returns a list of immediate sub-files of a path.
+        full_path (Default: True): get full path or sub-file names only
+    """
+    path = to_path(a_dir, as_string=False)
+    if not path.is_dir():
+        return []
+    if full_path:
+        return [f.as_posix() for f in path.iterdir() if f.is_file()]
+    else:
+        return [get_nth_parentdir(f) for f in path.iterdir() if f.is_file()]
+
+
 def get_nth_parentdir(file_path, n=0, full_path=False):
     """ Get nth parent directory of a file path, starting from the back (file).
         (Default: 0, i.e. the first directory after a potential filename)
