@@ -12,7 +12,10 @@ import csv
 from detectron2.data.datasets import register_coco_instances
 from detectron2.config import get_cfg
 import ctypes
-ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
+# load dll on windows systems
+import os
+if os.name == 'nt':
+    ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
 DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
 DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
