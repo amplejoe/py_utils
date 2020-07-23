@@ -23,7 +23,7 @@ from collections import OrderedDict
 import numpy as np
 import cv2
 from PIL import Image  # (pip install Pillow)
-import imutils
+# import imutils
 import copy
 from yattag import Doc # for html out
 from . import utils
@@ -78,6 +78,14 @@ class ColorLabeler:
         return result_dict
 
     def get_colors(self, include_bg=True):
+        """Returns deep copy of colors, optionally without background
+
+        Args:
+            include_bg (bool, optional): [description]. Defaults to True.
+
+        Returns:
+            OrderedDict: color dictionary
+        """
         ret = copy.deepcopy(self.colors)
         if not include_bg:
             for n in BACKGROUND_LABELS:
