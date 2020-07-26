@@ -13,7 +13,7 @@ from PIL import Image
 
 from defs.config import *
 from defs.pytorch_transform import image_transforms
-from modules import utils
+from . import utils
 
 def data_folder_stats():
 
