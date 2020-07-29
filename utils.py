@@ -43,7 +43,7 @@ import re
 import subprocess
 import numpy as np
 import inspect
-
+import functools
 
 # # USER INPUT RELATED
 
@@ -445,6 +445,36 @@ def remove_np_from_list(lst, np_array):
 
 # # MISCELLANEOUS
 
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def set_object_attr(obj, attr, val):
+    """Allows for setting object attributes recursively via strings. 
+       E.g: set_object_attr(person, "car.tire.brand", "Goodyear")
+    Args:
+        obj (object): the object to process
+        attr (object): the attribute to alter
+        val (object): the new vale
+
+    Returns:
+        object: the new value via get_object_attr
+    """
+    pre, _, post = attr.rpartition('.')
+    return setattr(get_object_attr(obj, pre) if pre else obj, post, val)
+
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def get_object_attr(obj, attr, *args):
+    """Allows for getting object attributes recursively via strings. 
+       E.g: get_object_attr(person, "car.tire.brand") -> "Goodyear"
+    Args:
+        obj (object): the object to process
+        attr (object): the attribute to get
+        args (list or agrs): getattr args
+
+    Returns:
+        object: the value of attr
+    """
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
 
 def exit(msg=None):
     """ Exits script with optional message.
