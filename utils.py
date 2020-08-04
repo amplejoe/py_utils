@@ -398,6 +398,26 @@ def copy_to(src_path, dst_path, follow_symlinks=True):
     """
     shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
 
+def move_file(src_path, dst_path):
+    """Moves a file using shutil. Can also be used for file renaming
+
+    Args:
+        src (string): path to src name
+        dst (string): path to dst name
+    """
+    return shutil.move(src_path, dst_path)
+
+def rename_file(src_path, dst_path):
+    """ Uses move_file to rename file
+    """
+    src_root = to_path(get_file_path(src_path))
+    dst_root = to_path(get_file_path(dst_path))
+    if src_root != dst_root:
+        print(f"Cannot rename file: {src_root}")
+        print("Paths don't match!")
+        exit(0)
+    return shutil.move(src_path, dst_path)
+
 # # MEMORY
 
 
