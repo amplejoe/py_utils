@@ -52,37 +52,53 @@ def get_mapping_info(in_path):
     mapping = {}
     case_video_count = {}
     for index, row in df.iterrows():
-        parts = row[0].split('_')
-        video_id = "-1"
-        if len(parts) == 1 or "video" not in parts[0]:
-            video_id = row[0]
-        else:
-            video_id = parts[1]
-        video_id = video_id.replace('.mp4', '')
+        # parts = row[0].split('_')
+        # video_id = "-1"
+        # if len(parts) == 1 or "video" not in parts[0]:
+        #     video_id = row[0]
+        # else:
+        #     video_id = parts[1]
+        # video_id = video_id.replace('.mp4', '')
+        video_id = row[0]
         case_id = int(row[2])
         mapping[f'{video_id}'] = case_id
         utils.increment_dict_key(case_video_count, f'{case_id}')
     return mapping, case_video_count
 
 
-def get_info(frame_or_sketch_or_vid):
-    if "video_" not in frame_or_sketch_or_vid:
-        # invalid file path
+def get_info(frame_or_sketch_or_vid_path):
+    if ".mp4" not in frame_or_sketch_or_vid_path:
+        # invalid file path ()
+        # TODO: allow other video extensions
         return None
 
     ret_dict = {}
-    ret_dict["path"] = frame_or_sketch_or_vid
-    ret_dict["file_name"] = utils.get_file_name(frame_or_sketch_or_vid)
-    ret_dict["file_ext"] = utils.get_file_ext(frame_or_sketch_or_vid)
+    ret_dict["path"] = frame_or_sketch_or_vid_path
+    ret_dict["file_name"] = utils.get_file_name(frame_or_sketch_or_vid_path)
+    ret_dict["file_ext"] = utils.get_file_ext(frame_or_sketch_or_vid_path)
 
-    # find last occurrence of '_video'
-    tmp = frame_or_sketch_or_vid.rsplit("video_")[1].replace(".mp4", "")
-    tmp_parts = tmp.split("/")[0].split("_")  # remove frame part if existent
-    ret_dict["video_id"] = tmp_parts[0]
-    ret_dict["start_time"] = float(tmp_parts[1])
-    ret_dict["end_time"] = ret_dict["start_time"]
-    if len(tmp_parts) > 2:
-        ret_dict["end_time"] = float(tmp_parts[2])
+    # find video file name = video_id
+    file_dir_last = utils.get_nth_parentdir(frame_or_sketch_or_vid_path)
+
+    # file_dir_full = utils.get_file_path(frame_or_sketch_or_vid_path)
+    # file_name = utils.get_full_file_name(frame_or_sketch_or_vid_path)
+
+    video_id = f"{file_dir_last.split('.mp4_')[0]}.mp4"
+    start_end_time = file_dir_last.split('.mp4_')[1]
+    start_end_time_parts = start_end_time.split('_')
+
+    # OLD
+    # tmp = frame_or_sketch_or_vid_path.rsplit("video_")[1].replace(".mp4", "")
+    # tmp_parts = tmp.split("/")[0].split("_")  # remove frame part if existent
+    # ret_dict["video_id"] = tmp_parts[0]
+    # ret_dict["start_time"] = float(tmp_parts[1])
+    # ret_dict["end_time"] = ret_dict["start_time"]
+    
+
+    ret_dict["video_id"] = video_id
+    ret_dict["start_time"] = float(start_end_time_parts[0])
+    if len(start_end_time_parts) > 1:
+        ret_dict["end_time"] = float(start_end_time_parts[1])
 
     if ret_dict["file_ext"] == ".jpg":
         ret_dict["frame"] = int(ret_dict["file_name"].split("_")[1])
@@ -184,7 +200,7 @@ def create_svg(svg_tag, img_width, img_height, out_path):
                            .replace("INSERT_OBJECT", svg_tag))
 
 
-def get_sketch_frame_mapping(frame_list, sketch_list, classes_list, frames_root):
+def get_sketch_frame_mapping(frame_list, sketch_list, classes_list):
     """ Creates a sketch-frame mapping for ECAT annotation output,
         i.e. segment frames with corresponding json annotations (1 file per annotation)
         Return : dict{
@@ -217,7 +233,7 @@ def get_sketch_frame_mapping(frame_list, sketch_list, classes_list, frames_root)
             if len(frame) == 0:
                 print(f"{len(frame)} frames found for sketch {sketch_info['path']}")
                 continue  # prevent crashing, if no frame is found
-            # frame can infact be > 1 since extracted frames/segments can oberlap
+            # frame can infact be > 1 since extracted frames/segments can overlap
             # ignore this since frames extracted multiple times ARE still the same
             # elif len(frame) > 1:
             #   pass
