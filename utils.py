@@ -530,7 +530,10 @@ def exec_shell_command(command, print_output=False):
 def get_attribute_from(file_name, attribute):
     """ gets an attribute from a file name as string
         format: a1_VAL1_a2_VAL2_a3_VAL3.EXT
-        Info: VALs cannot contain '_'; '.EXT' is optional
+        Info: 
+          * If VALs contain '_', they MUST be encapsulated by parentheses (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
+          * Therefore, NO parentheses are allowed in  VAL strings!!
+          * '.EXT' is optional
     """
     file_name = get_file_name(file_name)  # make sure file_name is no path
     attribute_split = file_name.split(f"{attribute}_")
@@ -538,7 +541,10 @@ def get_attribute_from(file_name, attribute):
     if len(attribute_split) > 1:
         # attribute has been found in string
         split_one = attribute_split[1]
-        ret_value = split_one.split("_")[0]
+        ret_value = split_one.split("_")[0] # default: no parentheses in VAL
+        if "(" in split_one and (")") in split_one:
+            # parentheses are present
+            ret_value = split_one.split(")")[0].replace("(", "")
     return ret_value
 
 
