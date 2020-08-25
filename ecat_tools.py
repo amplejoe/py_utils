@@ -166,7 +166,7 @@ def unescape(in_string):
     return bytes(in_string, encoding='utf8').decode('unicode_escape').replace("\/", "/")
 
 
-def prepare_svg(svg_tag, color_rgb):
+def prepare_svg(svg_tag, color_rgb, img_dims, canvas_dims):
     """ Prepare svg for writing
 
         Parameters
@@ -176,6 +176,8 @@ def prepare_svg(svg_tag, color_rgb):
         svg to be written to disk
         color_rgb : str
         rgb color in CSS format: 'rgb(r,g,b)'
+        img_dims : dimensions of the output image
+        canvas_dims: dimensions of the canvas, the drawing was made on
     """
     #  fill sketches
     svg_tag = unescape(svg_tag)
@@ -184,6 +186,16 @@ def prepare_svg(svg_tag, color_rgb):
     svg_tag = svg_tag.replace("fill: rgb(0,0,0);", f"fill: {color_rgb};")
     svg_tag = svg_tag.replace("stroke: rgb(255,255,255);", f"stroke: {color_rgb};")
     svg_tag = svg_tag.replace("fill-opacity: 0;", "fill-opacity: 1;")
+    # todo adjust transform
+    scale_x = img_dims["width"] / canvas_dims["width"]
+    scale_y = img_dims["height"] / canvas_dims["height"]
+    svg_tag = svg_tag.replace("transform=\"", f"transform=\" scale({scale_x} {scale_y}) ")
+
+    # if float(scale_x) != 1.0:
+    #     print(svg_tag)
+    #     print(f"scale {scale_x},{scale_y}")
+    #     utils.exit("early quit")
+
     return svg_tag
 
 
