@@ -531,11 +531,12 @@ def get_attribute_from(file_name, attribute):
     """ gets an attribute from a file name as string
         format: a1_VAL1_a2_VAL2_a3_VAL3.EXT
         Info: 
-          * If VALs contain '_', they MUST be encapsulated by parentheses (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
-          * Therefore, NO parentheses are allowed in  VAL strings!!
+          * If VALs are Strings, e.g. they contain '_'/'.' ... , 
+            they MUST be encapsulated by parentheses (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
+          * Exceptional string char: NO parentheses are allowed in VAL strings!!
           * '.EXT' is optional
     """
-    file_name = get_file_name(file_name)  # make sure file_name is no path
+    file_name = get_full_file_name(file_name)  # make sure file_name is no path
     attribute_split = file_name.split(f"{attribute}_")
     ret_value = None
     if len(attribute_split) > 1:
@@ -545,6 +546,8 @@ def get_attribute_from(file_name, attribute):
         if "(" in split_one and (")") in split_one:
             # parentheses are present
             ret_value = split_one.split(")")[0].replace("(", "")
+        else:
+            ret_value = ret_value.split(".")[0] # strip potential file EXT
     return ret_value
 
 
