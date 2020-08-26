@@ -338,7 +338,7 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
 
 
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
-def blend_image(img_bg, img_overlay, blend = BLEND_ALPHA):
+def blend_image(in_bg, in_overlay, blend = BLEND_ALPHA):
     """ Blends two images with transparency.
 
         Parameters
@@ -351,18 +351,18 @@ def blend_image(img_bg, img_overlay, blend = BLEND_ALPHA):
         blend: float
             1.0 - 0.0 most to least amount of transparency applied
     """
-    bg_img = get_image(img_bg)
-    img_overlay = get_image(img_overlay)
+    img_bg = get_image(in_bg)
+    img_overlay = get_image(in_overlay)
 
     # copy images as to no alter originals
-    bg_img_copy = bg_img.copy()
+    img_bg_copy = img_bg.copy()
     img_overlay_copy = img_overlay.copy()
 
-    bg_img_copy = cv2.cvtColor(bg_img_copy, cv2.COLOR_BGR2BGRA)
+    img_bg_copy = cv2.cvtColor(img_bg_copy, cv2.COLOR_BGR2BGRA)
     img_overlay_bgra = get_transparent_img(img_overlay_copy)
     # blend_images
     beta = (1.0 - blend)
-    result = cv2.addWeighted(bg_img_copy, blend, img_overlay_bgra, beta, 0.0)
+    result = cv2.addWeighted(img_bg_copy, blend, img_overlay_bgra, beta, 0.0)
     return result
 
 def blend_images(img, img_overlay_array, blend = BLEND_ALPHA):
@@ -379,6 +379,9 @@ def blend_images(img, img_overlay_array, blend = BLEND_ALPHA):
         blend: float
             1.0 - 0.0 most to least amount of transparency applied
     """
+    if not isinstance(img_overlay_array, list):
+        print("blend_images needs an array as input")
+        return None
     img = get_image(img)
     res = img
     for o in img_overlay_array:
