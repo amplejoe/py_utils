@@ -351,7 +351,7 @@ def blend_image(img_bg, img_overlay, blend = BLEND_ALPHA):
         blend: float
             1.0 - 0.0 most to least amount of transparency applied
     """
-    bg_img =  get_image(img_bg)
+    bg_img = get_image(img_bg)
     img_overlay = get_image(img_overlay)
 
     # copy images as to no alter originals
