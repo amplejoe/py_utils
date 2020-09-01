@@ -246,7 +246,7 @@ def RGB_to_BGR(rgb):
     return b, g, r
 
 
-def overlay_text(img, txt, *, x_pos=10, y_pos=10, scale=1, color=(255,255,255), color_mix=None, thickness=1):
+def overlay_text(img, txt, *, x_pos=10, y_pos=25, scale=1, color=(255,255,255), color_mix=None, thickness=1):
     """ Overlays text on an opencv image, does not change original image. Supports multiline text using '\n'.
         Parameters
         ----------
