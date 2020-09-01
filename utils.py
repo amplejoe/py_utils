@@ -626,6 +626,8 @@ def get_script_dir():
 def is_absolute_path(path):
     """ Checks if path is absolute (also for non-existing paths!).
     """
+    if path is None: 
+        return False
     return os.path.isabs(path)
 
 
@@ -776,12 +778,14 @@ def prompt_folder_confirm(target_path, folder_list, name):
         if not confirm("Is this correct?", "y"):
             sim_folder = None
     if sim_folder is None:
-        while sim_folder not in all_subdirs:
-            sim_folder = input(f"Please enter {name} dir: ")
-            if sim_folder not in all_subdirs:
+        while not (is_absolute_path(sim_folder) and exists_dir(sim_folder)) and sim_folder not in all_subdirs:
+            sim_folder = input(f"Please enter {name} dir from list (or enter absolute path): ")
+            if not (is_absolute_path(sim_folder) and exists_dir(sim_folder)) and sim_folder not in all_subdirs:
                 print("Dir not found, please try again (Ctrl+C to quit).")
+    if not is_absolute_path(sim_folder):
+        sim_folder = join_paths_str(target_path, sim_folder)
     print(f"Using {sim_folder} ({name}).")
-    return join_paths_str(target_path, sim_folder)
+    return sim_folder
 
 
 def format_number(number, precision=3, width=3):
