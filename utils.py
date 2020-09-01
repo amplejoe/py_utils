@@ -541,10 +541,10 @@ def get_attribute_from(file_name, attribute):
     ret_value = None
     if len(attribute_split) > 1:
         # attribute has been found in string
-        split_one = attribute_split[1]
+        split_one = attribute_split[1]                
         ret_value = split_one.split("_")[0] # default: no parentheses in VAL
-        if "(" in split_one and (")") in split_one:
-            # parentheses are present
+        if "(" in ret_value:
+            # value begins with parenthesis '('
             ret_value = split_one.split(")")[0].replace("(", "")
         else:
             ret_value = ret_value.split(".")[0] # strip potential file EXT
