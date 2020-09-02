@@ -72,13 +72,17 @@ def get_mask_info(frame_or_annot_path):
         frame_or_annot_path ([type]): [description]
     """
     ret = {}
+    ret["path"] = frame_or_annot_path
     ret["file_name"] = utils.get_file_name(frame_or_annot_path)
     ret["file_ext"] = utils.get_file_ext(frame_or_annot_path)
     ret["frame"] = int(utils.get_attribute_from(ret["file_name"], "f"))
-    # ret["segment_number"] = utils.get_attribute_from(ret["name"], "s")
     ret["video"] = utils.get_attribute_from(ret["file_name"], "v")
-    ret["case"] = utils.get_attribute_from(ret["file_name"], "c")
-    ret["is_gt"] = True if "_gt" in ret["file_name"] else False
+    ret["case"] = utils.get_attribute_from(ret["file_name"], "c")    
+    ret["is_gt"] = True if "_gt" in ret["file_name"] else False # always false for non tracked folders
+    # for tracking: unique per video and per gt tracked frames segment
+    ret["segment"] = utils.get_attribute_from(ret["file_name"], "s") # empty for non tracked mask folders
+    if ret["segment"] is not None:
+        ret["segment"] = int(ret["segment"])
 
     return ret
 
