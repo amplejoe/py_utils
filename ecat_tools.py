@@ -65,8 +65,33 @@ def get_mapping_info(in_path):
         utils.increment_dict_key(case_video_count, f'{case_id}')
     return mapping, case_video_count
 
+def get_mask_info(frame_or_annot_path):
+    """Info for mask type naming files
+
+    Args:
+        frame_or_annot_path ([type]): [description]
+    """
+    ret = {}
+    ret["file_name"] = utils.get_file_name(frame_or_annot_path)
+    ret["file_ext"] = utils.get_file_ext(frame_or_annot_path)
+    ret["frame"] = int(utils.get_attribute_from(ret["file_name"], "f"))
+    # ret["segment_number"] = utils.get_attribute_from(ret["name"], "s")
+    ret["video"] = utils.get_attribute_from(ret["file_name"], "v")
+    ret["case"] = utils.get_attribute_from(ret["file_name"], "c")
+    ret["is_gt"] = True if "_gt" in ret["file_name"] else False
+
+    return ret
+
 
 def get_info(frame_or_sketch_or_vid_path):
+    """Info for ECAT style naming files
+
+    Args:
+        frame_or_sketch_or_vid_path ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     if ".mp4" not in frame_or_sketch_or_vid_path:
         # invalid file path ()
         # TODO: allow other video extensions

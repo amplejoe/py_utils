@@ -380,7 +380,7 @@ def get_file_name(file_path):
 
 
 def get_file_ext(file_path):
-    """ Get file extension of file
+    """ Get file extension of file (always with '.', i.e. 'test.jpg' -> '.jpg')
     """
     return to_path(file_path, as_string=False).suffix
 
