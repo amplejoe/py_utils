@@ -526,29 +526,69 @@ def exec_shell_command(command, print_output=False):
             sys.stdout.write(line)
     return output
 
+def get_string_before_char(input_string, stop_char):
+    """ Cuts out substring from input_string until a certain character.
+        Info: Returns tuple: (cut out string w/o stop_char, rest of input_string w/o stop_character)  
+              i.e. stop_char is lost in any case!
+    """ 
+    cur_substring = ""
+    rest_string = input_string
+    for c in input_string:
+        rest_string = rest_string[1:] # cut 1 char from string (in any case)
+        if c != stop_char:
+            cur_substring += c      
+        else:
+            break
+    return cur_substring, rest_string
 
 def get_attribute_from(file_name, attribute):
     """ gets an attribute from a file name as string
-        format: a1_VAL1_a2_VAL2_a3_VAL3.EXT
+        format: a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
         Info: 
-          * If VALs are Strings, e.g. they contain '_'/'.' ... , 
-            they MUST be encapsulated by parentheses (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
+          * Exceptional characters for VALs: '_', '.', '(', ')'
+          * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses 
+            (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
           * Exceptional string char: NO parentheses are allowed in VAL strings!!
           * '.EXT' is optional
     """
     file_name = get_full_file_name(file_name)  # make sure file_name is no path
-    attribute_split = file_name.split(f"{attribute}_")
-    ret_value = None
-    if len(attribute_split) > 1:
-        # attribute has been found in string
-        split_one = attribute_split[1]                
-        ret_value = split_one.split("_")[0] # default: no parentheses in VAL
-        if "(" in ret_value:
-            # value begins with parenthesis '('
-            ret_value = split_one.split(")")[0].replace("(", "")
+
+    # TODO alternatively read attribute then value ...
+
+    # parse file for attributes from beginning to end
+    attribute_dict = {}
+
+    while len(file_name) > 0:
+        cur_attr, file_name = get_string_before_char(file_name, "_")
+        attribute_dict[cur_attr] = None
+        if len(file_name) == 0:
+            break
+        cur_val = ""
+        if file_name[0] == "(":
+            file_name = file_name[1:] # cut '(' from string
+            cur_val, file_name = get_string_before_char(file_name, ")")
+            file_name = file_name[1:] # cut '_' from string
         else:
-            ret_value = ret_value.split(".")[0] # strip potential file EXT
-    return ret_value
+            cur_val, file_name = get_string_before_char(file_name, "_")
+            cur_val = cur_val.split(".")[0] # strip potential file EXT
+        attribute_dict[cur_attr] = cur_val
+
+    ret_val = attribute_dict[attribute] if attribute in attribute_dict.keys() else None
+
+    ## OLD methodology using 'split
+    # attribute_split = file_name.split(f"{attribute}_")
+    # ret_value = None
+    # if len(attribute_split) > 1:
+    #     # attribute has been found in string
+    #     split_one = attribute_split[1]                
+    #     ret_value = split_one.split("_")[0] # default: no parentheses in VAL
+    #     if "(" in ret_value:
+    #         # value begins with parenthesis '('
+    #         ret_value = split_one.split(")")[0].replace("(", "")
+    #     else:
+    #         ret_value = ret_value.split(".")[0] # strip potential file EXT
+
+    return ret_val
 
 
 def avg_list(lst):
