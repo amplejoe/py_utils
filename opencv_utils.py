@@ -223,7 +223,7 @@ def get_transparent_img(img):
     return dst
 
 
-def show_image(image, title, pos=None):
+def show_image(image, title, pos=None, destroy_after_keypress=True):
     """ Shows image with option to set position and enabling ESCAPE to quit.
         Parameters:
         -----------
@@ -241,6 +241,8 @@ def show_image(image, title, pos=None):
     key = cv2.waitKey(0)
     if key == 27:
         sys.exit()
+    if destroy_after_keypress:
+        cv2.destroyWindow(title) # cleanup
 
 def RGB_to_BGR(rgb):
     r, g, b = rgb 
