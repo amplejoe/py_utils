@@ -151,6 +151,7 @@ def get_img_dimensions(img):
         return: dict of numbers
             {"width": img_width, "height": img_height, "channels": num_channels}
     """
+    img = get_image(img)
     dims = img.shape
     return {"width": dims[0], "height": dims[1], "channels": dims[2]}
 
