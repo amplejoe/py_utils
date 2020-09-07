@@ -396,7 +396,12 @@ def copy_to(src_path, dst_path, follow_symlinks=True):
         If dst is a directory, a file with the same basename as src is created
         (or overwritten) in the directory specified.
     """
-    shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
+    try:
+        shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
+        return True
+    except IOError as e:
+        print(f"Unable to copy file. {e}")
+        return False
 
 def move_file(src_path, dst_path):
     """Moves a file using shutil. Can also be used for file renaming
