@@ -141,6 +141,28 @@ def get_image(path_or_image):
         # path must have been provided (TODO: error handling)
         return cv2.imread(path_or_image)
 
+def image_to_binary_image(img_or_path):
+    """Converts 3 channel image into 1 channel binary image
+
+    Args:
+        img_or_path ([type]): [description]
+    """
+    img_or_path = get_image(img_or_path)
+    img_copy = img_or_path.copy()
+    img_copy = cv2.cvtColor(img_copy, cv2.COLOR_BGR2GRAY) # to gray
+    ret, img_copy = cv2.threshold(img_copy, 127, 255, cv2.THRESH_BINARY) # thresholded
+    contours = cv2.findContours(img_copy, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+    dims = get_img_dimensions(img_or_path)
+    image_binary = np.zeros((dims['height'], dims['width'], 1), np.uint8)
+    cv2.drawContours(image_binary, [max(contours, key = cv2.contourArea)],-1, (255, 255, 255), -1)
+    return image_binary        
+  
+# def cut_roi_from_image(foreground, background, mask):
+#     result = np.zeros_like(foreground)
+#     result[mask] = foreground[mask]
+#     inv_mask = np.logical_not(mask)
+#     result[inv_mask] = background[inv_mask]
+#     return result
 
 def get_img_dimensions(img):
     """ Get image dimensions in form of a dictionary.
