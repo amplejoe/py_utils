@@ -152,8 +152,8 @@ def get_img_dimensions(img):
             {"width": img_width, "height": img_height, "channels": num_channels}
     """
     img = get_image(img)
-    dims = img.shape
-    return {"width": dims[0], "height": dims[1], "channels": dims[2]}
+    height, width, channels = img.shape
+    return {"width": width, "height": height, "channels": channels}
 
 
 def create_blank_image(width, height, num_channels = NUM_CHANNELS):
