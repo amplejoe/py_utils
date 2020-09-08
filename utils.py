@@ -47,7 +47,7 @@ import functools
 
 # # USER INPUT RELATED
 
-def select_option(options, *, msg=None, default=None):
+def select_option(options, *, msg=None, default=0):
     """
     Ask user to select one of several options.
     Parameters
