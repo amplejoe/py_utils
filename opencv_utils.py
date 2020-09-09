@@ -425,4 +425,10 @@ def scale_image(img, scale_factor, interpolation=cv2.INTER_AREA):
     dim = (width, height)
     resized_img = cv2.resize(img, dim, interpolation)
     return resized_img
+
+def save_image(img, file_path, info=True):
+    # Saving the image 
+    cv2.imwrite(file_path, img) 
+    if info:
+        print(f"Wrote {file_path}")
     
