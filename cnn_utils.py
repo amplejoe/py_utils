@@ -126,7 +126,7 @@ def calc_pixel_mean_std(ds_info, img_ext=DEFAULT_IMG_EXT, num_channels=3):
             return data_dict["color_mean"], data_dict["std_mean"]
 
     # img_paths = utils.get_file_paths(ds_info['image_path'], *img_ext)
-    train_img_paths = [utils.join_paths_str(ds_info['image_path'], x["file_name"]) for x in ds_info["train_images_json"]]
+    train_img_paths = [utils.join_paths_str(ds_info['ds_path'], x["path"]) for x in ds_info["train_images_json"]]
     channel_sum = np.zeros(num_channels)
     channel_sum_squared = np.zeros(num_channels)
 
@@ -176,7 +176,7 @@ def calc_min_max_pixel_vals(ds_info, in_img_ext=DEFAULT_IMG_EXT, num_channels=3)
     """
 
     # img_paths = utils.get_file_paths(ds_info['image_path'], *in_img_ext)
-    train_img_paths = [utils.join_paths_str(ds_info['image_path'], x["file_name"]) for x in ds_info["train_images_json"]]
+    train_img_paths = [utils.join_paths_str(ds_info['ds_path'], x["path"]) for x in ds_info["train_images_json"]]
     max_total = np.zeros((num_channels, 1))
     min_total = np.zeros((num_channels, 1))
     for file in tqdm(train_img_paths, desc="Calculating min max values"):
@@ -326,6 +326,7 @@ def get_ds_info(ds_path, ds_cfg):
     dataset_info["ds_train"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["train"])
     dataset_info["ds_val"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["val"])
     dataset_info["ds_test"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["test"])
+    # TODO
     dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
     dataset_info["num_total_images"] = len(utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT))
     dataset_info["train_images_json"] = utils.get_attribute_from_json(dataset_info["ds_train"], "images")
