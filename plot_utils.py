@@ -1,5 +1,4 @@
 import numpy as np
-import tkinter
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
