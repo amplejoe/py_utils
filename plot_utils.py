@@ -1,14 +1,15 @@
 import numpy as np
 import matplotlib
+# import seaborn as sns
+# sns.set(style="whitegrid")
+matplotlib.use('TkAgg')  # necessary to prevent plots not showing,
+                         # in case some import sets mode to 'agg' (e.g. detectron2)
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from . import utils
 from . import cnn_utils
 
-# import seaborn as sns
-# sns.set(style="whitegrid")
-matplotlib.use('TkAgg')  # necessary to prevent plots not showing,
-                         # in case some import sets mode to 'agg' (e.g. detectron2)
+
 
 
 # def barplot(df):
