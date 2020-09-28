@@ -22,6 +22,10 @@ DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
 PIXEL_MEAN_FILE = "pixel_means_train.csv"
 
 
+CFG_CUSTOM_FIELDS = {
+    'AUGMENTATIONS': []
+}
+
 # pass a list of dicts (default)
 # OR pass dict: list(product_dict(**mydict))
 # src: https://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
@@ -90,11 +94,16 @@ def register_datasets(ds_info):
     register_coco_instances(f"{ds_info['ds_name']}_test", {}, ds_info["ds_test"], ds_info['image_path'])
 
 
+def add_cfg_custom_fields(cfg):
+    for k,v in CFG_CUSTOM_FIELDS.items():
+        utils.create_dict_key(cfg, k, v)
+
+
 def load_d2_cfg(config_file):
-    config = get_cfg()
+    config = get_custom_cfg()
     config.merge_from_file(
         config_file
-    )
+    )   
     return config
 
 
@@ -225,6 +234,13 @@ def get_last_n_metrics(model_folder, n=10):
     experiment_metrics = utils.read_json_arr(model_folder + '/metrics.json')
     return experiment_metrics[-n:]
 
+def get_custom_cfg():
+    c_cfg = get_cfg()
+    # custom configs
+    # IMPORTANT: add before merge_from_file(), as keys need to exist before merge
+    add_cfg_custom_fields(c_cfg)
+    return c_cfg
+
 
 def create_d2_cfgs(ds_info, script_dir):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
@@ -249,7 +265,7 @@ def create_d2_cfgs(ds_info, script_dir):
     cnn_cfgs = {}
     for cnn in ds_info["cfg"]["cnns"]:
         cnn_cfgs[cnn["name"]] = []
-        base_cfg = get_cfg()
+        base_cfg = get_custom_cfg()
 
         # # BASE YAML configs
         # D2 config files
