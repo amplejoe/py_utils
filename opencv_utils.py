@@ -426,6 +426,37 @@ def scale_image(img, scale_factor, interpolation=cv2.INTER_AREA):
     resized_img = cv2.resize(img, dim, interpolation)
     return resized_img
 
+def get_bbox_center(box):
+    """ Calculate center of a bounding box of type: tuple (x, y, w, h)
+    """
+    cx = int(box[0] + 0.5 * box[2])
+    cy = int(box[1]  + 0.5 * box[3])
+    return ({"x": cx, "y": cy})
+
+
+def get_contour_centroid(contour):
+    M = cv2.moments(contour)
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+    return ({"x": cx, "y": cy})
+
+def move_contour_to(contour, center_x, center_y):
+    """Moves a contour by its centroid, given coords are taken as new position center coordinates
+
+    Args:
+        contour ([type]): [description]
+        center_x ([type]): [description]
+        center_y ([type]): [description]
+    """
+    c_centroid = get_contour_centroid(contour)
+    new_x =  center_x - c_centroid['x']
+    new_y = center_y - c_centroid['y']
+    new_contour = contour + [new_x, new_y]
+    # print(f"o {c_centroid['x']}, {c_centroid['y']}")
+    # print(f"t {center_x}, {center_y}")
+    # print(f"move {new_x}, {new_y}")
+    return new_contour
+
 def save_image(img, file_path, info=True):
     # Saving the image 
     cv2.imwrite(file_path, img) 
