@@ -744,7 +744,7 @@ def find_most_frequent(List):
     return max(set(List), key=List.count)
 
 
-def read_json(path):
+def read_json(path, silent=True):
     """ Loads a json file into a variable.
         Parameters:
         ----------
@@ -752,14 +752,18 @@ def read_json(path):
             path to json file
         Return : dict
             dict containing all json fields and attributes
-    """
+    """    
     data = None
-    with open(path) as json_file:
-        data = json.load(json_file)
+    try:
+        with open(path) as json_file:
+            data = json.load(json_file)
+    except FileNotFoundError:
+        if not silent:
+            print(f"File not found: {path}")        
     return data
 
 
-def write_json(path, data):
+def write_json(path, data, pretty_print=False):
     """ Writes a json dict variable to a file.
         Parameters:
         ----------
@@ -769,7 +773,11 @@ def write_json(path, data):
             data compliant with json format
     """
     with open(path, 'w', newline='') as outfile:
-        json.dump(data, outfile)
+        if pretty_print:
+            # json.dump(data, outfile, indent=4, sort_keys=True)
+            json.dump(data, outfile, indent=4)
+        else:
+            json.dump(data, outfile)
 
 
 def read_json_arr(json_path):
@@ -849,6 +857,24 @@ def prompt_folder_confirm(target_path, folder_list, name):
     print(f"Using {sim_folder} ({name}).")
     return sim_folder
 
+
+def update_config_file(cfg_path, update_dict):
+    cfg = read_json(cfg_path)
+    now = datetime.now()
+    if not cfg:    
+        cfg = {
+            "created": now.strftime("%Y-%m-%d, %H:%M:%S")
+        }
+    else:
+        cfg["updated"] = now.strftime("%Y-%m-%d, %H:%M:%S")
+
+    print(f"Update config: {cfg_path}")
+    # make sure not to overwrite attributes here
+    for k, v in update_dict.items():
+        cfg[k] = v
+        print(f"{k} => {v}")
+
+    write_json(cfg_path, cfg, True)
 
 def format_number(number, precision=3, width=3):
     opts = "{:%s.%sf}" % (str(width), str(precision))
