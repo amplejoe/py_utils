@@ -320,7 +320,7 @@ def create_d2_cfgs(ds_info, script_dir):
             cnn_cfgs[cnn["name"]].append(cfg)
     return cnn_cfgs
 
-
+# TODO: refactor to only need coco paths
 def get_ds_info(ds_path, ds_cfg):
     """ Creat dataset info dict with various fields used within cnn_utils.
         Parameters
