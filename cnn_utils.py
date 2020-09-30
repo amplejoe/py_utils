@@ -17,9 +17,18 @@ import os
 if os.name == 'nt':
     ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
+
+DS_DEFAULT_CFG_FILE = "config.json"
 DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
 DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
 PIXEL_MEAN_FILE = "pixel_means_train.csv"
+
+DEFAULT_COCO_PATHS = {
+    "full": "coco.json",
+    "train": "coco_train.json",
+    "val": "coco_val.json",
+    "test": "coco_test.json"
+}
 
 
 CFG_CUSTOM_FIELDS = {
@@ -242,7 +251,7 @@ def get_custom_cfg():
     return c_cfg
 
 
-def create_d2_cfgs(ds_info, script_dir):
+def create_d2_cfgs(ds_info, cnn_cfg, script_dir):
     """ Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
         Parameters
         ----------
@@ -260,10 +269,10 @@ def create_d2_cfgs(ds_info, script_dir):
     px_mean, px_std = calc_pixel_mean_std(ds_info)
 
     # get cartesian product of all parameters
-    param_permuts = list(cart_product_dict(**ds_info["cfg"]["params"]))
+    param_permuts = list(cart_product_dict(**cnn_cfg["params"]))
 
     cnn_cfgs = {}
-    for cnn in ds_info["cfg"]["cnns"]:
+    for cnn in cnn_cfg["cnns"]:
         cnn_cfgs[cnn["name"]] = []
         base_cfg = get_custom_cfg()
 
@@ -288,14 +297,14 @@ def create_d2_cfgs(ds_info, script_dir):
         base_cfg.MODEL.PIXEL_MEAN = px_mean
         base_cfg.MODEL.PIXEL_STD = px_std
 
-        # set max_iter to resemple ds_info['cfg']['training']['num_epochs']
+        # set max_iter to resemple cnn_cfg['training']['num_epochs']
         one_epoch = ds_info["num_train_images"] / base_cfg.SOLVER.IMS_PER_BATCH
-        base_cfg.SOLVER.MAX_ITER = int(one_epoch * ds_info['cfg']['training']['num_epochs'])
+        base_cfg.SOLVER.MAX_ITER = int(one_epoch * cnn_cfg['training']['num_epochs'])
         # validation period (validate after after 'validation_perc' * ITERS_PER_EPOCH)
         # INFO: every 20 iterations an entry is made to 'metrics.json', so be sure to set EVAL_PERIOD to a multiple of 20
         # (see: https://github.com/facebookresearch/detectron2/blob/master/tools/plain_train_net.py#L186)
         log_interval = 20
-        eval_period = int(one_epoch * ds_info["cfg"]["training"]["validation_perc"] / log_interval) * log_interval
+        eval_period = int(one_epoch * cnn_cfg["training"]["validation_perc"] / log_interval) * log_interval
         eval_period = log_interval if eval_period < 20 else eval_period
         base_cfg.TEST.EVAL_PERIOD = eval_period
 
@@ -310,18 +319,18 @@ def create_d2_cfgs(ds_info, script_dir):
                 field = parts[1] if len(parts) > 1 else parts[0]
                 out_dir_name += f"{field}_{val}" if out_dir_name == "" else f"_{field}_{val}"
 
-            out_root = ds_info["cfg"]["training"]["output_root"]
+            out_root = cnn_cfg["training"]["output_root"]
             out_path = utils.join_paths_str(ds_info["ds_path"], out_root, cnn["name"], out_dir_name)
             cfg.OUTPUT_DIR = out_path
 
             # checkpointing (save checkpoint after 'checkpoint_perc' * MAX_ITER)
-            cfg.SOLVER.CHECKPOINT_PERIOD = int(math.ceil(cfg.SOLVER.MAX_ITER * ds_info["cfg"]["training"]["checkpoint_perc"]))
+            cfg.SOLVER.CHECKPOINT_PERIOD = int(math.ceil(cfg.SOLVER.MAX_ITER * cnn_cfg["training"]["checkpoint_perc"]))
 
             cnn_cfgs[cnn["name"]].append(cfg)
     return cnn_cfgs
 
-# TODO: refactor to only need coco paths
-def get_ds_info(ds_path, ds_cfg):
+
+def get_ds_info(ds_path):
     """ Creat dataset info dict with various fields used within cnn_utils.
         Parameters
         ----------
@@ -333,17 +342,31 @@ def get_ds_info(ds_path, ds_cfg):
             dataset info
 
     """
+    ds_config_pth = utils.join_paths_str(ds_path, DS_DEFAULT_CFG_FILE)
+    ds_config = utils.read_json(ds_config_pth)
+
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info = {}
-    dataset_info["cfg"] = ds_cfg
+
     dataset_info["ds_name"] = ds_name
     dataset_info["ds_path"] = ds_path
-    dataset_info["ds_full"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["full"])
-    dataset_info["ds_train"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["train"])
-    dataset_info["ds_val"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["val"])
-    dataset_info["ds_test"] = utils.join_paths_str(ds_path, dataset_info["cfg"]["coco"]["test"])
-    # TODO
-    dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
+
+    dataset_info["image_path"] = None
+    if (ds_config):
+        # config found
+        dataset_info["image_path"] = utils.join_paths(dataset_info["ds_path"], ds_config["images"])
+        dataset_info["ds_full"] =  utils.join_paths_str(ds_path, ds_config["coco_full"])
+        dataset_info["ds_train"] =  utils.join_paths_str(ds_path, ds_config["coco_train"])
+        dataset_info["ds_val"] =  utils.join_paths_str(ds_path, ds_config["coco_val"])
+        dataset_info["ds_test"] =  utils.join_paths_str(ds_path, ds_config["coco_test"])
+    else:
+        # config missing - using default settings
+        dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
+        dataset_info["ds_full"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["full"])
+        dataset_info["ds_train"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["train"])
+        dataset_info["ds_val"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["val"])
+        dataset_info["ds_test"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["test"])
+
     dataset_info["num_total_images"] = len(utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT))
     dataset_info["train_images_json"] = utils.get_attribute_from_json(dataset_info["ds_train"], "images")
     dataset_info["num_train_images"] = len(dataset_info["train_images_json"])
