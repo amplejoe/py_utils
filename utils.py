@@ -859,6 +859,10 @@ def prompt_folder_confirm(target_path, folder_list, name):
 
 
 def update_config_file(cfg_path, update_dict):
+    if (not bool(update_dict)):
+        # empty update dict
+        return
+
     cfg = read_json(cfg_path)
     now = datetime.now()
     if not cfg:    

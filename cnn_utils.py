@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from . import utils
+from . import common
 import copy
 import itertools
 import functools
@@ -18,8 +19,10 @@ if os.name == 'nt':
     ctypes.cdll.LoadLibrary('caffe2_nvrtc.dll')
 
 
-DS_DEFAULT_CFG_FILE = "config.json"
-DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
+# DS_DEFAULT_CFG_FILE = "config.json"
+# DEFAULT_IMG_DIRS = ['img', 'imag', 'frame', 'pic', 'phot']
+# DEFAULT_ANNOT_DIRS = ['annot', 'sketch', 'mask']
+
 DEFAULT_IMG_EXT = ['.jpeg', '.jpg', '.png', '.bmp']
 PIXEL_MEAN_FILE = "pixel_means_train.csv"
 
@@ -34,6 +37,7 @@ DEFAULT_COCO_PATHS = {
 CFG_CUSTOM_FIELDS = {
     'AUGMENTATIONS': []
 }
+
 
 # pass a list of dicts (default)
 # OR pass dict: list(product_dict(**mydict))
@@ -104,7 +108,7 @@ def register_datasets(ds_info):
 
 
 def add_cfg_custom_fields(cfg):
-    for k,v in CFG_CUSTOM_FIELDS.items():
+    for k, v in CFG_CUSTOM_FIELDS.items():
         utils.create_dict_key(cfg, k, v)
 
 
@@ -342,8 +346,11 @@ def get_ds_info(ds_path):
             dataset info
 
     """
-    ds_config_pth = utils.join_paths_str(ds_path, DS_DEFAULT_CFG_FILE)
-    ds_config = utils.read_json(ds_config_pth)
+    # ds_config_pth = utils.join_paths_str(ds_path, DS_DEFAULT_CFG_FILE)
+    # ds_config = utils.read_json(ds_config_pth)
+
+    ds_config = common.get_ds_config(ds_path, has_annots=False)
+    dataset_info["image_path"] = ds_config['images']
 
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info = {}
@@ -352,16 +359,12 @@ def get_ds_info(ds_path):
     dataset_info["ds_path"] = ds_path
 
     dataset_info["image_path"] = None
-    if (ds_config):
-        # config found
-        dataset_info["image_path"] = utils.join_paths(dataset_info["ds_path"], ds_config["images"])
+    if ("coco_full" in ds_config and "coco_train" in ds_config and "coco_val" in ds_config and "coco_test" in ds_config):
         dataset_info["ds_full"] =  utils.join_paths_str(ds_path, ds_config["coco_full"])
         dataset_info["ds_train"] =  utils.join_paths_str(ds_path, ds_config["coco_train"])
         dataset_info["ds_val"] =  utils.join_paths_str(ds_path, ds_config["coco_val"])
         dataset_info["ds_test"] =  utils.join_paths_str(ds_path, ds_config["coco_test"])
     else:
-        # config missing - using default settings
-        dataset_info["image_path"] = utils.prompt_folder_confirm(dataset_info["ds_path"], DEFAULT_IMG_DIRS, 'images')
         dataset_info["ds_full"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["full"])
         dataset_info["ds_train"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["train"])
         dataset_info["ds_val"] = utils.join_paths_str(ds_path, DEFAULT_COCO_PATHS["val"])
