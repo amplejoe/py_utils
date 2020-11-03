@@ -897,6 +897,16 @@ def remove_invalid_file_chars(input):
 
 class switch(object):
     """ This class provides switch functionality.
+
+        USAGE (also works with enums):
+        ------------------------------
+
+            thevar = "test"
+            for case in switch(thevar):
+                if case("test"):
+                    break
+                if case():
+                    break
     """
 
     def __init__(self, value):
