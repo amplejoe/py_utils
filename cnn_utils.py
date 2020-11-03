@@ -53,7 +53,7 @@ def cart_product_dict(**kwargs):
 
 def dump_cfg(cfg):
     if not utils.exists_dir(cfg.OUTPUT_DIR):
-        print("Cannot dump cfg, dir does not exists!")
+        print("Cannot dump cfg, dir does not exist!")
         return
     cfg_out = utils.join_paths_str(cfg.OUTPUT_DIR, "config.yaml")
     with open(cfg_out, "w") as co:
@@ -324,7 +324,8 @@ def create_d2_cfgs(ds_info, cnn_cfg, script_dir):
                 out_dir_name += f"{field}_{val}" if out_dir_name == "" else f"_{field}_{val}"
 
             out_root = cnn_cfg["training"]["output_root"]
-            out_path = utils.join_paths_str(ds_info["ds_path"], out_root, cnn["name"], out_dir_name)
+            # relative to ds path (ds_info["ds_path"])
+            out_path = utils.join_paths_str(out_root, cnn["name"], out_dir_name)
             cfg.OUTPUT_DIR = out_path
 
             # checkpointing (save checkpoint after 'checkpoint_perc' * MAX_ITER)
@@ -350,7 +351,7 @@ def get_ds_info(ds_path):
     # ds_config = utils.read_json(ds_config_pth)
 
     ds_config = common.get_ds_config(ds_path, has_annots=False)
-    dataset_info["image_path"] = ds_config['images']
+    dataset_info["image_path"] = ds_config['images_full']
 
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info = {}
