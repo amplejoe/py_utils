@@ -349,7 +349,7 @@ def get_ds_info(ds_path):
     """
     # ds_config_pth = utils.join_paths_str(ds_path, DS_DEFAULT_CFG_FILE)
     # ds_config = utils.read_json(ds_config_pth)
-
+    dataset_info = {}
     ds_config = common.get_ds_config(ds_path, has_annots=False)
     dataset_info["image_path"] = ds_config['images_full']
 
