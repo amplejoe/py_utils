@@ -189,7 +189,7 @@ def create_blank_image(width, height, num_channels = NUM_CHANNELS):
     Returns:
         np.array: A blank black image of size width x height.
     """
-    return np.zeros(shape=(width, height, num_channels), dtype=np.uint8)
+    return np.zeros(shape=(height, width, num_channels), dtype=np.uint8)
 
 def draw_rectangle(img, bb, color = BB_COLOR):
     """ Draws a rectangle to an image in a desired color (default: white)
