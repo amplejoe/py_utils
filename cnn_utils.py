@@ -352,14 +352,10 @@ def get_ds_info(ds_path):
     dataset_info = {}
     ds_config = common.get_ds_config(ds_path, has_annots=False)
     dataset_info["image_path"] = ds_config['images_full']
-
     ds_name = utils.get_nth_parentdir(ds_path)
-    dataset_info = {}
-
     dataset_info["ds_name"] = ds_name
     dataset_info["ds_path"] = ds_path
 
-    dataset_info["image_path"] = None
     if ("coco_full" in ds_config and "coco_train" in ds_config and "coco_val" in ds_config and "coco_test" in ds_config):
         dataset_info["ds_full"] =  utils.join_paths_str(ds_path, ds_config["coco_full"])
         dataset_info["ds_train"] =  utils.join_paths_str(ds_path, ds_config["coco_train"])
