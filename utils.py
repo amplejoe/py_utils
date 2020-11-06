@@ -894,6 +894,69 @@ def remove_invalid_file_chars(input):
         input = input.replace(char, '')
     return input
 
+# Advanced info about video (requires FFMPG!!)
+# src: https://stackoverflow.com/questions/45738856/python-how-to-get-display-aspect-ratio-from-video
+def get_video_info(video_file):
+    """Advanced info about video.
+
+    Args:
+        video_file (string): Path to video file.
+
+    Returns:
+        dict: {
+            duration, 
+            width, 
+            height, 
+            display_width, 
+            display_height, 
+            display_aspect_ratio, 
+            storage_aspect_ratio, 
+            pixel_aspect_ratio}
+    """
+    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(video_file)
+    jsonstr = None
+    try:
+        jsonstr = subprocess.check_output(cmd, shell=True, encoding='utf-8')
+    except subprocess.CalledProcessError as e:
+        print(f"Error getting video info for {video_file}:")
+        print(e.output)
+        return None
+    
+    r = json.loads(jsonstr)
+    # look for "codec_type": "video". take the 1st one if there are mulitple
+    video_stream_info = [x for x in r['streams'] if x['codec_type']=='video'][0]
+
+    width, height = int(video_stream_info['width']), int(video_stream_info['height'])
+    duration = float(video_stream_info['duration'])
+
+    if 'display_aspect_ratio' in video_stream_info and video_stream_info['display_aspect_ratio'] != "0:1":
+        a,b = video_stream_info['display_aspect_ratio'].split(':')
+        dar = int(a)/int(b)
+    else:
+        # some videos do not have the info of 'display_aspect_ratio'        
+        dar = width/height
+        ## not sure if we should use this
+        #cw,ch = video_stream_info['coded_width'], video_stream_info['coded_height']
+        #sar = int(cw)/int(ch)
+    if 'sample_aspect_ratio' in video_stream_info and video_stream_info['sample_aspect_ratio']!="0:1":
+        # some video do not have the info of 'sample_aspect_ratio'
+        a,b = video_stream_info['sample_aspect_ratio'].split(':')
+        sar = int(a)/int(b)
+    else:
+        sar = dar
+    par = dar/sar
+    ret = {
+        "duration": duration,
+        "width": width,
+        "height": height,
+        # square pixel dims (see: https://stackoverflow.com/questions/51825784/output-image-with-correct-aspect-with-ffmpeg)
+        "display_width": int(width * sar),
+        "display_height": height,
+        "dar": dar,     # display aspect ratio
+        "sar": sar,     # storage aspect ratio
+        "par": par      # pixel aspect ratio
+    }
+    return ret
 
 class switch(object):
     """ This class provides switch functionality.
