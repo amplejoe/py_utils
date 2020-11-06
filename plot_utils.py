@@ -35,7 +35,7 @@ def save_train_val_loss(model_folder, num_train_images, batch_size, out_file="tr
     # (force integer with MxNLocator)
     plt.figure(figsize=(4, 3), dpi=300, num=out_file).gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
-    total_x_axis = [cnn_utils.iter_to_epoch(x['iteration'], num_train_images, batch_size) for x in experiment_metrics]
+    total_x_axis = [cnn_utils.iter_to_epoch(x['iteration'], num_train_images, batch_size) for x in experiment_metrics if 'total_loss' in x]
     val_x_axis = [cnn_utils.iter_to_epoch(x['iteration'], num_train_images, batch_size) for x in experiment_metrics if 'validation_loss' in x]
 
     if not plot_epoch:
@@ -45,7 +45,7 @@ def save_train_val_loss(model_folder, num_train_images, batch_size, out_file="tr
     # plot
     plt.plot(
         total_x_axis,
-        [x['total_loss'] for x in experiment_metrics])
+        [x['total_loss'] for x in experiment_metrics if 'total_loss' in x])
     plt.plot(
         val_x_axis,
         [x['validation_loss'] for x in experiment_metrics if 'validation_loss' in x])
