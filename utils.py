@@ -60,7 +60,7 @@ def select_option(options, *, msg=None, default=0):
         default selected idx
     return: tuple (integer, object)
         idx and value of selected option
-    
+
     """
     if default < 0 or default > len(options)-1:
         default = None
@@ -77,7 +77,7 @@ def select_option(options, *, msg=None, default=0):
         if default == i:
             print(f"{i}. [{o}]")
         else:
-            print(f"{i}. {o}")    
+            print(f"{i}. {o}")
 
     while answer not in accepted_answers:
         answer = input(f"user_prompt ")
@@ -198,7 +198,7 @@ def to_path(*p, as_string=True):
     if not pl_path.is_absolute():
         # don't resolve relative paths (pathlib makes them absolute otherwise)
         ret = pl_path
-    
+
     if as_string:
         return ret.as_posix()
     else:
@@ -221,7 +221,7 @@ def join_paths(path, *paths, as_string=True):
     joined_resolved = to_path(joined, as_string=False)
     if as_string:
         return joined_resolved.as_posix()
-    else:   
+    else:
         return joined_resolved
 
 
@@ -261,8 +261,7 @@ def make_dir(path, show_info=False, overwrite=False):
 
 
 def remove_dir(path):
-    exists_dir = os.path.isdir(path)
-    if exists_dir:
+    if exists_dir(path):
         # os.rmdir(path) # does not work if not empty
         shutil.rmtree(path, ignore_errors=True)  # ignore errors on windows
 
@@ -272,7 +271,7 @@ def clear_directory(path):
 
     Args:
         path ([type]): [description]
-    """    
+    """
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
         try:
@@ -287,9 +286,9 @@ def clear_directory(path):
 def get_directories(directory):
     retList = []
     for root, dirs, files in os.walk(directory):
-        for dir in dirs:
+        for d in dirs:
             # print os.path.join(root, filename)
-            retList.append(os.path.abspath(os.path.join(root, dir)))
+            retList.append(os.path.abspath(os.path.join(root, d)))
     return retList
 
 
@@ -361,10 +360,10 @@ def get_file_paths(directory, *extensions):
         changes:
             - 2019: using pathlib (python3) now
     """
-    dir = to_path(directory, as_string=False)
+    d = to_path(directory, as_string=False)
 
     all_files = []
-    for currentFile in dir.glob('**/*'):
+    for currentFile in d.glob('**/*'):
         if not currentFile.is_file():
             continue
         fext = currentFile.suffix
@@ -489,7 +488,7 @@ def remove_np_from_list(lst, np_array):
 
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
-    """Allows for setting object attributes recursively via strings. 
+    """Allows for setting object attributes recursively via strings.
        E.g: set_object_attr(person, "car.tire.brand", "Goodyear")
     Args:
         obj (object): the object to process
@@ -504,7 +503,7 @@ def set_object_attr(obj, attr, val):
 
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def get_object_attr(obj, attr, *args):
-    """Allows for getting object attributes recursively via strings. 
+    """Allows for getting object attributes recursively via strings.
        E.g: get_object_attr(person, "car.tire.brand") -> "Goodyear"
     Args:
         obj (object): the object to process
@@ -525,7 +524,6 @@ def exit(msg=None):
         print(f"{msg}")
     print("Exit script.")
     sys.exit()
-
 
 def exec_shell_command(command, print_output=False):
     """ Executes a shell command using the subprocess module.
@@ -550,15 +548,15 @@ def exec_shell_command(command, print_output=False):
 
 def get_string_before_char(input_string, stop_char):
     """ Cuts out substring from input_string until a certain character.
-        Info: Returns tuple: (cut out string w/o stop_char, rest of input_string w/o stop_character)  
+        Info: Returns tuple: (cut out string w/o stop_char, rest of input_string w/o stop_character)
               i.e. stop_char is lost in any case!
-    """ 
+    """
     cur_substring = ""
     rest_string = input_string
     for c in input_string:
         rest_string = rest_string[1:] # cut 1 char from string (in any case)
         if c != stop_char:
-            cur_substring += c      
+            cur_substring += c
         else:
             break
     return cur_substring, rest_string
@@ -566,16 +564,14 @@ def get_string_before_char(input_string, stop_char):
 def get_attribute_from(file_name, attribute):
     """ gets an attribute from a file name as string
         format: a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
-        Info: 
+        Info:
           * Exceptional characters for VALs: '_', '.', '(', ')'
-          * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses 
-            (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4") 
+          * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses
+            (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4")
           * Exceptional string char: NO parentheses are allowed in VAL strings!!
           * '.EXT' is optional
     """
     file_name = get_full_file_name(file_name)  # make sure file_name is no path
-
-    # TODO alternatively read attribute then value ...
 
     # parse file for attributes from beginning to end
     attribute_dict = {}
@@ -602,7 +598,7 @@ def get_attribute_from(file_name, attribute):
     # ret_value = None
     # if len(attribute_split) > 1:
     #     # attribute has been found in string
-    #     split_one = attribute_split[1]                
+    #     split_one = attribute_split[1]
     #     ret_value = split_one.split("_")[0] # default: no parentheses in VAL
     #     if "(" in ret_value:
     #         # value begins with parenthesis '('
@@ -620,24 +616,24 @@ def avg_list(lst):
     return sum(lst) / len(lst)
 
 
-def create_dict_key(dict, key, value=0):
+def create_dict_key(in_dict, key, value=0):
     """Adds key to dict if necessary, init'd with value"""
-    if key not in dict.keys():
-        dict[f'{key}'] = value
+    if key not in in_dict.keys():
+        in_dict[f'{key}'] = value
 
 
-def increment_dict_key(dict, key, by_value=1):
+def increment_dict_key(in_dict, key, by_value=1):
     """Increments a dict key (default: by 1), if necessary, initializes it first"""
     if key not in dict.keys():
-        create_dict_key(dict, key)
-    dict[key] = dict[key] + by_value
+        create_dict_key(in_dict, key)
+    in_dict[key] = in_dict[key] + by_value
 
 
-def add_to_dict_key(dict, key, object):
+def add_to_dict_key(in_dict, key, obj):
     """Adds an object to the list of a dict key, if necessary, initializes it first"""
-    if key not in dict.keys():
-        create_dict_key(dict, key, [])
-    dict[key].append(object)
+    if key not in in_dict.keys():
+        create_dict_key(in_dict, key, [])
+    in_dict[key].append(obj)
 
 
 def safe_div(x, y):
@@ -679,7 +675,7 @@ def get_current_dir():
 def get_script_dir():
     """ Returns directory of currently running script (i.e. calling file of this method).
     """
-    # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)  
+    # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)
     calling_file = inspect.stack()[1][1]   # [frame idx] [file name]
     # return directory of calling file
     return os.path.dirname(os.path.abspath(calling_file))
@@ -688,7 +684,7 @@ def get_script_dir():
 def is_absolute_path(path):
     """ Checks if path is absolute (also for non-existing paths!).
     """
-    if path is None: 
+    if path is None:
         return False
     return os.path.isabs(path)
 
@@ -752,14 +748,14 @@ def read_json(path, silent=True):
             path to json file
         Return : dict
             dict containing all json fields and attributes
-    """    
+    """
     data = None
     try:
         with open(path) as json_file:
             data = json.load(json_file)
     except FileNotFoundError:
         if not silent:
-            print(f"File not found: {path}")        
+            print(f"File not found: {path}")
     return data
 
 
@@ -865,7 +861,7 @@ def update_config_file(cfg_path, update_dict):
 
     cfg = read_json(cfg_path)
     now = datetime.now()
-    if not cfg:    
+    if not cfg:
         cfg = {
             "created": now.strftime("%Y-%m-%d, %H:%M:%S")
         }
@@ -885,14 +881,14 @@ def format_number(number, precision=3, width=3):
     return opts.format(number)
 
 
-def remove_invalid_file_chars(input):
+def remove_invalid_file_chars(input_string):
     """
     Removes invalid chars (Windows) from string.
     """
     invalid = '<>:"/\\|?* '
     for char in invalid:
-        input = input.replace(char, '')
-    return input
+        input_string = input_string.replace(char, '')
+    return input_string
 
 # Advanced info about video (requires FFMPG!!)
 # src: https://stackoverflow.com/questions/45738856/python-how-to-get-display-aspect-ratio-from-video
@@ -904,13 +900,13 @@ def get_video_info(video_file):
 
     Returns:
         dict: {
-            duration, 
-            width, 
-            height, 
-            display_width, 
-            display_height, 
-            display_aspect_ratio, 
-            storage_aspect_ratio, 
+            duration,
+            width,
+            height,
+            display_width,
+            display_height,
+            display_aspect_ratio,
+            storage_aspect_ratio,
             pixel_aspect_ratio}
     """
     cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(video_file)
@@ -921,7 +917,7 @@ def get_video_info(video_file):
         print(f"Error getting video info for {video_file}:")
         print(e.output)
         return None
-    
+
     r = json.loads(jsonstr)
     # look for "codec_type": "video". take the 1st one if there are mulitple
     video_stream_info = [x for x in r['streams'] if x['codec_type']=='video'][0]
@@ -933,7 +929,7 @@ def get_video_info(video_file):
         a,b = video_stream_info['display_aspect_ratio'].split(':')
         dar = int(a)/int(b)
     else:
-        # some videos do not have the info of 'display_aspect_ratio'        
+        # some videos do not have the info of 'display_aspect_ratio'
         dar = width/height
         ## not sure if we should use this
         #cw,ch = video_stream_info['coded_width'], video_stream_info['coded_height']
