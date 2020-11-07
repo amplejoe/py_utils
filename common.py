@@ -1,4 +1,3 @@
-from tqdm import tqdm
 from . import utils
 
 DEFAULT_CFG_FILE = "config.json"
@@ -13,16 +12,14 @@ def get_ds_config(ds_root, *, has_annots=False):
     cfg = utils.read_json(cfg_location)
     cfg_update = {}
 
-    if (IMAGE_KEY not in cfg):
+    if (not cfg or IMAGE_KEY not in cfg):
         cfg_update[IMAGE_KEY] = utils.prompt_folder_confirm(ds_root, DEFAULT_IMG_DIRS, IMAGE_KEY)
 
-    
-        if (ANNOTATION_KEY not in cfg):
-            ret[ANNOTATION_KEY] = utils.join_paths(ds_root, cfg[ANNOTATION_KEY])
-            cfg_update[ANNOTATION_KEY] = utils.prompt_folder_confirm(ds_root, DEFAULT_ANNOT_DIRS, ANNOTATION_KEY)
+    if (not cfg or ANNOTATION_KEY not in cfg):
+        cfg_update[ANNOTATION_KEY] = utils.prompt_folder_confirm(ds_root, DEFAULT_ANNOT_DIRS, ANNOTATION_KEY)
 
     utils.update_config_file(cfg_location, cfg_update)
-           
+
     # re-read pot. changed config
     cfg = utils.read_json(cfg_location)
 
@@ -31,5 +28,5 @@ def get_ds_config(ds_root, *, has_annots=False):
     cfg[f'{IMAGE_KEY}_full'] = utils.join_paths(ds_root, cfg[IMAGE_KEY])
     if has_annots:
         cfg[f'{ANNOTATION_KEY}_full'] = utils.join_paths(ds_root, cfg[ANNOTATION_KEY])
- 
+
     return cfg
