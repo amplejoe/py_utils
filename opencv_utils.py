@@ -49,7 +49,7 @@ def get_options_txt_image(img, options, selected, msg=None):
             user_prompt += f"{i}. [{o}]\n"
         else:
             user_prompt += f"{i}. {o}\n"
-    
+
     user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
     res = overlay_text(img, user_prompt, scale=0.5, y_pos = 20)
     return res
@@ -76,7 +76,7 @@ def gui_select_option(options, bg_image, *, window_title="Option Select", msg=No
     bg_image: string or np.array
         background image (path or image)
     window: string
-        the window on which to show the select 
+        the window on which to show the select
     options: list of strings
         options to select
     msg: string
@@ -85,27 +85,27 @@ def gui_select_option(options, bg_image, *, window_title="Option Select", msg=No
         default selected idx
     return: tuple (integer, object)
         idx and value of selected option
-    
+
     """
     bg = get_image(bg_image)
     bg_dims = get_img_dimensions(bg)
     overlay = create_blank_image(bg_dims["width"], bg_dims["height"])
-    
+
     # user prompt
     sel_idx = default
-    sel_option = None  
+    sel_option = None
     key = -1
-    while (key != KEY_SPACE and key != KEY_ENTER):        
+    while (key != KEY_SPACE and key != KEY_ENTER):
         prompt_img = get_options_txt_image(overlay, options, sel_idx, msg=msg)
         display_img = overlay_image(bg, prompt_img)
         cv2.imshow(window_title, display_img)
         # wait and listen to keypresses
         key = cv2.waitKeyEx(0) # & 0xFF -> don't use here, disables arrow key use
         # use for finding out platform specific keycodes
-        # print(key) 
+        # print(key)
         if key == ord("w") or is_arrow_key_pressed("up", key):
-            sel_idx -= 1 
-            sel_idx %= len(options)        
+            sel_idx -= 1
+            sel_idx %= len(options)
         elif key == ord("s") or is_arrow_key_pressed("down", key):
             sel_idx += 1
             sel_idx %= len(options)
@@ -130,7 +130,7 @@ def get_image(path_or_image):
             path or OpenCV image
         returns:
             loaded OpenCV image
-            (path_or_image if it already is an OpenCV image, 
+            (path_or_image if it already is an OpenCV image,
              a newly loaded one otherwise)
 
     """
@@ -155,8 +155,8 @@ def image_to_binary_image(img_or_path):
     dims = get_img_dimensions(img_or_path)
     image_binary = np.zeros((dims['height'], dims['width'], 1), np.uint8)
     cv2.drawContours(image_binary, [max(contours, key = cv2.contourArea)],-1, (255, 255, 255), -1)
-    return image_binary        
-  
+    return image_binary
+
 # def cut_roi_from_image(foreground, background, mask):
 #     result = np.zeros_like(foreground)
 #     result[mask] = foreground[mask]
@@ -195,14 +195,14 @@ def draw_rectangle(img, bb, color = BB_COLOR):
     """ Draws a rectangle to an image in a desired color (default: white)
         Parameters
         ----------
-        img: np array (Opencv image) or path     
+        img: np array (Opencv image) or path
         bb: 4-tuple
             bounding box of format (x, y, w, h)
         color: 3-tuple
             RGB color values
     """
     img = get_image(img)
-    x2 = bb[0] + bb[2] 
+    x2 = bb[0] + bb[2]
     y2 = bb[1] + bb[3]
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=cv2.FILLED)
     return img
@@ -235,13 +235,13 @@ def get_transparent_img(img):
     dims = get_img_dimensions(img)
     if dims["channels"] == 4:
         img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-    
+
     tmp = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, alpha = cv2.threshold(tmp, 0, 255, cv2.THRESH_BINARY)
     b, g, r = cv2.split(img)
     bgra = [b, g, r, alpha]
     dst = cv2.merge(bgra, 4)
- 
+
     return dst
 
 
@@ -267,7 +267,7 @@ def show_image(image, title, pos=None, destroy_after_keypress=True):
         cv2.destroyWindow(title) # cleanup
 
 def RGB_to_BGR(rgb):
-    r, g, b = rgb 
+    r, g, b = rgb
     return b, g, r
 
 
@@ -281,7 +281,7 @@ def overlay_text(img, txt, *, x_pos=10, y_pos=25, scale=1, color=(255,255,255), 
         Returns: np.array
             image with a text overlay
     """
-    img = get_image(img)    
+    img = get_image(img)
     altered_img = img.copy()
     # height, _, _ = altered_img.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -297,7 +297,7 @@ def overlay_text(img, txt, *, x_pos=10, y_pos=25, scale=1, color=(255,255,255), 
         cur_color_idx = i % len(fontColors)
         cur_color = fontColors[cur_color_idx]
         cur_color = RGB_to_BGR(cur_color)
-        cv2.putText(img=altered_img, 
+        cv2.putText(img=altered_img,
                 text=line,
                 org=bottomLeftCornerOfText,
                 fontFace=font,
@@ -329,19 +329,19 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
     Returns:
         [np.array]: Background image with overlay on top
     """
-    background_img = get_image(background_img)    
+    background_img = get_image(background_img)
     img_to_overlay = get_transparent_img(img_to_overlay)
-    
+
     bg_img = background_img.copy()
     bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGRA2BGR) # ensure bg picture is RGB only
-    
+
     if overlay_size is not None:
         img_to_overlay = cv2.resize(img_to_overlay.copy(), overlay_size)
 
-    # Extract the alpha mask of the RGBA image, convert to RGB 
+    # Extract the alpha mask of the RGBA image, convert to RGB
     b, g, r, a = cv2.split(img_to_overlay)
     overlay_color = cv2.merge((b, g, r))
-    
+
     # Apply some simple filtering to remove edge noise
     # mask = cv2.medianBlur(a, 5)
 
@@ -351,7 +351,7 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
     # Black-out the area behind the overlay in our original ROI
     # img1_bg = cv2.bitwise_and(roi.copy(), roi.copy(), mask = cv2.bitwise_not(mask))
     img1_bg = cv2.bitwise_and(roi.copy(), roi.copy())
-    
+
     # Mask out the overlay from the overlay image.
     # img2_fg = cv2.bitwise_and(overlay_color, overlay_color, mask = mask)
     img2_fg = cv2.bitwise_and(overlay_color, overlay_color)
@@ -458,8 +458,8 @@ def move_contour_to(contour, center_x, center_y):
     return new_contour
 
 def save_image(img, file_path, info=True):
-    # Saving the image 
-    cv2.imwrite(file_path, img) 
+    # Saving the image
+    cv2.imwrite(file_path, img)
     if info:
         print(f"Wrote {file_path}")
-    
+

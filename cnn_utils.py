@@ -116,7 +116,7 @@ def load_d2_cfg(config_file):
     config = get_custom_cfg()
     config.merge_from_file(
         config_file
-    )   
+    )
     return config
 
 

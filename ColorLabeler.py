@@ -107,7 +107,7 @@ class ColorLabeler:
             if v == color:
                 return k
         return "unknown"
-    
+
     def exist_color_files(self, path):
         out_color = utils.join_paths_str(path, COLORS_FILE)
         out_label = utils.join_paths_str(path, LABELS_FILE)
@@ -128,7 +128,7 @@ class ColorLabeler:
                 c_out.write(" ".join(str(v) for v in color) + "\n")
         print(f"Wrote {out_label}")
         print(f"Wrote {out_color}")
-        
+
         # HTML out (.html)
         doc, tag, text = Doc().tagtext()
         with tag('html'):
@@ -147,7 +147,7 @@ class ColorLabeler:
         with open(html_file, 'w') as hwriter:
             hwriter.write(result)
         print(f"Wrote {html_file}")
-        
+
 
     def mask_from_contour(self, contour, width, height):
         """ 3 channel mask from contour(s) with custom color
@@ -273,7 +273,7 @@ class ColorLabeler:
         # all_labels = self.get_classes(image_path)
         # dominant_class =  utils.find_most_frequent(all_labels)
 
-        # new: judge dominance by area        
+        # new: judge dominance by area
         objs = self.find_image_objects(image_path)
         class_area_totals = {}
         dominant_class = None
@@ -281,7 +281,7 @@ class ColorLabeler:
         for o in objs:
             label = o['label']
             box = o['box']
-            box_area = box[2] * box[3] 
+            box_area = box[2] * box[3]
             utils.increment_dict_key(class_area_totals, label, box_area)
             if class_area_totals[label] > max_area:
                 max_area = class_area_totals[label]

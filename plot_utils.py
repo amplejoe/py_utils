@@ -8,7 +8,7 @@ from . import cnn_utils
 # import seaborn as sns
 # sns.set(style="whitegrid")
 
-# TODO: check - is still needed on linux? 
+# TODO: check - is still needed on linux?
 # matplotlib.use('TkAgg')  # necessary to prevent plots not showing,
                            # in case some import sets mode to 'agg' (e.g. detectron2)
 
