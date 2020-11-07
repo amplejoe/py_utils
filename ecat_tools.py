@@ -2,7 +2,6 @@
 import json
 import pandas as pd
 from tqdm import tqdm
-import json
 import random
 from . import utils
 
