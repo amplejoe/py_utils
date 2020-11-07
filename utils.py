@@ -624,7 +624,7 @@ def create_dict_key(in_dict, key, value=0):
 
 def increment_dict_key(in_dict, key, by_value=1):
     """Increments a dict key (default: by 1), if necessary, initializes it first"""
-    if key not in dict.keys():
+    if key not in in_dict.keys():
         create_dict_key(in_dict, key)
     in_dict[key] = in_dict[key] + by_value
 
