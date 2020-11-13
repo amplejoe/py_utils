@@ -13,11 +13,13 @@ def get_ds_config(ds_root, *, has_annots=False):
     cfg_update = {}
 
     if (not cfg or IMAGE_KEY not in cfg):
-        cfg_update[IMAGE_KEY] = utils.prompt_folder_confirm(ds_root, DEFAULT_IMG_DIRS, IMAGE_KEY)
+        full_frame_dir = utils.prompt_folder_confirm(ds_root, DEFAULT_IMG_DIRS, IMAGE_KEY)
+        cfg_update[IMAGE_KEY] = utils.path_to_relative_path(full_frame_dir, ds_root)
 
-    if (not cfg or ANNOTATION_KEY not in cfg):
-        cfg_update[ANNOTATION_KEY] = utils.prompt_folder_confirm(ds_root, DEFAULT_ANNOT_DIRS, ANNOTATION_KEY)
-
+    if has_annots:
+        if (not cfg or ANNOTATION_KEY not in cfg):
+            full_annot_dir = utils.prompt_folder_confirm(ds_root, DEFAULT_ANNOT_DIRS, ANNOTATION_KEY)
+            cfg_update[ANNOTATION_KEY] = utils.path_to_relative_path(full_annot_dir, ds_root)
     utils.update_config_file(cfg_location, cfg_update)
 
     # re-read pot. changed config
