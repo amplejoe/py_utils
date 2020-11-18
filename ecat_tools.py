@@ -5,7 +5,9 @@ from tqdm import tqdm
 import random
 from . import utils
 
-SHELL_CMD_GET_FPS = "ffprobe -v 0 -of csv=p=0 -select_streams 0 -show_entries stream=r_frame_rate"
+SHELL_CMD_GET_FPS = (
+    "ffprobe -v 0 -of csv=p=0 -select_streams 0 -show_entries stream=r_frame_rate"
+)
 
 
 def time_to_frame(time, fps):
@@ -13,16 +15,16 @@ def time_to_frame(time, fps):
 
 
 def get_video_id(vid_folder_string):
-    """ gets video id from video folder name
-        vid_folder_string format: video_ID_TCFROM_TCTO
+    """gets video id from video folder name
+    vid_folder_string format: video_ID_TCFROM_TCTO
     """
     parts = vid_folder_string.split("_")
     return parts[0] + "_" + parts[1]
 
 
 def get_time_range(vid_folder_string):
-    """ gets timerange from video folder name
-        vid_folder_string format: video_ID_TCFROM_TCTO
+    """gets timerange from video folder name
+    vid_folder_string format: video_ID_TCFROM_TCTO
     """
     parts = vid_folder_string.split("_")
     tc_start = -1.0
@@ -42,12 +44,12 @@ def get_time_range(vid_folder_string):
 
 
 def get_mapping_info(in_path):
-    """ Extracts video-case mapping info from ECAT mapping files
-        Returns : dict{video_id: case_id}, dict{case_id: video_count}
+    """Extracts video-case mapping info from ECAT mapping files
+    Returns : dict{video_id: case_id}, dict{case_id: video_count}
     """
     if not utils.exists_file(in_path):
         utils.exit(f"Mapping file does not exist:\n{in_path}")
-    df = pd.read_csv(in_path, sep=';', header=None)
+    df = pd.read_csv(in_path, sep=";", header=None)
     mapping = {}
     case_video_count = {}
     for index, row in df.iterrows():
@@ -60,9 +62,10 @@ def get_mapping_info(in_path):
         # video_id = video_id.replace('.mp4', '')
         video_id = row[0]
         case_id = int(row[2])
-        mapping[f'{video_id}'] = case_id
-        utils.increment_dict_key(case_video_count, f'{case_id}')
+        mapping[f"{video_id}"] = case_id
+        utils.increment_dict_key(case_video_count, f"{case_id}")
     return mapping, case_video_count
+
 
 def get_mask_info(frame_or_annot_path):
     """Info for mask type naming files
@@ -77,9 +80,13 @@ def get_mask_info(frame_or_annot_path):
     ret["frame"] = int(utils.get_attribute_from(ret["file_name"], "f"))
     ret["video"] = utils.get_attribute_from(ret["file_name"], "v")
     ret["case"] = utils.get_attribute_from(ret["file_name"], "c")
-    ret["is_gt"] = True if "_gt" in ret["file_name"] else False # always false for non tracked folders
+    ret["is_gt"] = (
+        True if "_gt" in ret["file_name"] else False
+    )  # always false for non tracked folders
     # for tracking: unique per video and per gt tracked frames segment
-    ret["segment"] = utils.get_attribute_from(ret["file_name"], "s") # empty for non tracked mask folders
+    ret["segment"] = utils.get_attribute_from(
+        ret["file_name"], "s"
+    )  # empty for non tracked mask folders
     if ret["segment"] is not None:
         ret["segment"] = int(ret["segment"])
 
@@ -112,8 +119,8 @@ def get_info(frame_or_sketch_or_vid_path):
     # file_name = utils.get_full_file_name(frame_or_sketch_or_vid_path)
 
     video_id = f"{file_dir_last.split('.mp4_')[0]}.mp4"
-    start_end_time = file_dir_last.split('.mp4_')[1]
-    start_end_time_parts = start_end_time.split('_')
+    start_end_time = file_dir_last.split(".mp4_")[1]
+    start_end_time_parts = start_end_time.split("_")
 
     # OLD
     # tmp = frame_or_sketch_or_vid_path.rsplit("video_")[1].replace(".mp4", "")
@@ -121,7 +128,6 @@ def get_info(frame_or_sketch_or_vid_path):
     # ret_dict["video_id"] = tmp_parts[0]
     # ret_dict["start_time"] = float(tmp_parts[1])
     # ret_dict["end_time"] = ret_dict["start_time"]
-
 
     ret_dict["video_id"] = video_id
     ret_dict["start_time"] = float(start_end_time_parts[0])
@@ -143,9 +149,9 @@ def convert_to_float(frac_str):
     try:
         return float(frac_str)
     except ValueError:
-        num, denom = frac_str.split('/')
+        num, denom = frac_str.split("/")
         try:
-            leading, num = num.split(' ')
+            leading, num = num.split(" ")
             whole = float(leading)
         except ValueError:
             whole = 0
@@ -154,33 +160,32 @@ def convert_to_float(frac_str):
 
 
 def get_fps(video):
-    """ Gets fps from a video using ffprobe
-    """
-    return convert_to_float(utils.exec_shell_command(SHELL_CMD_GET_FPS + " " + video)[0])
+    """Gets fps from a video using ffprobe"""
+    return convert_to_float(
+        utils.exec_shell_command(SHELL_CMD_GET_FPS + " " + video)[0]
+    )
 
 
 def get_fps_from_sketch(sketch_file_path):
-    """ gets video fps from sketch file
-    """
+    """gets video fps from sketch file"""
     fps = -1
     # get fps
     with open(sketch_file_path) as json_file:
         data = json.load(json_file)
-        fps = float(data['fps'])
+        fps = float(data["fps"])
         return fps
 
 
 def get_sketch_timecode(sketch_file_name):
-    """ gets timestamp from sketch file name
-        sketch_file_name format: sg_SGID_a_AID_s_SID_t_TSTAMP.json
-        with segment sg, annotation a, sketch s and timestamp t
+    """gets timestamp from sketch file name
+    sketch_file_name format: sg_SGID_a_AID_s_SID_t_TSTAMP.json
+    with segment sg, annotation a, sketch s and timestamp t
     """
     return float(sketch_file_name.split("t_")[1])
 
 
 def get_sketch_frame(sketch_file_path):
-    """ calculates a sketch's frame number via its json file path
-    """
+    """calculates a sketch's frame number via its json file path"""
     file_name = utils.get_file_name(sketch_file_path)
     fps = get_fps_from_sketch(sketch_file_path)
     time = get_sketch_timecode(file_name)
@@ -188,24 +193,24 @@ def get_sketch_frame(sketch_file_path):
 
 
 def unescape(in_string):
-    """ unescapes strings, used for SVG paths like:
-        <rect x=\"-146.56\" y=\"-85.12\" rx=\"0\" ry=\"0\" width=\"293.12\" height=\"170.24\" style=\"stroke: rgb(255,255,255); stroke-width: 2; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-opacity: 0; fill-rule: nonzero; opacity: 1;\" transform=\"translate(236.73 156.52)\"\/>\n
+    """unescapes strings, used for SVG paths like:
+    <rect x=\"-146.56\" y=\"-85.12\" rx=\"0\" ry=\"0\" width=\"293.12\" height=\"170.24\" style=\"stroke: rgb(255,255,255); stroke-width: 2; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(0,0,0); fill-opacity: 0; fill-rule: nonzero; opacity: 1;\" transform=\"translate(236.73 156.52)\"\/>\n
     """
-    return bytes(in_string, encoding='utf8').decode('unicode_escape').replace("\/", "/")
+    return bytes(in_string, encoding="utf8").decode("unicode_escape").replace("\/", "/")
 
 
 def prepare_svg(svg_tag, color_rgb, img_dims, canvas_dims):
-    """ Prepare svg for writing
+    """Prepare svg for writing
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        svg_tag : str
-        svg to be written to disk
-        color_rgb : str
-        rgb color in CSS format: 'rgb(r,g,b)'
-        img_dims : dimensions of the output image
-        canvas_dims: dimensions of the canvas, the drawing was made on
+    svg_tag : str
+    svg to be written to disk
+    color_rgb : str
+    rgb color in CSS format: 'rgb(r,g,b)'
+    img_dims : dimensions of the output image
+    canvas_dims: dimensions of the canvas, the drawing was made on
     """
     #  fill sketches
     svg_tag = unescape(svg_tag)
@@ -217,7 +222,7 @@ def prepare_svg(svg_tag, color_rgb, img_dims, canvas_dims):
     # todo adjust transform
     scale_x = img_dims["width"] / canvas_dims["width"]
     scale_y = img_dims["height"] / canvas_dims["height"]
-    svg_tag = svg_tag.replace("transform=\"", f"transform=\" scale({scale_x} {scale_y}) ")
+    svg_tag = svg_tag.replace('transform="', f'transform=" scale({scale_x} {scale_y}) ')
 
     # if float(scale_x) != 1.0:
     #     print(svg_tag)
@@ -228,33 +233,34 @@ def prepare_svg(svg_tag, color_rgb, img_dims, canvas_dims):
 
 
 def create_svg(svg_tag, img_width, img_height, out_path):
-    """ creates an svg from an xml tag describing a drawing (ECAT export)
-    """
+    """creates an svg from an xml tag describing a drawing (ECAT export)"""
     script_dir = utils.get_script_dir()
     svg_template_path = utils.join_paths_str(script_dir, "template.svg")
     with open(svg_template_path, "rt") as fin:
         with open(out_path, "wt") as fout:
             for line in fin:
-                fout.write(line.replace("INSERT_WIDTH", str(img_width))
-                           .replace("INSERT_HEIGHT", str(img_height))
-                           .replace("INSERT_OBJECT", svg_tag))
+                fout.write(
+                    line.replace("INSERT_WIDTH", str(img_width))
+                    .replace("INSERT_HEIGHT", str(img_height))
+                    .replace("INSERT_OBJECT", svg_tag)
+                )
 
 
 def get_sketch_frame_mapping(frame_list, sketch_list, classes_list):
-    """ Creates a sketch-frame mapping for ECAT annotation output,
-        i.e. segment frames with corresponding json annotations (1 file per annotation)
-        Return : dict{
-                    frame_path(str): dict{
-                        path:       str
-                        file_name:  str
-                        file_ext:   str
-                        video_id:   str
-                        start_time: float
-                        end_time:   float
-                        frame:      int
-                    }
-                 }
-        {video_id_frame_id -> [video_frame_sketch_info_1, video_frame_sketch_info_2, ...]}
+    """Creates a sketch-frame mapping for ECAT annotation output,
+    i.e. segment frames with corresponding json annotations (1 file per annotation)
+    Return : dict{
+                frame_path(str): dict{
+                    path:       str
+                    file_name:  str
+                    file_ext:   str
+                    video_id:   str
+                    start_time: float
+                    end_time:   float
+                    frame:      int
+                }
+             }
+    {video_id_frame_id -> [video_frame_sketch_info_1, video_frame_sketch_info_2, ...]}
     """
     dict_frame_sketches = {}
     # for every class
@@ -267,8 +273,12 @@ def get_sketch_frame_mapping(frame_list, sketch_list, classes_list):
             sketch_info = get_info(s)
             sketch_info["class"] = cl
             # 2. look for corrsponding frame
-            video_frames = utils.filter_list_by_partial_word(sketch_info["video_id"], cl_frame_list)
-            frame = utils.filter_list_by_partial_word(f"frame_{sketch_info['frame']}", video_frames)
+            video_frames = utils.filter_list_by_partial_word(
+                sketch_info["video_id"], cl_frame_list
+            )
+            frame = utils.filter_list_by_partial_word(
+                f"frame_{sketch_info['frame']}", video_frames
+            )
             # sanity checks
             if len(frame) == 0:
                 print(f"{len(frame)} frames found for sketch {sketch_info['path']}")

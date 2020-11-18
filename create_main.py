@@ -56,7 +56,9 @@ def main():
 
     if out_dir not in cwd:
         # py_utils path is not relative to created file
-        print("Important: Please make sure that python utils are available, i.e. inside PYTHONPATH.")
+        print(
+            "Important: Please make sure that python utils are available, i.e. inside PYTHONPATH."
+        )
         print("Clone repository via:")
         print("git clone https://github.com/amplejoe/py_utils.git")
     else:

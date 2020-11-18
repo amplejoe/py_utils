@@ -4,6 +4,7 @@ from typing import Iterable, Tuple
 import colorsys
 import itertools
 from fractions import Fraction
+
 # from pprint import pprint
 
 # HOW TO:
@@ -16,7 +17,7 @@ def zenos_dichotomy() -> Iterable[Fraction]:
     http://en.wikipedia.org/wiki/1/2_%2B_1/4_%2B_1/8_%2B_1/16_%2B_%C2%B7_%C2%B7_%C2%B7
     """
     for k in itertools.count():
-        yield Fraction(1, 2**k)
+        yield Fraction(1, 2 ** k)
 
 
 def fracs() -> Iterable[Fraction]:
@@ -29,6 +30,7 @@ def fracs() -> Iterable[Fraction]:
         i = k.denominator  # [1,2,4,8,16,...]
         for j in range(1, i, 2):
             yield Fraction(j, i)
+
 
 # can be used for the v in hsv to map linear values 0..1 to something that looks equidistant
 # bias = lambda x: (math.sqrt(x/3)/Fraction(2,3)+Fraction(1,3))/Fraction(6,5)
@@ -85,7 +87,7 @@ def get_colors(type, number):
 
 def RGBToHTMLColor(rgb_tuple):
     """ convert an (R, G, B) tuple to #RRGGBB """
-    hexcolor = '#%02x%02x%02x' % rgb_tuple
+    hexcolor = "#%02x%02x%02x" % rgb_tuple
     # that's it! '%02x' means zero-padded, 2-digit hex values
     return hexcolor
 
@@ -100,7 +102,7 @@ def CSSToRGB(css_color):
 def HTMLColorToRGB(colorstring):
     """ convert #RRGGBB to an (R, G, B) tuple """
     colorstring = colorstring.strip()
-    if colorstring[0] == '#':
+    if colorstring[0] == "#":
         colorstring = colorstring[1:]
     if len(colorstring) != 6:
         raise ValueError("input #%s is not in #RRGGBB format" % colorstring)
@@ -112,7 +114,7 @@ def HTMLColorToRGB(colorstring):
 def HTMLColorToPILColor(colorstring):
     """ converts #RRGGBB to PIL-compatible integers"""
     colorstring = colorstring.strip()
-    while colorstring[0] == '#':
+    while colorstring[0] == "#":
         colorstring = colorstring[1:]
     # get bytes in reverse order to deal with PIL quirk
     colorstring = colorstring[-2:] + colorstring[2:4] + colorstring[:2]
@@ -123,7 +125,7 @@ def HTMLColorToPILColor(colorstring):
 
 def PILColorToRGB(pil_color):
     """ convert a PIL-compatible integer into an (r, g, b) tuple """
-    hexstr = '%06x' % pil_color
+    hexstr = "%06x" % pil_color
     # reverse byte order
     r, g, b = hexstr[4:], hexstr[2:4], hexstr[:2]
     r, g, b = [int(n, 16) for n in (r, g, b)]

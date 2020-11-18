@@ -23,9 +23,10 @@ from collections import OrderedDict
 import numpy as np
 import cv2
 from PIL import Image  # (pip install Pillow)
+
 # import imutils
 import copy
-from yattag import Doc # for html out
+from yattag import Doc  # for html out
 from . import utils
 
 COLORS_FILE = "colors.txt"
@@ -33,13 +34,15 @@ LABELS_FILE = "labels.txt"
 HTML_FILE = "label_colors.html"
 BACKGROUND_LABELS = ["background", "bg"]
 
-DEFAULT_COLORS = OrderedDict({
-    "background": (0, 0, 0),        # black (bg)
-    "peritoneum": (228, 26, 28),    # red
-    "ovary": (55, 126, 184),        # blue
-    "die": (77, 175, 74),           # green
-    "uterus": (152, 78, 163)        # violet
-})
+DEFAULT_COLORS = OrderedDict(
+    {
+        "background": (0, 0, 0),  # black (bg)
+        "peritoneum": (228, 26, 28),  # red
+        "ovary": (55, 126, 184),  # blue
+        "die": (77, 175, 74),  # green
+        "uterus": (152, 78, 163),  # violet
+    }
+)
 
 
 class ColorLabeler:
@@ -66,7 +69,7 @@ class ColorLabeler:
         # to L*a*b*
         self.lab = cv2.cvtColor(self.lab, cv2.COLOR_RGB2LAB)
 
-    def get_colors_from_init_files(self,  path):
+    def get_colors_from_init_files(self, path):
         colors_path = utils.join_paths_str(path, COLORS_FILE)
         labels_path = utils.join_paths_str(path, LABELS_FILE)
         result_dict = {}
@@ -112,7 +115,11 @@ class ColorLabeler:
         out_color = utils.join_paths_str(path, COLORS_FILE)
         out_label = utils.join_paths_str(path, LABELS_FILE)
         html_file = utils.join_paths_str(path, HTML_FILE)
-        return utils.exists_file(out_color) and utils.exists_file(out_label) and utils.exists_file(html_file)
+        return (
+            utils.exists_file(out_color)
+            and utils.exists_file(out_label)
+            and utils.exists_file(html_file)
+        )
 
     def save_colors(self, out_path):
         out_color = utils.join_paths_str(out_path, COLORS_FILE)
@@ -122,7 +129,9 @@ class ColorLabeler:
         utils.confirm_overwrite(out_label, "n")
         utils.confirm_overwrite(html_file, "n")
 
-        with open(out_color, 'w', newline='') as c_out, open(out_label, 'w', newline='') as l_out:
+        with open(out_color, "w", newline="") as c_out, open(
+            out_label, "w", newline=""
+        ) as l_out:
             for label, color in self.colors.items():
                 l_out.write(f"{label}\n")
                 c_out.write(" ".join(str(v) for v in color) + "\n")
@@ -131,27 +140,28 @@ class ColorLabeler:
 
         # HTML out (.html)
         doc, tag, text = Doc().tagtext()
-        with tag('html'):
-            with tag('body'):
-                with tag('table'):
+        with tag("html"):
+            with tag("body"):
+                with tag("table"):
                     for label, color in self.colors.items():
-                        with tag('tr'):
+                        with tag("tr"):
                             css_color = f"rgb{color}"
-                            with tag('td', style=f"background-color:{css_color};"):
+                            with tag("td", style=f"background-color:{css_color};"):
                                 # blend mode: guarantess visibility of label but fucks up looks
                                 # with tag('span', style="color:white;mix-blend-mode: difference;"):
                                 # -> us shadow instead (https://jsfiddle.net/dimitriadisg/agnfz7qt/)
-                                with tag('span', style="color:white;text-shadow: 0.05em 0 black, 0 0.05em black, -0.05em 0 black, 0 -0.05em black, -0.05em -0.05em black, -0.05em 0.05em black, 0.05em -0.05em black, 0.05em 0.05em black;"):
+                                with tag(
+                                    "span",
+                                    style="color:white;text-shadow: 0.05em 0 black, 0 0.05em black, -0.05em 0 black, 0 -0.05em black, -0.05em -0.05em black, -0.05em 0.05em black, 0.05em -0.05em black, 0.05em 0.05em black;",
+                                ):
                                     text(label)
         result = doc.getvalue()
-        with open(html_file, 'w') as hwriter:
+        with open(html_file, "w") as hwriter:
             hwriter.write(result)
         print(f"Wrote {html_file}")
 
-
     def mask_from_contour(self, contour, width, height):
-        """ 3 channel mask from contour(s) with custom color
-        """
+        """3 channel mask from contour(s) with custom color"""
         c_image = np.zeros((height, width, 1), np.uint8)
         # only draws contour outline
         # cv2.drawContours(c_image, [c], 0, (255), 1)
@@ -159,8 +169,7 @@ class ColorLabeler:
         return c_image
 
     def mask_from_contours(self, contours, width, height):
-        """ 1 channel mask from contour(s)
-        """
+        """1 channel mask from contour(s)"""
         final_img = np.zeros((height, width, 1), np.uint8)
         for c in contours:
             final_img += self.mask_from_contour(c, width, height)
@@ -173,8 +182,7 @@ class ColorLabeler:
         return final_img
 
     def image_from_contour(self, contour, width, height, color=(255, 255, 255)):
-        """ 3 channel mask from contour(s) with custom color
-        """
+        """3 channel mask from contour(s) with custom color"""
         c_image = np.zeros((height, width, 3), np.uint8)
         # only draws contour outline
         # cv2.drawContours(c_image, [c], 0, (255,255,255), 3)
@@ -202,8 +210,9 @@ class ColorLabeler:
         cv2.imshow(f"gray: {image_path}", gray)
         ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
         cv2.imshow(f"tresh: {image_path}", thresh)
-        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hierarchy = cv2.findContours(
+            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         cv2.waitKey(0)
         for i, c in enumerate(cnts):
             approx = cv2.approxPolyDP(c, 0.001 * cv2.arcLength(c, True), True)
@@ -216,9 +225,9 @@ class ColorLabeler:
         cv2.destroyAllWindows()
 
     def find_image_objects(self, image_path, use_bgr=False):
-        """ Extracts labels, colors, bounding boxes from an image.
-            input: OpenCV image
-            return: array of dicts({label, color, box})
+        """Extracts labels, colors, bounding boxes from an image.
+        input: OpenCV image
+        return: array of dicts({label, color, box})
         """
         cv_image = cv2.imread(image_path)
         height = cv_image.shape[0]
@@ -235,8 +244,9 @@ class ColorLabeler:
         gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
         # find contours in the thresholded image (ONLY use external here the others will break finding labels!!)
-        cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
+        cnts, hierarchy = cv2.findContours(
+            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         # https://www.pyimagesearch.com/2016/02/01/opencv-center-of-contour/
         # cnts = imutils.grab_contours(cnts)
 
@@ -256,20 +266,26 @@ class ColorLabeler:
             if use_bgr:
                 color_value = self.to_bgr(color_value)
             # box: tuple (x,y,w,h), color: tuple (r, g, b)
-            results.append({'label': label, 'color': color_value,
-                            'height': height, 'width': width,
-                            'box': cv2.boundingRect(approx), 'contour': approx})
+            results.append(
+                {
+                    "label": label,
+                    "color": color_value,
+                    "height": height,
+                    "width": width,
+                    "box": cv2.boundingRect(approx),
+                    "contour": approx,
+                }
+            )
         del cv_image  # make sure to free memory
         return results
 
     def get_classes(self, image_path):
         res = self.find_image_objects(image_path)
-        all_labels = [x['label'] for x in res]
+        all_labels = [x["label"] for x in res]
         return all_labels
 
-
     def get_dominant_class(self, image_path):
-         # old: count frequency of classes
+        # old: count frequency of classes
         # all_labels = self.get_classes(image_path)
         # dominant_class =  utils.find_most_frequent(all_labels)
 
@@ -279,8 +295,8 @@ class ColorLabeler:
         dominant_class = None
         max_area = 0
         for o in objs:
-            label = o['label']
-            box = o['box']
+            label = o["label"]
+            box = o["box"]
             box_area = box[2] * box[3]
             utils.increment_dict_key(class_area_totals, label, box_area)
             if class_area_totals[label] > max_area:
@@ -290,8 +306,7 @@ class ColorLabeler:
         return dominant_class
 
     def label(self, cv_lab_image, contour):
-        """ Label single countour in lab image
-        """
+        """Label single countour in lab image"""
         # construct a mask for the contour, then compute the
         # average L*a*b* value for the masked region
         mask = np.zeros(cv_lab_image.shape[:2], dtype="uint8")

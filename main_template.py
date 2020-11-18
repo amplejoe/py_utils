@@ -50,16 +50,16 @@ def exit(msg=None):
 def parse_args():
     # construct the argument parser and parse the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--in", type=str,
-                    help="path to input folder", required=True)
-    ap.add_argument("-o", "--out", type=str,
-                    help="path to output folder", required=True)
+    ap.add_argument("-i", "--in", type=str, help="path to input folder", required=True)
+    ap.add_argument(
+        "-o", "--out", type=str, help="path to output folder", required=True
+    )
     args = vars(ap.parse_args())
     return args
 
 
 if __name__ == "__main__":
     # parse args
-    g_args = parse_args()   # can be accessed globally
+    g_args = parse_args()  # can be accessed globally
     # call main function
     main()
