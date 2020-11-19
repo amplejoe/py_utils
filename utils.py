@@ -34,7 +34,7 @@
 import os
 import sys
 import errno
-import json
+import json, simplejson
 from datetime import datetime
 import shutil
 from natsort import natsorted
@@ -755,7 +755,7 @@ def read_json(path, silent=True):
     return data
 
 
-def write_json(path, data, pretty_print=False):
+def write_json(path, data, pretty_print=False, handle_nan=False):
     """Writes a json dict variable to a file.
     Parameters:
     ----------
@@ -766,10 +766,14 @@ def write_json(path, data, pretty_print=False):
     """
     with open(path, "w", newline="") as outfile:
         if pretty_print:
+            # OLD
+            # json.dump(data, outfile, indent=4)
             # json.dump(data, outfile, indent=4, sort_keys=True)
-            json.dump(data, outfile, indent=4)
+            simplejson.dump(data, outfile, indent=4, ignore_nan=handle_nan)
         else:
-            json.dump(data, outfile)
+            # OLD
+            # json.dump(data, outfile)
+            simplejson.dump(data, outfile, ignore_nan=handle_nan)
 
 
 def read_json_arr(json_path):
