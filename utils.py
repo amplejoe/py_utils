@@ -639,6 +639,18 @@ def add_to_dict_key(in_dict, key, obj):
     in_dict[key].append(obj)
 
 
+def get_dict_value(in_dict, key, not_found_value=None):
+    """Returns dictionary value if key it exists, else not_found_value.
+
+    Args:
+        in_dict ([dict of objects]): Input dict.
+        key ([str]): The key in question
+        not_found_value (object): Return value if key was not found.
+    """
+    if key not in in_dict.keys():
+        return not_found_value
+    return in_dict[key]
+
 def safe_div(x, y):
     """Zero safe division"""
     if y == 0:
