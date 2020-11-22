@@ -524,15 +524,22 @@ def exit(msg=None):
     print("Exit script.")
     sys.exit()
 
+def get_regex_match_list(in_string, regex):
+    matches = re.finditer(regex, in_string)
+    match_list = []
+    for matchNum, match in enumerate(matches, start=1):
+        match_list.append(match.group().strip("'").strip("\""))
+    return match_list
 
 def exec_shell_command(command, print_output=False):
     """Executes a shell command using the subprocess module.
-    command: standard shell command (SPACE separated)
+    command: standard shell command (SPACE separated - escape paths with '' or "")
     print_output: output command result to console
     returns: list containing all shell output lines
     """
     print(f"Exec shell command '{command}'")
-    command_list = command.split(" ")
+    regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
+    command_list = get_regex_match_list(command, regex)
 
     process = subprocess.Popen(
         command_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
