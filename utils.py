@@ -360,15 +360,34 @@ def get_file_paths(directory, *extensions):
     d = to_path(directory, as_string=False)
 
     all_files = []
-    for currentFile in d.glob("**/*"):
-        if not currentFile.is_file():
+    for current_file in d.glob("**/*"):
+        if not current_file.is_file():
             continue
-        fext = currentFile.suffix
+        fext = current_file.suffix
         if extensions and fext not in extensions:
             continue
         # as_posix: Return a string representation
         # of the path with forward slashes (/)
-        all_files.append(currentFile.as_posix())
+        all_files.append(current_file.as_posix())
+    return all_files
+
+
+def get_file_paths_containing(directory, *contained):
+    """Get all file paths of all subdirectories (optionally set (partially) contained string
+    usage example: get_file_paths("/mnt/mydir", "label.txt", "pic")
+    """
+    d = to_path(directory, as_string=False)
+
+    all_files = []
+    for current_file in d.glob("**/*"):
+        if not current_file.is_file():
+            continue
+        # continue if none of the given contained strings match the path
+        if contained and not any(x in current_file.as_posix() for x in contained):
+            continue
+        # as_posix: Return a string representation
+        # of the path with forward slashes (/)
+        all_files.append(current_file.as_posix())
     return all_files
 
 
@@ -524,12 +543,14 @@ def exit(msg=None):
     print("Exit script.")
     sys.exit()
 
+
 def get_regex_match_list(in_string, regex):
     matches = re.finditer(regex, in_string)
     match_list = []
     for matchNum, match in enumerate(matches, start=1):
-        match_list.append(match.group().strip("'").strip("\""))
+        match_list.append(match.group().strip("'").strip('"'))
     return match_list
+
 
 def exec_shell_command(command, print_output=False):
     """Executes a shell command using the subprocess module.
@@ -657,6 +678,7 @@ def get_dict_value(in_dict, key, not_found_value=None):
     if key not in in_dict.keys():
         return not_found_value
     return in_dict[key]
+
 
 def safe_div(x, y):
     """Zero safe division"""
