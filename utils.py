@@ -419,13 +419,28 @@ def remove_file(path):
         p.unlink()
 
 
-def copy_to(src_path, dst_path, follow_symlinks=True):
+def copy_to(src_path, dst_path, follow_symlinks=True, ignore_list=None):
     """Copies src_path to dst_path.
     If dst is a directory, a file with the same basename as src is created
     (or overwritten) in the directory specified.
+    ignore_pattern:
+        shutil ignore pattern (see doc, e.g. ignore_list = ['*.pyc', 'tmp*'])
     """
     try:
-        shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
+        if os.path.isdir(src_path):
+            # copy dir recursively
+            if ignore_list and len(ignore_list) > 0:
+                shutil.copytree(
+                    src_path,
+                    dst_path,
+                    symlinks=follow_symlinks,
+                    ignore=shutil.ignore_patterns(*ignore_list),
+                )
+            else:
+                shutil.copytree(src_path, dst_path, symlinks=follow_symlinks)
+        else:
+            # copy file
+            shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
         return True
     except IOError as e:
         print(f"Unable to copy file. {e}")
