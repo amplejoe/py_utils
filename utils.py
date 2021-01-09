@@ -414,6 +414,11 @@ def get_file_ext(file_path):
 
 
 def remove_file(path):
+    """Removes file (unlink) if existing.
+
+    Args:
+        path (string): file path
+    """
     p = to_path(path, as_string=False)
     if exists_file(p):
         p.unlink()
