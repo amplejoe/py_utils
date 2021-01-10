@@ -752,9 +752,22 @@ def rel_to_abs_path(path):
     return join_paths_str(current_dir, path)
 
 
-def is_number(s):
+def is_number(var, strict=False):
+    """Checks if a variable is a number. Use strict to disallow strings containing numbers.
+
+    Args:
+        s ([type]): [description]
+        strict (bool, optional): [description]. Defaults to False.
+
+    Returns:
+        [type]: [description]
+    """
     try:
-        float(s)
+        # test string
+        if strict and isinstance(var, str):
+            return False
+        # test number
+        float(var)
         return True
     except ValueError:
         return False
@@ -941,9 +954,18 @@ def update_config_file(cfg_path, update_dict):
     write_json(cfg_path, cfg, True)
 
 
-def format_number(number, precision=3, width=3):
-    opts = "{:%s.%sf}" % (str(width), str(precision))
-    return opts.format(number)
+def format_number(number, precision=3, width=0):
+    """Formats a number with precision and width.
+
+    Args:
+        number (number): Any number
+        precision (int, optional): decimal precision. Defaults to 3.
+        width (int, optional): width of resulting string. Defaults to 0.
+
+    Returns:
+        string: formatted number as string
+    """
+    return f"{number:{width}.{precision}f}"
 
 
 def remove_invalid_file_chars(input_string):
