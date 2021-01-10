@@ -760,11 +760,14 @@ def is_number(var, strict=False):
         strict (bool, optional): [description]. Defaults to False.
 
     Returns:
-        [type]: [description]
+        bool: is a number?
     """
     try:
         # test string
         if strict and isinstance(var, str):
+            return False
+        # test None
+        if var == None:
             return False
         # test number
         float(var)
