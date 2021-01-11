@@ -259,7 +259,7 @@ def show_image(image, title, pos=None, destroy_after_keypress=True):
     Parameters:
     -----------
     image: object or path
-        OpenCv iamge
+        OpenCv image
     title: string
         window title
     pos: dict of integers
@@ -383,6 +383,8 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
 
     return bg_img
 
+def overlay_mask(background_img, mask_image):
+    pass
 
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
 def blend_image(in_bg, in_overlay, blend=BLEND_ALPHA):

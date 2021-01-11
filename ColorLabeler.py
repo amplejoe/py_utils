@@ -22,6 +22,7 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 import cv2
+from . import opencv_utils
 from PIL import Image  # (pip install Pillow)
 
 # import imutils
@@ -196,6 +197,58 @@ class ColorLabeler:
         cv2.waitKey(0)
         cv2.destroyWindow(win_title)
 
+    # https://stackoverflow.com/questions/46103731/is-there-a-simple-method-to-highlight-the-mask/46105196
+    def overlay_mask(
+        self,
+        bg_image,
+        mask_image,
+        *,
+        alpha=0.5,
+        fill=True,
+        force_color=None,
+        line_thickness=1,
+    ):
+        """Overlays a mask onto a background image
+
+        Args:
+            bg_image (str / image): image or path
+            mask_image (str / image): cv2 image or path
+            force_color ((int, int, int)): override default color of mask
+        """
+        # bg copy for background
+        result_image = opencv_utils.get_image(
+            bg_image
+        ).copy()  # ensure original is not overwritten
+        # bg copy for overlay
+        overlay = opencv_utils.get_image(
+            bg_image
+        ).copy()  # ensure original is not overwritten
+        # mask image for finding contours
+        mask_image = opencv_utils.get_image(mask_image)
+        mask_objects = self.find_image_objects(mask_image)
+
+        if len(mask_objects) < 1:
+            return result_image
+
+        # draw the found contours on the overlay image
+        for idx, o in enumerate(mask_objects):
+            draw_color = (0, 0, 0)
+            if force_color:
+                draw_color = self.to_bgr(force_color)
+            else:
+                draw_color = self.to_bgr(o["color"])
+            # draw
+            cv2.drawContours(
+                overlay, [o["contour"]], -1, draw_color, thickness=line_thickness
+            )
+            if fill:
+                cv2.fillPoly(overlay, pts=[o["contour"]], color=draw_color)
+
+        # apply the overlay to backround  image
+        cv2.addWeighted(overlay, alpha, result_image, 1 - alpha, 0, result_image)
+
+        return result_image
+
     def to_bgr(self, color_value):
         return tuple(reversed(color_value))
 
@@ -224,12 +277,12 @@ class ColorLabeler:
             cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def find_image_objects(self, image_path, use_bgr=False):
+    def find_image_objects(self, image_or_path, use_bgr=False):
         """Extracts labels, colors, bounding boxes from an image.
-        input: OpenCV image
+        input: OpenCV image or path
         return: array of dicts({label, color, box})
         """
-        cv_image = cv2.imread(image_path)
+        cv_image = opencv_utils.get_image(image_or_path)
         height = cv_image.shape[0]
         width = cv_image.shape[1]
 
