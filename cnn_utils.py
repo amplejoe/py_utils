@@ -98,14 +98,20 @@ def set_d2_cfg_attr(cfg, setting, evaluate=False):
 
 def register_datasets(ds_info):
     """WARNING: don't do this multiple times"""
+    # 2021.01.12: simplify dataset name
+    # (WARNING: dataset names are saved in YAML config, i.e.
+    # old cfg dataset names that include folder name not working any more.
+    # Solution rename DATASETS.TRAIN and DATASETS.TEST to "ds_train"/"ds_test")
+    ds_name = "ds"
+    old_ds_name = ds_info['ds_name']
     register_coco_instances(
-        f"{ds_info['ds_name']}_train", {}, ds_info["ds_train"], ds_info["image_path"]
+        f"{ds_name}_train", {}, ds_info["ds_train"], ds_info["image_path"]
     )
     register_coco_instances(
-        f"{ds_info['ds_name']}_val", {}, ds_info["ds_val"], ds_info["image_path"]
+        f"{ds_name}_val", {}, ds_info["ds_val"], ds_info["image_path"]
     )
     register_coco_instances(
-        f"{ds_info['ds_name']}_test", {}, ds_info["ds_test"], ds_info["image_path"]
+        f"{ds_name}_test", {}, ds_info["ds_test"], ds_info["image_path"]
     )
 
 
@@ -297,9 +303,15 @@ def create_d2_cfgs(ds_info, cnn_cfg, script_dir):
             for c in cnn["cfg_urls"]:
                 base_cfg.merge_from_file(utils.join_paths_str(script_dir, c))
 
+        # 2021.01.12: change old_ds_name including folder name into simpler ds_name
+        # Why? stored YAML files variables mismatched when folder was renamed after creating config,
+        # thus, making the dataset untrainable/evaluatable
+        # (WARNING: configs created before above date won't be trainable any more!)
+        ds_name = "ds"
+        old_ds_name = ds_info['ds_name']
         # legacy problem: train, test = val
-        base_cfg.DATASETS.TRAIN = (f"{ds_info['ds_name']}_train",)
-        base_cfg.DATASETS.TEST = (f"{ds_info['ds_name']}_val",)
+        base_cfg.DATASETS.TRAIN = (f"{ds_name}_train",)
+        base_cfg.DATASETS.TEST = (f"{ds_name}_val",)
 
         #  D2 weights
         if is_key_set(cnn, "weight_url"):
