@@ -571,7 +571,7 @@ def get_regex_match_list(in_string, regex):
         match_list.append(match.group().strip("'").strip('"'))
     return match_list
 
-
+# TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
 def exec_shell_command(command, print_output=False):
     """Executes a shell command using the subprocess module.
     command: standard shell command (SPACE separated - escape paths with '' or "")
