@@ -383,8 +383,11 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
 
     return bg_img
 
-def overlay_mask(background_img, mask_image):
-    pass
+def rgb_to_bgr_image(in_rgb):
+    return cv2.cvtColor(in_rgb, cv2.COLOR_RGB2BGR)
+
+def bgr_to_rgb_image(in_rgb):
+    return cv2.cvtColor(in_rgb, cv2.COLOR_BGR2RGB)
 
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
 def blend_image(in_bg, in_overlay, blend=BLEND_ALPHA):
