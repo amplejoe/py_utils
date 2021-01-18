@@ -380,18 +380,27 @@ class ColorLabeler:
         del cv_image  # make sure to free memory
         return results
 
-    def get_classes(self, image_path):
-        res = self.find_image_objects(image_path)
+    def get_classes(self, image_or_path):
+        res = self.find_image_objects(image_or_path)
         all_labels = [x["label"] for x in res]
         return all_labels
 
-    def get_dominant_class(self, image_path):
+    def has_valid_objects(self, image_or_path):
+        allowed_labels = self.get_labels(include_bg=False)
+        classes = self.get_classes(image_or_path)
+        found_invalid_classes = [x for x in classes if x not in allowed_labels]
+        invalid_obj_found = len(found_invalid_classes) > 0
+        has_objects = len(classes) > 0
+
+        return has_objects and not invalid_obj_found
+
+    def get_dominant_class(self, image_or_path):
         # old: count frequency of classes
         # all_labels = self.get_classes(image_path)
         # dominant_class =  utils.find_most_frequent(all_labels)
 
         # new: judge dominance by area
-        objs = self.find_image_objects(image_path)
+        objs = self.find_image_objects(image_or_path)
         class_area_totals = {}
         dominant_class = None
         max_area = 0
