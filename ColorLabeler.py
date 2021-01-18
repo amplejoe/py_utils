@@ -161,9 +161,9 @@ class ColorLabeler:
             hwriter.write(result)
         print(f"Wrote {html_file}")
 
-    def mask_from_contour(self, contour, width, height):
-        """3 channel mask from contour(s) with custom color"""
-        c_image = np.zeros((height, width, 1), np.uint8)
+    def mask_from_contour(self, contour, width, height, num_type=np.uint8):
+        """1 channel mask from contour(s) with custom color"""
+        c_image = np.zeros((height, width, 1), num_type)
         # only draws contour outline
         # cv2.drawContours(c_image, [c], 0, (255), 1)
         cv2.fillPoly(c_image, pts=[contour], color=(255))
@@ -196,6 +196,54 @@ class ColorLabeler:
         cv2.imshow(win_title, img)
         cv2.waitKey(0)
         cv2.destroyWindow(win_title)
+
+    # for imgaug of masks
+    def to_segmap(self, annot_or_path) -> np.array:
+
+        annot = opencv_utils.get_image(annot_or_path)
+
+        # annot needs to be converted into a map (int32, w x h),
+        # with labels starting from 1 (0=bg)
+
+        # get annots and colors
+        img_objects = self.find_image_objects(annot)
+        h = annot.shape[0]
+        w = annot.shape[1]
+
+        segmap = np.zeros((h, w, 1), dtype=np.int32)
+        color_class_map = OrderedDict()
+        # 0 is reserved for background
+        color_class_map["(0,0,0)"] = 0
+        cur_class = 0
+        for obj in img_objects:
+            color = obj["color"]
+            color_string = f"{color}"
+            cnt = obj["contour"]
+            if color_string not in color_class_map.keys():
+                cur_class = len(color_class_map.keys())
+                color_class_map[color_string] = cur_class
+            else:
+                cur_class = color_class_map[color_string]
+
+            cv2.fillPoly(segmap, pts=[cnt], color=(cur_class))
+
+        return segmap, color_class_map
+
+    # for imgaug of masks
+    # def from_segmap(self, segmap, color_class_map):
+    #     print(f"shape before: {segmap.shape}")
+    #     segmap_3channel = np.stack((segmap,) * 3, axis=-1)
+    #     print(f"shape after: {segmap.segmap_3channel}")
+    #     for key, val in color_class_map.items():
+    #         color = eval(key)
+    #         # color classes according to mapping
+    #         # https://stackoverflow.com/questions/6483489/change-specific-rgb-color-pixels-to-another-color-in-image-file
+    #         r1, g1, b1 = val, val, val # Original value
+    #         r2, g2, b2 = color # Value that we want to replace it with
+    #         red, green, blue = segmap_3channel[:,:,0], segmap_3channel[:,:,1], segmap_3channel[:,:,2]
+    #         mask = (red == r1) & (green == g1) & (blue == b1)
+    #         segmap_3channel[:,:,:3][mask] = [r2, g2, b2]
+    #     return segmap_3channel
 
     # https://stackoverflow.com/questions/46103731/is-there-a-simple-method-to-highlight-the-mask/46105196
     def overlay_mask(
