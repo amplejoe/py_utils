@@ -325,12 +325,12 @@ class ColorLabeler:
             cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def find_image_objects(self, image_or_path, use_bgr=False):
+    def find_image_objects(self, bgr_image_or_path, use_bgr=False):
         """Extracts labels, colors, bounding boxes from an image.
         input: OpenCV image or path
         return: array of dicts({label, color, box})
         """
-        cv_image = opencv_utils.get_image(image_or_path)
+        cv_image = opencv_utils.get_image(bgr_image_or_path)
         height = cv_image.shape[0]
         width = cv_image.shape[1]
 
@@ -385,22 +385,40 @@ class ColorLabeler:
         all_labels = [x["label"] for x in res]
         return all_labels
 
-    def has_valid_objects(self, image_or_path):
+    def has_valid_objects(self, bgr_image_or_path):
+        """Checks whether a mask image contains any objects and if those are correctly classified, e.g. not as 'background'
+
+        Args:
+            image_or_path ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         allowed_labels = self.get_labels(include_bg=False)
-        classes = self.get_classes(image_or_path)
+        classes = self.get_classes(bgr_image_or_path)
         found_invalid_classes = [x for x in classes if x not in allowed_labels]
         invalid_obj_found = len(found_invalid_classes) > 0
         has_objects = len(classes) > 0
 
         return has_objects and not invalid_obj_found
 
-    def get_dominant_class(self, image_or_path):
+    def get_dominant_class(self, bgr_image_or_path):
+        """Gets dominant class from input mask image.
+           WARNING: if an image is given, make sure it is a cv2 image in BGR format,
+                    otherwise, the predicted class will be wrong.
+
+        Args:
+            image_or_path ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         # old: count frequency of classes
         # all_labels = self.get_classes(image_path)
         # dominant_class =  utils.find_most_frequent(all_labels)
 
         # new: judge dominance by area
-        objs = self.find_image_objects(image_or_path)
+        objs = self.find_image_objects(bgr_image_or_path)
         class_area_totals = {}
         dominant_class = None
         max_area = 0
