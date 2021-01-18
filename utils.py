@@ -44,6 +44,7 @@ import subprocess
 import numpy as np
 import inspect
 import functools
+import math
 
 # # USER INPUT RELATED
 
@@ -87,6 +88,18 @@ def select_option(options, *, msg=None, default=0):
         answer = int(answer)
     return answer, options[answer]
 
+
+def round_half_up(num):
+    """
+    Python rounds half numbers, like 0.5 down, i.e. round(0.5) = 0.
+    This function rounds half numbers up, i.e. round(0.5) = 1.
+    """
+    res = None
+    if (float(num) % 1) >= 0.5:
+        res = math.ceil(num)
+    else:
+        res = round(num)
+    return res
 
 def confirm(msg=None, default=None):
     """
