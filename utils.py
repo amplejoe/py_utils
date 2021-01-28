@@ -101,6 +101,7 @@ def round_half_up(num):
         res = round(num)
     return res
 
+
 def confirm(msg=None, default=None):
     """
     Ask user to enter Y or N (case-insensitive).
@@ -426,6 +427,36 @@ def get_file_ext(file_path):
     return to_path(file_path, as_string=False).suffix
 
 
+def add_suffix_to_file(file_path, suffix):
+    """Adds a suffix to file path. No additional character is added, i.e. '_' needs to be part of suffix if required.
+
+    Args:
+        file_path ([type]): [description]
+        suffix ([type]): The suffix. E.g. "_suffix"
+
+    Returns:
+        [type]: [description]
+    """
+    fp = get_file_path(file_path)
+    fn = get_file_name(file_path)
+    fe = get_file_ext(file_path)
+    return join_paths(fp, f"{fn}{suffix}{fe}")
+
+
+def add_suffix_to_path(pth, suffix):
+    """Adds a suffix to a path. No additional character is added, i.e. '_' needs to be part of suffix if required.
+
+    Args:
+        pth ([type]): [description]
+        suffix ([type]): The suffix. E.g. "_suffix"
+
+    Returns:
+        [type]: [description]
+    """
+    res = to_path(pth)
+    return f"{res}{suffix}"
+
+
 def remove_file(path):
     """Removes file (unlink) if existing.
 
@@ -583,6 +614,7 @@ def get_regex_match_list(in_string, regex):
     for matchNum, match in enumerate(matches, start=1):
         match_list.append(match.group().strip("'").strip('"'))
     return match_list
+
 
 # TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
 def exec_shell_command(command, print_output=False):
