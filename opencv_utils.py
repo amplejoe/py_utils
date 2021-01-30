@@ -216,8 +216,9 @@ def draw_rectangle(img, bb, color=BB_COLOR):
     return img
 
 
-def concatenate_images(img1, img2):
-    """Concatanates two images horizontally
+def concatenate_images(img1, img2, axis=1):
+    """Concatanates two images horizontally (axis=1, default) or vertically(axis=0).
+    INPORTANT: outputs BGRA image, convert if other format needed!
     Parameters
     ----------
     img1: path or image
@@ -228,7 +229,7 @@ def concatenate_images(img1, img2):
     # ensure that dimensions match, by converting all imgs to RGBA
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2BGRA)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2BGRA)
-    return np.concatenate((img1, img2), axis=1)
+    return np.concatenate((img1, img2), axis=axis)
 
 
 # src: https://stackoverflow.com/questions/40527769/removing-black-background-and-make-transparent-from-grabcut-output-in-python-opencv-python
