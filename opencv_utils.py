@@ -213,7 +213,23 @@ def draw_rectangle(img, bb, color=BB_COLOR):
     x2 = bb[0] + bb[2]
     y2 = bb[1] + bb[3]
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=cv2.FILLED)
-    return img
+
+
+def draw_horizontal_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
+    """Draws a horizontal line through an input picture. position is given as a percentage.
+
+    Args:
+        img ([type]): [description]
+        x_pos_percent ([type]): percentage of width, default 0.50
+        color (tuple, optional): [description]. Defaults to (0,255,0).
+    """
+    img = get_image(img)
+    img_altered = img.copy()
+    width, height = img.shape[1], img.shape[0]
+    x1, y1 = int(width * x_pos_percent), 0
+    x2, y2 = int(width * x_pos_percent), height
+    cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
+    return img_altered
 
 
 def concatenate_images(img1, img2, axis=1):
@@ -384,11 +400,14 @@ def overlay_image(background_img, img_to_overlay, x=0, y=0, overlay_size=None):
 
     return bg_img
 
+
 def rgb_to_bgr_image(in_rgb):
     return cv2.cvtColor(in_rgb, cv2.COLOR_RGB2BGR)
 
+
 def bgr_to_rgb_image(in_rgb):
     return cv2.cvtColor(in_rgb, cv2.COLOR_BGR2RGB)
+
 
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
 def blend_image(in_bg, in_overlay, blend=BLEND_ALPHA):
