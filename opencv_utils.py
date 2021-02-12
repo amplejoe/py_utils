@@ -162,6 +162,15 @@ def image_to_binary_image(img_or_path):
     )
     return image_binary
 
+def get_bgr_image(img_or_path):
+    image = get_image(img_or_path)
+    img_copy = image.copy()
+    return cv2.cvtColor(img_copy, cv2.COLOR_RGB2BGR)
+
+def get_rgb_image(img_or_path):
+    image = get_image(img_or_path)
+    img_copy = image.copy()
+    return cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
 
 # def cut_roi_from_image(foreground, background, mask):
 #     result = np.zeros_like(foreground)
