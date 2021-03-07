@@ -34,10 +34,10 @@ def main():
     if g_args.input == g_args.output:
         exit("IN cannot be the same as OUT path.")
 
-    # if not (utils.confirm_overwrite(g_args["out"], "n")):
+    # if not (utils.confirm_overwrite(g_args.output, "n")):
     #     exit("Aborted folder creation.")
 
-    # in_files = utils.get_file_paths(g_args["in"], *IN_EXTENSIONS)
+    # in_files = utils.get_file_paths(g_args.input, *IN_EXTENSIONS)
 
 
 def exit(msg=None):
