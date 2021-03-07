@@ -25,6 +25,16 @@ import utils
 TEMPLATE_FILE = "main_template.py"
 REPLACE_TEXT = "py_utils"
 
+def replace_comment_filename(file):
+    fn_full = utils.get_full_file_name(file)
+    fin = open(file, "rt")
+    data = fin.read()
+    data = data.replace(TEMPLATE_FILE, fn_full)
+    fin.close()
+    fin = open(file, "wt")
+    fin.write(data)
+    fin.close()
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -84,6 +94,7 @@ def main():
         fin = open(out_path, "wt")
         fin.write(data)
         fin.close()
+    replace_comment_filename(out_path)
 
 
 # call main function
