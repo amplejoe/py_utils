@@ -1,117 +1,81 @@
 #!/usr/bin/env python3.5
-# from https://stackoverflow.com/questions/470690/how-to-automatically-generate-n-distinct-colors
-from typing import Iterable, Tuple
+# based on
+# https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
+
 import colorsys
 import itertools
-from fractions import Fraction
+from random import randint
 
 # from pprint import pprint
 
 # HOW TO:
-# get_colors("rgb"|"hsv"|"css", number)
+# get_colors("rgb"|"hsv"|"css"|"hex", number)
 # color conversion: see helper methods below
 
 
-def zenos_dichotomy() -> Iterable[Fraction]:
-    """
-    http://en.wikipedia.org/wiki/1/2_%2B_1/4_%2B_1/8_%2B_1/16_%2B_%C2%B7_%C2%B7_%C2%B7
-    """
-    for k in itertools.count():
-        yield Fraction(1, 2 ** k)
-
-
-def fracs() -> Iterable[Fraction]:
-    """
-    [Fraction(0, 1), Fraction(1, 2), Fraction(1, 4), Fraction(3, 4), Fraction(1, 8), Fraction(3, 8), Fraction(5, 8), Fraction(7, 8), Fraction(1, 16), Fraction(3, 16), ...]
-    [0.0, 0.5, 0.25, 0.75, 0.125, 0.375, 0.625, 0.875, 0.0625, 0.1875, ...]
-    """
-    yield Fraction(0)
-    for k in zenos_dichotomy():
-        i = k.denominator  # [1,2,4,8,16,...]
-        for j in range(1, i, 2):
-            yield Fraction(j, i)
-
-
-# can be used for the v in hsv to map linear values 0..1 to something that looks equidistant
-# bias = lambda x: (math.sqrt(x/3)/Fraction(2,3)+Fraction(1,3))/Fraction(6,5)
-
-
-HSVTuple = Tuple[Fraction, Fraction, Fraction]
-RGBTuple = Tuple[float, float, float]
-
-
-def hue_to_tones(h: Fraction) -> Iterable[HSVTuple]:
-    for s in [Fraction(6, 10)]:  # optionally use range
-        for v in [Fraction(8, 10), Fraction(5, 10)]:  # could use range too
-            yield (h, s, v)  # use bias for v here if you use range
-
-
-def hsv_to_rgb(x: HSVTuple) -> RGBTuple:
-    return colorsys.hsv_to_rgb(*map(float, x))
-
-
-flatten = itertools.chain.from_iterable
-
-
-def hsvs() -> Iterable[HSVTuple]:
-    return flatten(map(hue_to_tones, fracs()))
-
-
-def rgbs() -> Iterable[RGBTuple]:
-    return map(hsv_to_rgb, hsvs())
-
-
-def rgb_to_css(x: RGBTuple) -> str:
-    uint8tuple = map(lambda y: int(y * 255), x)
-    return "rgb({},{},{})".format(*uint8tuple)
-
-
-def css_colors() -> Iterable[str]:
-    return map(rgb_to_css, rgbs())
-
-
 def get_colors(type, number):
-    # sample 100 colors in css format
-    # sample_colors = list(itertools.islice(css_colors(), 100))
-    # pprint(sample_colors)
-    if type == "rgb":
-        return list(itertools.islice(rgbs(), number))
-    elif type == "css":
-        return list(itertools.islice(css_colors(), number))
+    """Generate N random distinct colors.
+
+    Args:
+        type ([type]): 'rgb', 'hsv', 'css', 'hex'
+        number ([type]): number of colors
+
+    Returns:
+        [type]: list of colors
+    """
+    colors = {k: [] for k in "rgb"}
+    for i in range(number):
+        temp = {k: randint(0, 255) for k in "rgb"}
+        for k in temp:
+            while 1:
+                c = temp[k]
+                t = set(j for j in range(c - 25, c + 25) if 0 <= j <= 255)
+                if t.intersection(colors[k]):
+                    temp[k] = randint(0, 255)
+                else:
+                    break
+            colors[k].append(temp[k])
+
+    rgb_tuples = [
+        (colors["r"][i], colors["g"][i], colors["b"][i]) for i in range(number)
+    ]
+    if type == "css":
+        return [rgb_2_css(i) for i in rgb_tuples]
+    elif type == "hex":
+        return [rgb_2_hex(i) for i in rgb_tuples]
+    elif type == "rgb":
+        return rgb_tuples
     elif type == "hsv":
-        return list(itertools.islice(hsvs(), number))
+        return [colorsys.rgb_to_hsv(i[0], i[1], i[2]) for i in rgb_tuples]
 
 
 # http://code.activestate.com/recipes/266466-html-colors-tofrom-rgb-tuples/
 
 
-def RGBToHTMLColor(rgb_tuple):
-    """ convert an (R, G, B) tuple to #RRGGBB """
-    hexcolor = "#%02x%02x%02x" % rgb_tuple
-    # that's it! '%02x' means zero-padded, 2-digit hex values
-    return hexcolor
-
-
-def CSSToRGB(css_color):
+def css_2_rgb(css_color):
     """ convert an 'rgb(R,G,B)' css string to an (R, G, B) tuple """
     only_numbers = css_color.replace("rgb(", "").replace(")", "")
     parts = only_numbers.split(",")
-    return parts[0], parts[1], parts[2]
+    return int(parts[0]), int(parts[1]), int(parts[2])
 
 
-def HTMLColorToRGB(colorstring):
+def rgb_2_css(rgb_tuple):
+    """ convert an (R, G, B) tuple into an 'rgb(R,G,B)' css string  """
+    return f"rgb{str(rgb_tuple).replace(' ', '')}"
+
+
+def rgb_2_hex(rgb_tuple):
+    """ convert (R, G, B) tuple to #RRGGBB """
+    return "#{:02x}{:02x}{:02x}".format(rgb_tuple[0], rgb_tuple[1], rgb_tuple[2])
+
+
+def hex_2_rgb(hexcode):
     """ convert #RRGGBB to an (R, G, B) tuple """
-    colorstring = colorstring.strip()
-    if colorstring[0] == "#":
-        colorstring = colorstring[1:]
-    if len(colorstring) != 6:
-        raise ValueError("input #%s is not in #RRGGBB format" % colorstring)
-    r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:]
-    r, g, b = [int(n, 16) for n in (r, g, b)]
-    return (r, g, b)
+    stripped = hexcode.lstrip("#")
+    return tuple(int(stripped[i : i + 2], 16) for i in (0, 2, 4))
 
 
-def HTMLColorToPILColor(colorstring):
+def hex_2_pil_color(colorstring):
     """ converts #RRGGBB to PIL-compatible integers"""
     colorstring = colorstring.strip()
     while colorstring[0] == "#":
@@ -123,7 +87,7 @@ def HTMLColorToPILColor(colorstring):
     return color
 
 
-def PILColorToRGB(pil_color):
+def pil_color_2_rgb(pil_color):
     """ convert a PIL-compatible integer into an (r, g, b) tuple """
     hexstr = "%06x" % pil_color
     # reverse byte order
@@ -132,9 +96,9 @@ def PILColorToRGB(pil_color):
     return (r, g, b)
 
 
-def PILColorToHTMLColor(pil_integer):
-    return RGBToHTMLColor(PILColorToRGB(pil_integer))
+def pil_color_2_hex(pil_integer):
+    return rgb_2_hex(pil_color_2_rgb(pil_integer))
 
 
-def RGBToPILColor(rgb_tuple):
-    return HTMLColorToPILColor(RGBToHTMLColor(rgb_tuple))
+def rgb_2_pil_color(rgb_tuple):
+    return hex_2_pil_color(rgb_2_hex(rgb_tuple))
