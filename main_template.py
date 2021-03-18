@@ -53,18 +53,18 @@ def parse_args():
     ap.add_argument(
         "-i",
         "--input",
+        dest="input",
         type=str,
         help="path to input folder",
         required=True,
-        dest="input",
     )
     ap.add_argument(
         "-o",
         "--output",
+        dest="output",
         type=str,
         help="path to output folder",
         required=True,
-        dest="output",
     )
     args = ap.parse_args()
     return args
