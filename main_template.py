@@ -57,6 +57,8 @@ def parse_args():
         type=str,
         help="path to input folder",
         required=True,
+        # multiple (at least one) arguments gathered into list
+        # nargs='+',
     )
     ap.add_argument(
         "-o",
@@ -64,7 +66,9 @@ def parse_args():
         dest="output",
         type=str,
         help="path to output folder",
-        required=True,
+        # either argument is given or current dir is used by default
+        nargs="?",
+        default=".",
     )
     args = ap.parse_args()
     return args
