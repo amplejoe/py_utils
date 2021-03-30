@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-#                         _       _
-#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
-#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
-#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
-#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
-#                  |_|         |__/
+###
+# File: create_main.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:12:58 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
 #
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-
-# @Author: Andreas <aleibets>
-# @Date: 2019-11-06T13:34:10+01:00
-# @Filename: create_main.py
-# @Last modified by: aleibets
-# @Last modified time: 2019-11-06T13:34:17+01:00
-# @description:
-
+###
 
 import argparse
 import sys

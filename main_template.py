@@ -1,22 +1,3 @@
-#!/usr/bin/env python
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-#                         _       _
-#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
-#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
-#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
-#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
-#                  |_|         |__/
-#
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-
-# @Author: Andreas <aleibets>
-# @Date: 2020-01-27T11:53:43+01:00
-# @Filename: main_template.py
-# @Last modified by: aleibets
-# @Last modified time: 2020-02-12T16:07:40+01:00
-# @description:
-
 import argparse
 from py_utils import utils
 import sys

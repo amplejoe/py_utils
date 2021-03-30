@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+
+###
+# File: common.py
+# Created: Tuesday, 3rd November 2020 5:15:03 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:12:47 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
 from . import utils
 
 DEFAULT_CFG_FILE = "config.json"

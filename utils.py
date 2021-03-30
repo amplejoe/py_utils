@@ -1,34 +1,18 @@
 #!/usr/bin/env python
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-#                         _       _
-#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
-#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
-#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
-#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
-#                  |_|         |__/
+###
+# File: utils.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:12:07 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
 #
-# +++++++++++++++++++++++++++++++++++++++++++++++++
+###
 
-# @Author: Andreas <aleibets>
-# @Date:   2019-07-27
-# @Email:  aleibets@itec.aau.at
-# @Filename: utils.py
-# @Last modified by: aleibets
-# @Last modified time: 2020-02-12T16:15:58+01:00
-# @description:  Utility class for common python tasks
-# @notes:  requires ntpath, natsort, shutil
 
-"""
-    title			:utils.py
-    description     :Utility class for common python tasks
-    author			:Andreas <aleibets>
-    version         :1.0
-    usage			:import module and use contained functions
-    notes			:requirements: natsort, shutil
-    python_version	:3.6
-    ===========================================================================
-"""
 
 # # IMPORTS
 import os

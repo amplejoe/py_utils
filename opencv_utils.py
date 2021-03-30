@@ -1,5 +1,17 @@
 #!/usr/bin/env python
 
+###
+# File: opencv_utils.py
+# Created: Monday, 22nd June 2020 8:14:46 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:13:49 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
 # Utilities using OpenCV functions. Working OpenCV installation required.
 
 from . import utils

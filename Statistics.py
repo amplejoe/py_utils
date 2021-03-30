@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-#                         _       _
-#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
-#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
-#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
-#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
-#                  |_|         |__/
+###
+# File: Statistics.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:14:23 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
 #
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-
-# @Author: Andreas <aleibets>
-# @Date: 2019-09-10T14:16:08+02:00
-# @Filename: Statistics.py
-# @Last modified by: aleibets
-# @Last modified time: 2019-09-11T16:17:36+02:00
-# @description:
+###
 
 from pandas import DataFrame
 

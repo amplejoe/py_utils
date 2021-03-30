@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+
+###
+# File: cnn_utils.py
+# Created: Wednesday, 13th May 2020 3:42:11 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:12:25 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
+
 from tqdm import tqdm
 from . import utils
 from . import common

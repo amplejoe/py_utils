@@ -1,4 +1,17 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python
+
+###
+# File: random_colors.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:14:13 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
 # based on
 # https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
 

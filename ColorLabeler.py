@@ -1,21 +1,17 @@
 #!/usr/bin/env python
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++
-#                         _       _
-#    __ _ _ __ ___  _ __ | | ___ (_) ___   ___
-#   / _` | '_ ` _ \| '_ \| |/ _ \| |/ _ \ / _ \
-#  | (_| | | | | | | |_) | |  __/| | (_) |  __/
-#   \__,_|_| |_| |_| .__/|_|\____/ |\___/ \___|
-#                  |_|         |__/
+###
+# File: ColorLabeler.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:12:38 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
 #
-# +++++++++++++++++++++++++++++++++++++++++++++++++
+###
 
-# @Author: Andreas <aleibets>
-# @Date: 2019-10-30T18:47:39+01:00
-# @Filename: ColorLabeler.py
-# @Last modified by: aleibets
-# @Last modified time: 2020-01-27T12:12:00+01:00
-# @description: from https://www.pyimagesearch.com/2016/02/15/determining-object-color-with-opencv/
 
 # import the necessary packages
 from scipy.spatial import distance as dist

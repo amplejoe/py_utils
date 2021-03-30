@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+
+###
+# File: plot_utils.py
+# Created: Tuesday, 12th May 2020 5:46:35 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:13:58 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt

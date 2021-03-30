@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+
+###
+# File: GUITools.py
+# Created: Thursday, 14th January 2021 12:37:16 pm
+# Author: Andreas (amplejoe@gmail.com)
+# -----
+# Last Modified: Tuesday, 30th March 2021 2:13:14 am
+# Modified By: Andreas (amplejoe@gmail.com)
+# -----
+# Copyright (c) 2021 Klagenfurt University
+#
+###
+
 from typing import List, Set, Dict, Tuple, Optional
 import tkinter as tk
 from tkinter import filedialog
