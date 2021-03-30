@@ -5,13 +5,12 @@
 # Created: Tuesday, 12th May 2020 5:46:35 pm
 # Author: Andreas (amplejoe@gmail.com)
 # -----
-# Last Modified: Tuesday, 30th March 2021 2:12:07 am
+# Last Modified: Tuesday, 30th March 2021 3:09:18 am
 # Modified By: Andreas (amplejoe@gmail.com)
 # -----
 # Copyright (c) 2021 Klagenfurt University
 #
 ###
-
 
 
 # # IMPORTS
@@ -98,7 +97,7 @@ def confirm(msg=None, default=None):
     user_prompt = "[y/n]"
     if default is not None and default in accepted_answers:
         default = default.lower()
-        accepted_answers.append("")  # alows users to press enter
+        accepted_answers.append("")  # allows users to press enter
         user_prompt = user_prompt.replace(default, default.upper())
     if msg is not None:
         print(msg)
@@ -401,9 +400,12 @@ def get_full_file_name(file_path):
     return to_path(file_path, as_string=False).name
 
 
-def get_file_name(file_path):
+def get_file_name(file_path, full=False):
     """Get file name of file"""
-    return to_path(file_path, as_string=False).stem
+    if full:
+        return to_path(file_path, as_string=False).name
+    else:
+        return to_path(file_path, as_string=False).stem
 
 
 def get_file_ext(file_path):
