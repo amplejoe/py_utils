@@ -603,13 +603,15 @@ def get_regex_match_list(in_string, regex):
 
 
 # TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
-def exec_shell_command(command, print_output=False):
+def exec_shell_command(command, print_output=False, silent=False):
     """Executes a shell command using the subprocess module.
     command: standard shell command (SPACE separated - escape paths with '' or "")
     print_output: output command result to console
     returns: list containing all shell output lines
     """
-    print(f"Exec shell command '{command}'")
+    if not silent:
+        print("lalala")
+        print(f"Exec shell command '{command}'")
     regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
     command_list = get_regex_match_list(command, regex)
 

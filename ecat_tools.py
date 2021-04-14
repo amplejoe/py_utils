@@ -22,6 +22,8 @@ SHELL_CMD_GET_FPS = (
     "ffprobe -v 0 -of csv=p=0 -select_streams 0 -show_entries stream=r_frame_rate"
 )
 
+SHELL_CMD_GET_DURATION = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 -sexagesimal"
+
 
 def time_to_frame(time, fps):
     return round(time * fps)
@@ -175,8 +177,19 @@ def convert_to_float(frac_str):
 def get_fps(video):
     """Gets fps from a video using ffprobe"""
     return convert_to_float(
-        utils.exec_shell_command(SHELL_CMD_GET_FPS + " " + video)[0]
+        utils.exec_shell_command(SHELL_CMD_GET_FPS + " " + video, silent=True)[0]
     )
+
+
+def get_duration(video):
+    """Gets duration of a video using ffprobe in format hh:mm:ss
+
+    Args:
+        video ([type]): [description]
+    """
+    return utils.exec_shell_command(SHELL_CMD_GET_DURATION + " " + video, silent=True)[
+        0
+    ].split(".")[0]
 
 
 def get_fps_from_sketch(sketch_file_path):
