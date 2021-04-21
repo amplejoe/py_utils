@@ -820,6 +820,8 @@ def filter_list_by_partial_word(word, list_to_filter):
 
 
 def nat_sort_list(l):
+    """ sorts a list naturally
+    """
     return natsorted(l, key=lambda y: y.lower())
 
 
