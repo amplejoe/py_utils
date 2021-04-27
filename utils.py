@@ -610,7 +610,6 @@ def exec_shell_command(command, print_output=False, silent=False):
     returns: list containing all shell output lines
     """
     if not silent:
-        print("lalala")
         print(f"Exec shell command '{command}'")
     regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
     command_list = get_regex_match_list(command, regex)
