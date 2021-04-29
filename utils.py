@@ -348,6 +348,11 @@ def get_file_path(file_path):
     return p.parents[0].as_posix()
 
 
+def get_files(directory, *extensions):
+    """Alias for get_file_paths"""
+    return get_file_paths(directory, *extensions)
+
+
 def get_file_paths(directory, *extensions):
     """Get all file paths of a directory (optionally with file extensions
     usage example: get_file_paths("/mnt/mydir", ".json", ".jpg")
@@ -819,8 +824,7 @@ def filter_list_by_partial_word(word, list_to_filter):
 
 
 def nat_sort_list(l):
-    """ sorts a list naturally
-    """
+    """sorts a list naturally"""
     return natsorted(l, key=lambda y: y.lower())
 
 
