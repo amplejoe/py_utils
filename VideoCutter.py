@@ -96,7 +96,7 @@ class VideoCutter:
     def secs_to_time_format(self, secs: int) -> str:
         return time.strftime(TIME_FORMAT, time.gmtime(secs))
 
-    def time_format_to_secs(self, timestring) -> str:
+    def time_format_to_secs(self, timestring) -> int:
         pt = datetime.datetime.strptime(timestring, TIME_FORMAT)
         total_seconds = pt.second + pt.minute * 60 + pt.hour * 3600
         return total_seconds
@@ -227,7 +227,6 @@ class VideoCutter:
             num_seconds = kwargs["seconds"]
         elif "frames" in kwargs.keys():
             num_seconds = int(kwargs["frames"]) / self.fps
-
 
         # re-encode video making keyframes in given seconds interval
         total_seconds = self.time_format_to_secs(self.total_duration)
