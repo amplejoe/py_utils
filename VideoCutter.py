@@ -254,10 +254,13 @@ class VideoCutter:
             from_time_str = kf_list[i]
             from_time_secs = self.time_format_to_secs(from_time_str)
             to_time_str = kf_list[i + 1]
+            duration_str = self.datetime_to_str(
+                self.calc_duration(from_time_str, to_time_str)
+            )
             out_file = f"{in_file_name}_{from_time_secs}{in_file_ext}"
             out_path = utils.join_paths(self.out_root, out_file)
-            # '-t' denotes the actual endtime (NOT duration)
-            cmd = f"ffmpeg -ss {from_time_str} -i {self.tmp_file_path} -t {to_time_str} -c copy {out_path}"
+            # '-to' denotes the duration
+            cmd = f"ffmpeg -ss {from_time_str} -i {self.tmp_file_path} -to {duration_str} -c copy {out_path}"
             utils.exec_shell_command(cmd, silent=True)
 
         # clean up tmp file
