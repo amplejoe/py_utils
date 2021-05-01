@@ -49,7 +49,7 @@ def parse_args():
         help="path to output folder",
         # either argument is given or current dir is used by default
         nargs="?",
-        default=".",
+        default="./out",
     )
     args = ap.parse_args()
     return args
