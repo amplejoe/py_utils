@@ -9,9 +9,6 @@ IN_EXTENSIONS = [".jpg", ".png"]
 
 def main():
 
-    g_args.input = utils.to_path(g_args.input)
-    g_args.output = utils.to_path(g_args.output)
-
     if g_args.input == g_args.output:
         exit("IN cannot be the same as OUT path.")
 
@@ -35,7 +32,7 @@ def parse_args():
         "-i",
         "--input",
         dest="input",
-        type=str,
+        type=utils.to_path,
         help="path to input folder",
         required=True,
         # multiple (at least one) arguments gathered into list
@@ -45,11 +42,11 @@ def parse_args():
         "-o",
         "--output",
         dest="output",
-        type=str,
+        type=utils.to_path,
         help="path to output folder",
         # either argument is given or current './out' is used by default
         nargs="?",
-        default="./out",
+        default=utils.to_path("./out"),
     )
     args = ap.parse_args()
     return args
