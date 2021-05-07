@@ -47,7 +47,7 @@ def parse_args():
         dest="output",
         type=str,
         help="path to output folder",
-        # either argument is given or current dir is used by default
+        # either argument is given or current './out' is used by default
         nargs="?",
         default="./out",
     )
