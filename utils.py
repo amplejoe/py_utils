@@ -350,7 +350,7 @@ def get_file_path(file_path):
 
 def get_files(directory, *extensions):
     """Alias for get_file_paths"""
-    return get_file_paths(directory, *extensions)
+    return get_file_paths(directory, *list(extensions))
 
 
 def get_file_paths(directory, *extensions):
