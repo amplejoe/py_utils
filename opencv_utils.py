@@ -220,7 +220,7 @@ def create_blank_image(width, height, num_channels=NUM_CHANNELS):
     return np.zeros(shape=(height, width, num_channels), dtype=np.uint8)
 
 
-def draw_rectangle(img, bb, color=BB_COLOR):
+def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     """Draws a rectangle to an image in a desired color (default: white)
     Parameters
     ----------
@@ -233,7 +233,7 @@ def draw_rectangle(img, bb, color=BB_COLOR):
     img = get_image(img)
     x2 = bb[0] + bb[2]
     y2 = bb[1] + bb[3]
-    cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=cv2.FILLED)
+    cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
 def draw_horizontal_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
