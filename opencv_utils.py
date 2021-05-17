@@ -174,15 +174,18 @@ def image_to_binary_image(img_or_path):
     )
     return image_binary
 
+
 def get_bgr_image(img_or_path):
     image = get_image(img_or_path)
     img_copy = image.copy()
     return cv2.cvtColor(img_copy, cv2.COLOR_RGB2BGR)
 
+
 def get_rgb_image(img_or_path):
     image = get_image(img_or_path)
     img_copy = image.copy()
     return cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
+
 
 # def cut_roi_from_image(foreground, background, mask):
 #     result = np.zeros_like(foreground)
@@ -236,11 +239,30 @@ def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
+def draw_line(img, p_a, p_b, *, color=(255, 255, 255), thickness=1):
+    """Draws a line from p_a to p_b
+
+    Args:
+        image ([type]): path or image
+        p_a (tuple of int): point in form (x, y)
+        p_b (tuple of int): point in form (x, y)
+        color (tuple, optional): [description]. Defaults to (255, 255, 255).
+        thickness (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        [type]: [description]
+    """
+    img = get_image(img)
+    img_altered = img.copy()
+    cv2.line(img_altered, p_a, p_b, color, thickness)
+    return img_altered
+
+
 def draw_horizontal_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
     """Draws a horizontal line through an input picture. position is given as a percentage.
 
     Args:
-        img ([type]): [description]
+        img ([type]): path or image
         x_pos_percent ([type]): percentage of width, default 0.50
         color (tuple, optional): [description]. Defaults to (0,255,0).
     """
