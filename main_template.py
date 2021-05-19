@@ -9,8 +9,8 @@ IN_EXTENSIONS = [".jpg", ".png"]
 
 def main():
 
-    if g_args.input == g_args.output:
-        exit("IN cannot be the same as OUT path.")
+    if g_args.input == g_args.output or g_args.output == '.' or g_args.output == g_args.script_dir:
+        exit("IN cannot be the same as OUT, '.' or script path.")
 
     # if not (utils.confirm_overwrite(g_args.output, "n")):
     #     exit("Aborted folder creation.")
@@ -49,6 +49,8 @@ def parse_args():
         default=utils.to_path("./out"),
     )
     args = ap.parse_args()
+    args.script_dir = utils.get_script_dir()
+    args.current_dir = utils.get_current_dir()
     return args
 
 
