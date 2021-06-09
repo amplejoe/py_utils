@@ -28,6 +28,7 @@ import numpy as np
 import inspect
 import functools
 import math
+import tqdm
 
 # # USER INPUT RELATED
 
@@ -362,7 +363,7 @@ def get_file_paths(directory, *extensions):
     d = to_path(directory, as_string=False)
 
     all_files = []
-    for current_file in d.glob("**/*"):
+    for current_file in tqdm(d.glob('**/*'), desc="reading files"):
         if not current_file.is_file():
             continue
         fext = current_file.suffix
