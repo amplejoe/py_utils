@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 from py_utils import utils
 import sys
@@ -9,7 +11,11 @@ IN_EXTENSIONS = [".jpg", ".png"]
 
 def main():
 
-    if g_args.input == g_args.output or g_args.output == '.' or g_args.output == g_args.script_dir:
+    if (
+        g_args.input == g_args.output
+        or g_args.output == "."
+        or g_args.output == g_args.script_dir
+    ):
         exit("IN cannot be the same as OUT, '.' or script path.")
 
     # if not (utils.confirm_overwrite(g_args.output, "n")):
