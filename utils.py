@@ -348,10 +348,23 @@ def get_file_path(file_path):
     p = to_path(file_path, as_string=False)
     return p.parents[0].as_posix()
 
+# supersedes get_file_paths
+def get_files(directory, disable_progress=False, *extensions):
+    """Superseeds get_file_paths - includes toggleable progess"""
+    d = to_path(directory, as_string=False)
 
-def get_files(directory, *extensions):
-    """Alias for get_file_paths"""
-    return get_file_paths(directory, *list(extensions))
+    all_files = []
+    # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
+    for current_file in tqdm( d.glob('**/*'), desc='reading files', disable=disable_progress):
+        if not current_file.is_file():
+            continue
+        fext = current_file.suffix
+        if extensions and fext not in extensions:
+            continue
+        # as_posix: Return a string representation
+        # of the path with forward slashes (/)
+        all_files.append(current_file.as_posix())
+    return all_files
 
 
 def get_file_paths(directory, *extensions):
@@ -363,7 +376,8 @@ def get_file_paths(directory, *extensions):
     d = to_path(directory, as_string=False)
 
     all_files = []
-    for current_file in tqdm(d.glob('**/*'), desc="reading files"):
+    # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
+    for current_file in d.glob('**/*'):
         if not current_file.is_file():
             continue
         fext = current_file.suffix
