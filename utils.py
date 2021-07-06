@@ -349,13 +349,13 @@ def get_file_path(file_path):
     return p.parents[0].as_posix()
 
 # supersedes get_file_paths
-def get_files(directory, disable_progress=False, *extensions):
+def get_files(directory, show_progress=True, *extensions):
     """Superseeds get_file_paths - includes toggleable progess"""
     d = to_path(directory, as_string=False)
 
     all_files = []
     # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
-    for current_file in tqdm( d.glob('**/*'), desc='reading files', disable=disable_progress):
+    for current_file in tqdm( d.glob('**/*'), desc='reading files', disable=(not show_progress)):
         if not current_file.is_file():
             continue
         fext = current_file.suffix
