@@ -29,6 +29,7 @@ import inspect
 import functools
 import math
 from tqdm import tqdm
+import shlex
 
 # # USER INPUT RELATED
 
@@ -631,8 +632,14 @@ def exec_shell_command(command, print_output=False, silent=False):
     """
     if not silent:
         print(f"Exec shell command '{command}'")
-    regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
-    command_list = get_regex_match_list(command, regex)
+    # pre 2021:
+    # regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
+    # command_list = get_regex_match_list(command, regex)
+    # TODO: 2021: simplified - maybe breaks some commands...
+    command_list = shlex.split(command)
+
+    # DEBUG
+    # print(command_list)
 
     process = subprocess.Popen(
         command_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
