@@ -635,7 +635,10 @@ def exec_shell_command(command, print_output=False, silent=False):
     # pre 2021:
     # regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
     # command_list = get_regex_match_list(command, regex)
-    # TODO: 2021: simplified - maybe breaks some commands...
+
+    # 2021: simplified - maybe breaks some older calls
+    # WARNING: use shlex.quote with strings containing user input
+    # (cf. https://stackoverflow.com/questions/54581349/python-subprocess-ignores-backslash-in-convert-command)
     command_list = shlex.split(command)
 
     # DEBUG
