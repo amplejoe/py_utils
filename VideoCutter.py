@@ -170,6 +170,7 @@ class VideoCutter:
             d_input = self.secs_to_time_format(secs)
             dt = self.str_to_datetime(d_input)
             tt = self.calc_to_time(from_time["str"], d_input)
+            # print(f"{utils.get_file_name(self.video)}: f {kwargs['frames']} fps {self.fps} -> {secs}s")
 
         duration = {"str": self.datetime_to_str(dt), "time": dt}
         to_time = {"str": self.datetime_to_str(tt), "time": tt}
@@ -194,15 +195,24 @@ class VideoCutter:
         # print(f"dur\n\t{self.total_duration}")
         # print(f"out {out_file}")
 
+        # 2021: performance improvement -> directly re-encode with cut command
         # re-encode setting from and to as keyframes
-        self.re_encode_with_keyframes([from_time["str"], to_time["str"]])
+        # self.re_encode_with_keyframes([from_time["str"], to_time["str"]])
 
         # 'to' is the duration of the cutout
-        cmd = f"ffmpeg -ss {from_time['str']} -i {self.tmp_file_path} -to {duration['str']} -c copy {out_path}"
+        cmd = f"ffmpeg -ss {from_time['str']} -i {self.video} -to {duration['str']} {self.conversion_string} {out_path}"
+
+        # HACK: frame extraction with duration is not accurate -> suse filter
+        if "frames" in kwargs.keys():
+            from_time_secs = self.time_format_to_secs(ft_input)
+            from_frame = int(from_time_secs * self.fps)
+            to_frame = int(kwargs['frames']) - 1 # frames start at 0
+            cmd = f'ffmpeg -i {self.video} -vf select="between(n\,{from_frame}\,{to_frame}),setpts=PTS-STARTPTS" {self.conversion_string} {out_path}'
+
         utils.exec_shell_command(cmd, silent=True)
 
         # clean up tmp file
-        utils.remove_file(self.tmp_file_path)
+        # utils.remove_file(self.tmp_file_path)
 
     def multi_cut(self, **kwargs):
         """Multi cut video with parameters, i.e. every S seconds or every F frames.
