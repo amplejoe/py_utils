@@ -31,6 +31,7 @@ TIME_FORMAT = "%H:%M:%S"
 CONVERSIONS = {
     "default": "-c copy",
     "x264": "-c:v libx264 -crf 20 -b:v 1M -maxrate 1M -c:a aac",
+    "x264_na": "-c:v libx264 -crf 20 -b:v 1M -maxrate 1M -an",
     "test": "-crf 20 -b:v 1M -maxrate 1M",
 }
 
@@ -198,6 +199,8 @@ class VideoCutter:
         # 2021: performance improvement -> directly re-encode with cut command
         # re-encode setting from and to as keyframes
         # self.re_encode_with_keyframes([from_time["str"], to_time["str"]])
+        # keyframe_list = [from_time["str"], to_time["str"]]
+        # keyframe_list_str = ",".join(keyframe_list)
 
         # 'to' is the duration of the cutout
         cmd = f"ffmpeg -ss {from_time['str']} -i {self.video} -to {duration['str']} {self.conversion_string} {out_path}"
