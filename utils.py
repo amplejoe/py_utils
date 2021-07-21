@@ -615,6 +615,10 @@ def exit(msg=None):
     sys.exit()
 
 
+def is_array(var):
+    return isinstance(var, (list, tuple, np.ndarray))
+
+
 def get_regex_match_list(in_string, regex):
     matches = re.finditer(regex, in_string)
     match_list = []
