@@ -619,6 +619,12 @@ def is_array(var):
     return isinstance(var, (list, tuple, np.ndarray))
 
 
+# ONLY works for Python 3.8, disable for now
+# def get_var_name(any_var):
+#     """ Gets variable name as string. """
+#     return f'{any_var=}'.split('=')[0]
+
+
 def get_regex_match_list(in_string, regex):
     matches = re.finditer(regex, in_string)
     match_list = []
