@@ -813,9 +813,14 @@ def is_absolute_path(path):
     return os.path.isabs(path)
 
 
-def rel_to_abs_path(path):
-    current_dir = os.getcwd()
-    return join_paths_str(current_dir, path)
+def rel_to_abs_path(path, rel_to_script=False):
+    """ Converts relative path to absolute path depending on current/script dir"""
+    if is_absolute_path(path):
+        return path
+    target_dir = get_current_dir()
+    if rel_to_script:
+        target_dir = get_script_dir()
+    return join_paths_str(target_dir, path)
 
 
 def is_number(var, strict=False):
