@@ -12,7 +12,7 @@ IN_EXTENSIONS = [".jpg", ".png"]
 def main():
 
     if (
-        g_args.input == g_args.output
+        g_args.output == g_args.input
         or g_args.output == "."
         or g_args.output == g_args.script_dir
     ):
