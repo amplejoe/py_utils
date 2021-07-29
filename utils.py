@@ -10,6 +10,7 @@
 # -----
 # Copyright (c) 2021 Klagenfurt University
 #
+# IMPORTANT: python 3.6+ required
 ###
 
 
@@ -633,6 +634,10 @@ def get_regex_match_list(in_string, regex):
     return match_list
 
 
+def float_to_string(float_var, precision=3):
+    return '%.*f' % (precision, float_var)
+
+
 # TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
 def exec_shell_command(command, print_output=False, silent=False):
     """Executes a shell command using the subprocess module.
@@ -819,13 +824,13 @@ def is_absolute_path(path):
     return os.path.isabs(path)
 
 
-def rel_to_abs_path(path, rel_to_script=False):
-    """ Converts relative path to absolute path depending on current/script dir"""
+def rel_to_abs_path(path, rel_to_path=None):
+    """ Converts relative path to absolute path depending on current or custom (rel_to_path) dir"""
     if is_absolute_path(path):
         return path
     target_dir = get_current_dir()
-    if rel_to_script:
-        target_dir = get_script_dir()
+    if rel_to_path is not None:
+        target_dir = rel_to_path
     return join_paths_str(target_dir, path)
 
 
