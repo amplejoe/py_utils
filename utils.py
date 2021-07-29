@@ -31,7 +31,7 @@ import functools
 import math
 from tqdm import tqdm
 import shlex
-
+import decimal
 # # USER INPUT RELATED
 
 
@@ -636,6 +636,12 @@ def get_regex_match_list(in_string, regex):
 
 def float_to_string(float_var, precision=3):
     return '%.*f' % (precision, float_var)
+
+
+def get_decimals(float_number):
+    """ Gets the number of decimals in a float number """
+    d = decimal.Decimal(str(float_number))
+    return abs(d.as_tuple().exponent)
 
 
 # TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
