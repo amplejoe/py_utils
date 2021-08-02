@@ -32,6 +32,9 @@ import math
 from tqdm import tqdm
 import shlex
 import decimal
+import concurrent.futures
+
+
 # # USER INPUT RELATED
 
 
@@ -1177,3 +1180,30 @@ class switch(object):
             return True
         else:
             return False
+
+
+# # MULTITHREADING
+
+def run_multithreaded(func, args, num_workers = 10, show_progress=True):
+    """Runs a particular function in multithread mode with a pool of num_workers workers.
+
+    Args:
+        func ([type]): function to run in multithreaded mode
+        args ([type]): arguments as a list/generator, must be tuples when more than one. E.g.:
+                       args = [(i, f) for i, f in enumerate(file_list)] yields a list with (index, file) entries
+        num_workers (int, optional): Thread pool number of workers. Defaults to 10.
+        show_progress (bool, optional): tqdm progress. Defaults to True.
+
+    Returns:
+        [type]: Thread results as a list (None entries if nothing is returned).
+    """
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        if show_progress:
+            results = list(tqdm(executor.map(lambda p: func(*p), args), total=len(args)))
+        else:
+            results = list(executor.map(lambda p: func(*p), args))
+
+    return results
+
