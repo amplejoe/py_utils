@@ -52,7 +52,7 @@ def parse_args():
         help="path to output folder",
         # either argument is given or current './out' is used by default
         nargs="?",
-        default=utils.to_path("./out"),
+        default=utils.join_paths(utils.get_script_dir(), "./out"),
     )
     args = ap.parse_args()
     args.script_dir = utils.get_script_dir()
