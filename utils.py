@@ -167,6 +167,34 @@ def exists_file(*p):
     """Checks whether a file really exists."""
     return to_path(*p, as_string=False).is_file()
 
+def is_dir_path(path):
+    """ Rudimentary check if (non-existing) path is a directory.
+        WARNING: only checks for '.' in last path part (files without extension are ignored!)
+
+    Args:
+        path (str): input path
+    """
+    fn = get_full_file_name(path)
+
+    if "." in fn:
+        return False
+    else:
+        return True
+
+def is_file_path(path):
+    """ Rudimentary check if (non-existing) path contains a file.
+        WARNING: only checks for '.' in last path part (files without extension are ignored!)
+
+    Args:
+        path (str): input path
+    """
+    fn = get_full_file_name(path)
+
+    if "." in fn:
+        return True
+    else:
+        return False
+
 
 def to_path_url(*p, as_string=True):
     """Convert URL to pathlib path.
@@ -413,11 +441,15 @@ def get_file_paths_containing(directory, *contained):
     return all_files
 
 
-def path_to_relative_path(path, relative_to_path):
-    """Return sub-path relative to input path"""
+def path_to_relative_path(path, relative_to_path, remove_file=False):
+    """Return sub-path relative to input path. Optionally remove (potential) files from path end."""
     path = to_path(path, as_string=False)
     rel_to = to_path(relative_to_path, as_string=False)
-    return path.relative_to(rel_to).as_posix()
+    rel_pth = path.relative_to(rel_to).as_posix()
+    if remove_file:
+        if is_file_path(path):
+            rel_pth = get_file_path(rel_pth)
+    return rel_pth
 
 
 def get_full_file_name(file_path):
