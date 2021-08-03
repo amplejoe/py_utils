@@ -175,6 +175,21 @@ def image_to_binary_image(img_or_path):
     return image_binary
 
 
+def pil_to_cv_img(pil_image):
+    """Converts PIL Image to OpenCV image.
+
+    Args:
+        pil_image (PIL Image): Input PIL image in RGB.
+
+    Returns:
+        [type]: OpenCV image in BGR.
+    """
+    opencv_img = np.array(pil_image)
+    # Convert RGB to BGR
+    opencv_img = opencv_img[:, :, ::-1].copy()
+    return opencv_img
+
+
 def get_bgr_image(img_or_path):
     image = get_image(img_or_path)
     img_copy = image.copy()
