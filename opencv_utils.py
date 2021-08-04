@@ -202,6 +202,11 @@ def get_rgb_image(img_or_path):
     return cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
 
 
+def get_unique_color_values(img_or_path, axis=0):
+    img_or_path = get_image(img_or_path)
+    return np.unique(img_or_path.reshape(-1, img_or_path.shape[2]), axis=0)
+
+
 # def cut_roi_from_image(foreground, background, mask):
 #     result = np.zeros_like(foreground)
 #     result[mask] = foreground[mask]
