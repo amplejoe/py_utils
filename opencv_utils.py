@@ -329,7 +329,7 @@ def get_transparent_img(img):
     return dst
 
 
-def show_image(image, title, pos=None, destroy_after_keypress=True):
+def show_image(image, title="image", pos=None, destroy_after_keypress=True):
     """Shows image with option to set position and enabling ESCAPE to quit.
     Parameters:
     -----------
