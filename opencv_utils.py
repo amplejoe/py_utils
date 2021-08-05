@@ -225,7 +225,16 @@ def get_img_dimensions(img):
         {"width": img_width, "height": img_height, "channels": num_channels}
     """
     img = get_image(img)
-    height, width, channels = img.shape
+    height = None
+    width = None
+    channels = -1
+    if len(img.shape) == 2:
+        # image is grayscale (1 channel)
+        height, width = img.shape
+        channels = 1
+    else:
+        # image has more than 1 channel
+        height, width, channels = img.shape
     return {"width": width, "height": height, "channels": channels}
 
 
@@ -240,7 +249,10 @@ def create_blank_image(width, height, num_channels=NUM_CHANNELS):
     Returns:
         np.array: A blank black image of size width x height.
     """
-    return np.zeros(shape=(height, width, num_channels), dtype=np.uint8)
+    if num_channels == 1:
+        return np.zeros(shape=(height, width), dtype=np.uint8)
+    else:
+        return np.zeros(shape=(height, width, num_channels), dtype=np.uint8)
 
 
 def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
