@@ -655,6 +655,10 @@ def is_array(var):
     return isinstance(var, (list, tuple, np.ndarray))
 
 
+def left_pad_zeros(var, num_zeros):
+    var = str(var)
+    return var.zfill(num_zeros)
+
 # ONLY works for Python 3.8, disable for now
 # def get_var_name(any_var):
 #     """ Gets variable name as string. """
