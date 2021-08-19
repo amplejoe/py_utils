@@ -941,7 +941,7 @@ def sort_list_nicely(l):
     l.sort(key=alphanum_key)
 
 
-def nat_sort_dict_lst_by_key(dict_list, key, descending=False):
+def nat_sort_dict_list_by_key(dict_list, key, descending=False):
     return natsorted(dict_list, key=lambda i: i[key], reverse=descending)
 
 
