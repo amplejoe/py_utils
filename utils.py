@@ -167,8 +167,9 @@ def exists_file(*p):
     """Checks whether a file really exists."""
     return to_path(*p, as_string=False).is_file()
 
+
 def is_dir_path(path):
-    """ Rudimentary check if (non-existing) path is a directory.
+    """Rudimentary check if (non-existing) path is a directory.
         WARNING: only checks for '.' in last path part (files without extension are ignored!)
 
     Args:
@@ -181,8 +182,9 @@ def is_dir_path(path):
     else:
         return True
 
+
 def is_file_path(path):
-    """ Rudimentary check if (non-existing) path contains a file.
+    """Rudimentary check if (non-existing) path contains a file.
         WARNING: only checks for '.' in last path part (files without extension are ignored!)
 
     Args:
@@ -381,6 +383,7 @@ def get_file_path(file_path):
     p = to_path(file_path, as_string=False)
     return p.parents[0].as_posix()
 
+
 # supersedes get_file_paths
 def get_files(directory, show_progress=True, *extensions):
     """Superseeds get_file_paths - includes toggleable progess"""
@@ -388,7 +391,9 @@ def get_files(directory, show_progress=True, *extensions):
 
     all_files = []
     # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
-    for current_file in tqdm(d.glob('**/*'), desc='reading files', disable=(not show_progress)):
+    for current_file in tqdm(
+        d.glob("**/*"), desc="reading files", disable=(not show_progress)
+    ):
         if not current_file.is_file():
             continue
         fext = current_file.suffix
@@ -410,7 +415,7 @@ def get_file_paths(directory, *extensions):
 
     all_files = []
     # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
-    for current_file in d.glob('**/*'):
+    for current_file in d.glob("**/*"):
         if not current_file.is_file():
             continue
         fext = current_file.suffix
@@ -659,6 +664,7 @@ def left_pad_zeros(var, num_zeros):
     var = str(var)
     return var.zfill(num_zeros)
 
+
 # ONLY works for Python 3.8, disable for now
 # def get_var_name(any_var):
 #     """ Gets variable name as string. """
@@ -674,11 +680,11 @@ def get_regex_match_list(in_string, regex):
 
 
 def float_to_string(float_var, precision=3):
-    return '%.*f' % (precision, float_var)
+    return "%.*f" % (precision, float_var)
 
 
 def get_decimals(float_number):
-    """ Gets the number of decimals in a float number """
+    """Gets the number of decimals in a float number"""
     d = decimal.Decimal(str(float_number))
     return abs(d.as_tuple().exponent)
 
@@ -870,7 +876,7 @@ def is_absolute_path(path):
 
 
 def rel_to_abs_path(path, rel_to_path=None):
-    """ Converts relative path to absolute path depending on current or custom (rel_to_path) dir"""
+    """Converts relative path to absolute path depending on current or custom (rel_to_path) dir"""
     if is_absolute_path(path):
         return path
     target_dir = get_current_dir()
@@ -933,6 +939,10 @@ def sort_list_nicely(l):
         return [convert(c) for c in re.split("([0-9]+)", key)]
 
     l.sort(key=alphanum_key)
+
+
+def nat_sort_dict_lst_by_key(dict_list, key):
+    return natsorted(dict_list, key=lambda i: i[key])
 
 
 # https://www.geeksforgeeks.org/python-find-most-frequent-element-in-a-list/
@@ -1220,7 +1230,8 @@ class switch(object):
 
 # # MULTITHREADING
 
-def run_multithreaded(func, args, num_workers = 10, show_progress=True):
+
+def run_multithreaded(func, args, num_workers=10, show_progress=True):
     """Runs a particular function in multithread mode with a pool of num_workers workers.
 
     Args:
@@ -1237,9 +1248,10 @@ def run_multithreaded(func, args, num_workers = 10, show_progress=True):
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         if show_progress:
-            results = list(tqdm(executor.map(lambda p: func(*p), args), total=len(args)))
+            results = list(
+                tqdm(executor.map(lambda p: func(*p), args), total=len(args))
+            )
         else:
             results = list(executor.map(lambda p: func(*p), args))
 
     return results
-
