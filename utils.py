@@ -919,9 +919,9 @@ def filter_list_by_partial_word(word, list_to_filter):
     return list(filter(lambda x: word in x, list_to_filter))
 
 
-def nat_sort_list(l):
+def nat_sort_list(l, descending=False):
     """sorts a list naturally"""
-    return natsorted(l, key=lambda y: y.lower())
+    return natsorted(l, key=lambda y: y.lower(), reverse=descending)
 
 
 def set_environment_variable(key, value):
