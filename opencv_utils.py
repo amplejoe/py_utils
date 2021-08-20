@@ -538,13 +538,15 @@ def blend_images(img, img_overlay_array, blend=BLEND_ALPHA):
     return res
 
 
-def resize_image(img, w, h, interpolation=cv2.INTER_AREA):
+def resize_image(img_or_path, w, h, interpolation=cv2.INTER_AREA):
+    img = get_image(img_or_path)
     dim = (w, h)
     resized_img = cv2.resize(img, dim, interpolation)
     return resized_img
 
 
-def scale_image(img, scale_factor, interpolation=cv2.INTER_AREA):
+def scale_image(img_or_path, scale_factor, interpolation=cv2.INTER_AREA):
+    img = get_image(img_or_path)
     width = int(img.shape[1] * scale_factor)
     height = int(img.shape[0] * scale_factor)
     dim = (width, height)
