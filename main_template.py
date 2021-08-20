@@ -6,7 +6,9 @@ import sys
 import numpy as np
 from tqdm import tqdm
 
-IN_EXTENSIONS = [".jpg", ".png"]
+IN_IMG_EXT = [".jpg", ".png"]
+IN_VID_EXT = [".mp4", ".avi", ".mov"]
+IN_DATA_EXT = [".npy", ".csv", ".json"]
 
 
 def main():
@@ -21,7 +23,7 @@ def main():
     # if not (utils.confirm_overwrite(g_args.output, "n")):
     #     exit("Aborted folder creation.")
 
-    # in_files = utils.get_file_paths(g_args.input, *IN_EXTENSIONS)
+    # in_files = utils.get_file_paths(g_args.input, *IN_IMG_EXT)
 
 
 def exit(msg=None):
