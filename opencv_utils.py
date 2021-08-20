@@ -18,6 +18,7 @@ import sys
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from . import utils
 
@@ -114,7 +115,6 @@ def gui_select_option(
         # wait and listen to keypresses
         key = cv2.waitKeyEx(0)  # & 0xFF -> don't use here, disables arrow key use
         # use for finding out platform specific keycodes
-        # print(key)
         if key == ord("w") or is_arrow_key_pressed("up", key):
             sel_idx -= 1
             sel_idx %= len(options)
@@ -123,7 +123,7 @@ def gui_select_option(
             sel_idx %= len(options)
         elif key == ord("q") or key == KEY_ESCAPE:
             # reset selection
-            print("Aborted...")
+            tqdm.write("Aborted...")
             sel_idx = -1
             sel_option = None
             break
@@ -549,7 +549,7 @@ def blend_images(img, img_overlay_array, blend=BLEND_ALPHA):
         1.0 - 0.0 most to least amount of transparency applied
     """
     if not isinstance(img_overlay_array, list):
-        print("blend_images needs an array as input")
+        tqdm.write("blend_images needs an array as input")
         return None
     img = get_image(img)
     res = img
@@ -601,9 +601,9 @@ def move_contour_to(contour, center_x, center_y):
     new_x = center_x - c_centroid["x"]
     new_y = center_y - c_centroid["y"]
     new_contour = contour + [new_x, new_y]
-    # print(f"o {c_centroid['x']}, {c_centroid['y']}")
-    # print(f"t {center_x}, {center_y}")
-    # print(f"move {new_x}, {new_y}")
+    # tqdm.write(f"o {c_centroid['x']}, {c_centroid['y']}")
+    # tqdm.write(f"t {center_x}, {center_y}")
+    # tqdm.write(f"move {new_x}, {new_y}")
     return new_contour
 
 
@@ -611,4 +611,4 @@ def save_image(img, file_path, info=True):
     # Saving the image
     cv2.imwrite(file_path, img)
     if info:
-        print(f"Wrote {file_path}")
+        tqdm.write(f"Wrote {file_path}")
