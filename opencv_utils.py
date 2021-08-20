@@ -14,10 +14,12 @@
 
 # Utilities using OpenCV functions. Working OpenCV installation required.
 
-from . import utils
+import sys
+
 import cv2
 import numpy as np
-import sys
+
+from . import utils
 
 BLEND_ALPHA = 0.5
 NUM_CHANNELS = 3
@@ -307,6 +309,22 @@ def draw_horizontal_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255
     return img_altered
 
 
+def convert_to_rgba(img_or_path):
+    """Converts an image with potentially 1/3 channels to an rgba image. Leaves rgba or any other images (2, 4, 4+ channels) as they are.
+
+    Args:
+        img_or_path: path or image
+    """
+    img = get_image(img_or_path)
+    dims = get_img_dimensions(img)
+    if dims["channels"] == 1:
+        return cv2.cvtColor(img_or_path, cv2.COLOR_GRAY2BGRA)
+    elif dims["channels"] == 3:
+        return cv2.cvtColor(img_or_path, cv2.COLOR_BGR2BGRA)
+    else:
+        return img
+
+
 def concatenate_images(img1, img2, axis=1):
     """Concatanates two images horizontally (axis=1, default) or vertically(axis=0).
     INPORTANT: outputs BGRA image, convert if other format needed!
@@ -318,8 +336,8 @@ def concatenate_images(img1, img2, axis=1):
     img1 = get_image(img1)
     img2 = get_image(img2)
     # ensure that dimensions match, by converting all imgs to RGBA
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2BGRA)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2BGRA)
+    img1 = convert_to_rgba(img1)
+    img2 = convert_to_rgba(img2)
     return np.concatenate((img1, img2), axis=axis)
 
 
