@@ -364,7 +364,9 @@ def get_transparent_img(img):
     return dst
 
 
-def show_image(image, title="image", pos=None, destroy_after_keypress=True, enable_keypress=True):
+def show_image(
+    image, title="image", pos=None, destroy_after_keypress=True, enable_keypress=True
+):
     """Shows image with option to set position and enabling ESCAPE to quit.
     Parameters:
     -----------
@@ -372,7 +374,7 @@ def show_image(image, title="image", pos=None, destroy_after_keypress=True, enab
         OpenCv image
     title: string
         window title
-    pos: dict of integers
+    pos: dict of integers (WARNING: values of 0 can behave funny - best use e.g. 10 instead)
         {"x": x_pos, "y": y_pos}
     """
     image = get_image(image)
