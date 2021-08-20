@@ -364,7 +364,7 @@ def get_transparent_img(img):
     return dst
 
 
-def show_image(image, title="image", pos=None, destroy_after_keypress=True):
+def show_image(image, title="image", pos=None, destroy_after_keypress=True, enable_keypress=True):
     """Shows image with option to set position and enabling ESCAPE to quit.
     Parameters:
     -----------
@@ -379,11 +379,12 @@ def show_image(image, title="image", pos=None, destroy_after_keypress=True):
     cv2.imshow(title, image)
     if pos is not None:
         cv2.moveWindow(title, pos["x"], pos["y"])
-    key = cv2.waitKey(0)
-    if key == 27:
-        sys.exit()
-    if destroy_after_keypress:
-        cv2.destroyWindow(title)  # cleanup
+    if enable_keypress:
+        key = cv2.waitKey(0)
+        if key == 27:
+            sys.exit()
+        if destroy_after_keypress:
+            cv2.destroyWindow(title)  # cleanup
 
 
 def RGB_to_BGR(rgb):
