@@ -282,12 +282,12 @@ def make_dir(path, show_info=False, overwrite=False):
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
-            print("Unexpected error: %s", str(e.errno))
+            tqdm.write("Unexpected error: %s", str(e.errno))
             raise  # This was not a "directory exists" error..
-        # print("Directory exists: %s", path)
+        # tqdm.write("Directory exists: %s", path)
         return False
     if show_info:
-        print(f"Created dir: {path}")
+        tqdm.write(f"Created dir: {path}")
     return True
 
 
@@ -311,7 +311,7 @@ def clear_directory(path):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print("Failed to delete %s. Reason: %s" % (file_path, e))
+            tqdm.write("Failed to delete %s. Reason: %s" % (file_path, e))
 
 
 def get_directories(directory):
@@ -540,7 +540,7 @@ def copy_to(src_path, dst_path, follow_symlinks=True, ignore_list=None):
             shutil.copy(src_path, dst_path, follow_symlinks=follow_symlinks)
         return True
     except IOError as e:
-        print(f"Unable to copy file. {e}")
+        tqdm.write(f"Unable to copy file. {e}")
         return False
 
 
@@ -559,8 +559,8 @@ def rename_file(src_path, dst_path):
     src_root = to_path(get_file_path(src_path))
     dst_root = to_path(get_file_path(dst_path))
     if src_root != dst_root:
-        print(f"Cannot rename file: {src_root}")
-        print("Paths don't match!")
+        tqdm.write(f"Cannot rename file: {src_root}")
+        tqdm.write("Paths don't match!")
         exit(0)
     return shutil.move(src_path, dst_path)
 
