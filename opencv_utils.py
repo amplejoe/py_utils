@@ -409,10 +409,10 @@ def add_colored_border(img_or_path, *, color=(255, 255, 255), size=5):
     color_bgr = RGB_to_BGR(color)
     img_bordered = cv2.copyMakeBorder(
         img,
-        size_pixel,
-        size_pixel,
-        size_pixel,
-        size_pixel,
+        size,
+        size,
+        size,
+        size,
         cv2.BORDER_CONSTANT,
         value=color_bgr,
     )
