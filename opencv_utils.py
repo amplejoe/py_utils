@@ -394,10 +394,28 @@ def RGB_to_BGR(rgb):
     return b, g, r
 
 
-def add_colored_border(img_or_path,*, color_in_rgb=(255, 255, 255), size_pixel=5):
+def add_colored_border(img_or_path, *, color=(255, 255, 255), size_pixel=5):
+    """[summary]
+
+    Args:
+        img_or_path ([type]): Image of Path.
+        color (tuple, optional): RGB color tuple. Defaults to (255, 255, 255).
+        size_pixel (int, optional): Border size in pixels. Defaults to 5.
+
+    Returns:
+        [type]: bordered cv2 image
+    """
     img = get_image(img_or_path)
-    color_bgr = RGB_to_BGR(color_in_rgb)
-    img_bordered = cv2.copyMakeBorder(img, size_pixel, size_pixel, size_pixel, size_pixel, cv2.BORDER_CONSTANT, value=color_bgr)
+    color_bgr = RGB_to_BGR(color)
+    img_bordered = cv2.copyMakeBorder(
+        img,
+        size_pixel,
+        size_pixel,
+        size_pixel,
+        size_pixel,
+        cv2.BORDER_CONSTANT,
+        value=color_bgr,
+    )
     return img_bordered
 
 
@@ -408,7 +426,7 @@ def overlay_text(
     x_pos=10,
     y_pos=25,
     scale=1,
-    color_in_rgb=(255, 255, 255),
+    color=(255, 255, 255),
     color_mix=None,
     thickness=1,
 ):
@@ -417,6 +435,7 @@ def overlay_text(
     ----------
     img: path or opencv image
     txt: string
+    color: RGB Tuple
     color_mix: list of RGB color tuples overriding 'color' (each line is created in a different color out of the mix)
     Returns: np.array
         image with a text overlay
@@ -427,7 +446,7 @@ def overlay_text(
     font = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (x_pos, y_pos)
     fontScale = scale
-    fontColors = [color_in_rgb]
+    fontColors = [color]
     lineType = cv2.FILLED
 
     if color_mix is not None and len(color_mix) > 0:
