@@ -394,7 +394,7 @@ def RGB_to_BGR(rgb):
     return b, g, r
 
 
-def add_colored_border(img_or_path, *, color=(255, 255, 255), size_pixel=5):
+def add_colored_border(img_or_path, *, color=(255, 255, 255), size=5):
     """[summary]
 
     Args:
