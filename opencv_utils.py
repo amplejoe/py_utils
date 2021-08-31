@@ -394,6 +394,12 @@ def RGB_to_BGR(rgb):
     return b, g, r
 
 
+def add_colored_border(img_or_path,*, color_in_bgr=(255, 255, 255), size_pixel=5):
+    img = get_image(img_or_path)
+    img_bordered = cv2.copyMakeBorder(img, size_pixel, size_pixel, size_pixel, size_pixel, cv2.BORDER_CONSTANT, value=color_in_bgr)
+    return img_bordered
+
+
 def overlay_text(
     img,
     txt,
