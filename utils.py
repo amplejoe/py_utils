@@ -33,6 +33,7 @@ from tqdm import tqdm
 import shlex
 import decimal
 import concurrent.futures
+import tempfile
 
 
 # # USER INPUT RELATED
@@ -263,6 +264,27 @@ def join_paths_str(path, *paths):
     deprecated - 'join_paths' does the same with as_string=True
     """
     return join_paths(path, *paths)
+
+
+def make_temp_dir(path, prefix="", show_info=False):
+    """Creates a temp directory
+    Parameters
+    ----------
+    path:
+        the directory path
+    show_info:
+        show creation user infos (default=False)
+    """
+    try:
+        if not exists_dir(path):
+            make_dir(path)
+        tempdir = tempfile.mkdtemp(dir=path, prefix=prefix)
+    except OSError as e:
+        tqdm.write("Unexpected error: %s", str(e.errno))
+        raise  # This was not a "directory exists" error..
+    if show_info:
+        tqdm.write(f"Created dir: {path}")
+    return tempdir
 
 
 def make_dir(path, show_info=False, overwrite=False):
