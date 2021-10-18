@@ -205,7 +205,7 @@ class VideoCutter:
         # 'to' is the duration of the cutout
         cmd = f"ffmpeg -ss {from_time['str']} -i {self.video} -to {duration['str']} {self.conversion_string} {out_path}"
 
-        # HACK: frame extraction with duration is not accurate -> suse filter
+        # HACK: frame extraction with duration is not accurate -> use filter
         if "frames" in kwargs.keys():
             from_time_secs = self.time_format_to_secs(ft_input)
             from_frame = int(from_time_secs * self.fps)
