@@ -182,14 +182,14 @@ def get_fps(video):
 
 
 def get_duration(video):
-    """Gets duration of a video using ffprobe in format hh:mm:ss
+    """Gets duration of a video using ffprobe in format hh:mm:ss.micro
 
     Args:
         video ([type]): [description]
     """
     return utils.exec_shell_command(SHELL_CMD_GET_DURATION + " " + video, silent=True)[
         0
-    ].split(".")[0]
+    ].strip()
 
 
 def get_fps_from_sketch(sketch_file_path):
