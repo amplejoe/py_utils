@@ -26,7 +26,7 @@ from tqdm import tqdm
 # IN_EXTENSIONS = [".mp4", ".avi"]
 
 # 2021: more precision Hours:Minutes:Seconds:Microseconds
-TIME_FORMAT = "%H:%M:%S.%f"
+TIME_FORMATS = ["%H:%M:%S.%f", "%H:%M:%S"]
 
 # constant rate factor (crf) 0-51 ->
 # 0 is lossless but creates files bigger than the original, 17 or 18 to be visually lossless or nearly so
@@ -87,12 +87,17 @@ class VideoCutter:
         )
 
     def str_to_timedelta(self, h_m_s_f: str) -> timedelta:
-        # we specify the input and the format...
-        t = datetime.strptime(h_m_s_f, TIME_FORMAT)
-        # ...and use datetime's hour, min and sec properties to build a timedelta
-        return timedelta(
-            hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
-        )
+        for fmt in (TIME_FORMATS):
+            try:
+                # we specify the input and the format...
+                t = datetime.strptime(h_m_s_f, fmt)
+                # ...and use datetime's hour, min and sec properties to build a timedelta
+                return timedelta(
+                    hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
+                )
+            except ValueError:
+                pass
+        raise ValueError('no valid date format found')
 
     def timedelta_to_str(self, datetime_object: timedelta) -> str:
         return str(datetime_object)
@@ -114,27 +119,6 @@ class VideoCutter:
     def secs_to_frame(self, time_in_secs):
         return int(time_in_secs * self.fps)
 
-    # def calc_duration(self, start_time: str, end_time: str) -> datetime:
-    #     """(start_hh:mm:ss.micro, end_hh:mm:ss.micro) -> <datetime> duration"""
-    #     startDateTime = self.str_to_datetime(start_time)
-    #     endDateTime = self.str_to_datetime(end_time)
-    #     return self.str_to_datetime(f"{endDateTime - startDateTime}")
-
-    # def calc_to_time(self, start_time: str, duration_time: str) -> datetime:
-    #     """(start_hh:mm:ss.micro, duration_hh:mm:ss.micro) -> <datetime> end"""
-    #     startDateTime = self.str_to_datetime(start_time)
-    #     parts = duration_time.split(":")
-    #     duration_time_hours = int(parts[0])
-    #     duration_time_minutes = int(parts[1])
-    #     duration_time_seconds = int(parts[2])
-    #     to_add = datetime.timedelta(
-    #         hours=duration_time_hours,
-    #         minutes=duration_time_minutes,
-    #         seconds=duration_time_seconds,
-    #     )
-    #     added = startDateTime + to_add
-    #     return added
-
     def re_encode_with_keyframes(self, kf_list):
         string_list = ",".join(kf_list)
         cmd = f"ffmpeg {self.overwrite_flag} -i {self.video} -force_key_frames {string_list} {self.conversion_string} {self.tmp_file_path}"
@@ -144,10 +128,10 @@ class VideoCutter:
         """Single cut video with parameters
 
         kwargs:
-        from_time (str):    (optional) hh:mm:ss.micro (default -> 00:00:00.0)
+        from_time (str):    (optional) hh:mm:ss[.micro] (default -> 00:00:00.0)
         from_frame (str):   (optional - alt: from_time)
-        to_time (str):      (optional - alt: frames/duration) hh:mm:ss.micro (default if no alts given: video length)
-        duration (str):     (optional - alt: to_time/frames) hh:mm:ss.micro (default if no alts given: video length)
+        to_time (str):      (optional - alt: frames/duration) hh:mm:ss[.micro] (default if no alts given: video length)
+        duration (str):     (optional - alt: to_time/frames) hh:mm:ss[.micro] (default if no alts given: video length)
         frames (str):       (optional - alt: to_time/duration) number of frames (default if no alts given: video length)
         out_file (str):     (optional) output file name (default: input file name with timestamps)
         """
@@ -155,11 +139,11 @@ class VideoCutter:
         # sanity checks
         if len(kwargs.keys() & {"to_time", "duration", "frames"}) > 1:
             raise ValueError(
-                'ONLY one keyword argument is allowed: "to_time" or "duration" (hh:mm:ss.micro) or "frames" (int)'
+                'ONLY one keyword argument is allowed: "to_time" or "duration" (hh:mm:ss[.micro]) or "frames" (int)'
             )
         if len(kwargs.keys() & {"from_time", "from_frame"}) > 1:
             raise ValueError(
-                'ONLY one keyword argument is allowed: "from_time" (hh:mm:ss.micro) or "from_frame"'
+                'ONLY one keyword argument is allowed: "from_time" (hh:mm:ss[.micro]) or "from_frame"'
             )
 
         # from time
