@@ -216,7 +216,7 @@ class VideoCutter:
         # keyframe_list_str = ",".join(keyframe_list)
 
         # 'to' is the duration of the cutout
-        cmd = f"ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} {out_path}"
+        cmd = f'ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} "{out_path}"'
 
         # HACK: frame extraction with duration is not accurate -> use filter
         if "frames" in kwargs.keys():
@@ -287,7 +287,7 @@ class VideoCutter:
             out_file = f"{in_file_name}_{from_time_secs}{in_file_ext}"
             out_path = utils.join_paths(self.out_root, out_file)
             # '-to' denotes the duration
-            cmd = f"ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.tmp_file_path} -to {str(duration)} -c copy {out_path}"
+            cmd = f"ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.tmp_file_path} -to {str(duration)} -c copy '{out_path}'"
             utils.exec_shell_command(cmd, silent=True)
 
         # clean up tmp file
