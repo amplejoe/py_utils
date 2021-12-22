@@ -203,13 +203,14 @@ class VideoCutter:
         # keyframe_list_str = ",".join(keyframe_list)
 
         # TIME-BASED CUT
-        # from: https://ottverse.com/trim-cut-video-using-start-endtime-reencoding-ffmpeg/
+        # FFMPEG official seeking docs: https://trac.ffmpeg.org/wiki/Seeking
+        # some advice on (still accurate?): https://ottverse.com/trim-cut-video-using-start-endtime-reencoding-ffmpeg/
 
-        # older: -ss before -i, FFMPEG jumps from iframe to iframe, not very accurate  ('to' is the duration_time of the cutout)
-        # cmd = f'ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} "{out_path}"'
+        # faster seeking: -ss before -i, FFMPEG jumps from iframe to iframe, not very accurate  ('to' is the duration_time of the cutout)
+        cmd = f'ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} "{out_path}"'
 
-        # 2021: more accurate cut using -ss after -i ('to' is the to_time of the cutout)
-        cmd = f'ffmpeg {self.overwrite_flag} -i {self.video} -ss {str(from_time)} -to {str(to_time)} {self.conversion_string} "{out_path}"'
+        # slower seeking: supposed to be more accurate (but insiginificant difference) cut using -ss after -i ('to' is the to_time of the cutout)
+        # cmd = f'ffmpeg {self.overwrite_flag} -i {self.video} -ss {str(from_time)} -to {str(to_time)} {self.conversion_string} "{out_path}"'
 
         # FRAME-BASED CUT
 
