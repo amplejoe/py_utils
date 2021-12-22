@@ -87,17 +87,20 @@ class VideoCutter:
         )
 
     def str_to_timedelta(self, h_m_s_f: str) -> timedelta:
-        for fmt in (TIME_FORMATS):
+        for fmt in TIME_FORMATS:
             try:
                 # we specify the input and the format...
                 t = datetime.strptime(h_m_s_f, fmt)
                 # ...and use datetime's hour, min and sec properties to build a timedelta
                 return timedelta(
-                    hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond
+                    hours=t.hour,
+                    minutes=t.minute,
+                    seconds=t.second,
+                    microseconds=t.microsecond,
                 )
             except ValueError:
                 pass
-        raise ValueError('no valid date format found')
+        raise ValueError("no valid date format found")
 
     def timedelta_to_str(self, datetime_object: timedelta) -> str:
         return str(datetime_object)
@@ -199,8 +202,16 @@ class VideoCutter:
         # keyframe_list = [from_time["str"], to_time["str"]]
         # keyframe_list_str = ",".join(keyframe_list)
 
-        # 'to' is the duration of the cutout
-        cmd = f'ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} "{out_path}"'
+        # TIME-BASED CUT
+        # from: https://ottverse.com/trim-cut-video-using-start-endtime-reencoding-ffmpeg/
+
+        # older: -ss before -i, FFMPEG jumps from iframe to iframe, not very accurate  ('to' is the duration_time of the cutout)
+        # cmd = f'ffmpeg {self.overwrite_flag} -ss {str(from_time)} -i {self.video} -to {str(duration_time)} {self.conversion_string} "{out_path}"'
+
+        # 2021: more accurate cut using -ss after -i ('to' is the to_time of the cutout)
+        cmd = f'ffmpeg {self.overwrite_flag} -i {self.video} -ss {str(from_time)} -to {str(to_time)} {self.conversion_string} "{out_path}"'
+
+        # FRAME-BASED CUT
 
         # HACK: frame extraction with duration is not accurate -> use filter
         if "frames" in kwargs.keys():
