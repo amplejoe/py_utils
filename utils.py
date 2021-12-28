@@ -406,13 +406,49 @@ def get_file_path(file_path):
     return p.parents[0].as_posix()
 
 
+def get_folders(directory, show_progress=True, *names):
+    """Get all subfolders of a directory that optionally contain either value of 'names'.
+
+    Args:
+        directory (str): root folder
+        show_progress (bool, optional): progress bar. Defaults to True.
+        *names (str): one or more alternative strings that the last part of the returned paths should include.
+
+    Raises:
+        StopIteration: [description]
+
+    Returns:
+        [list of str]: folder paths including given names or all paths
+
+    Yields:
+        [type]: [description]
+    """
+    d = to_path(directory, as_string=False)
+
+    all_files = []
+    for current_path in tqdm(
+        d.glob("**/*"), desc="reading files", disable=(not show_progress)
+    ):
+        if current_path.is_file():
+            continue
+        last_part = get_nth_parentdir(current_path)
+
+        if names:
+            for n in names:
+                if n in last_part:
+                    all_files.append(current_path.as_posix())
+        else:
+            all_files.append(current_path.as_posix())
+
+    return all_files
+
+
 # supersedes get_file_paths
 def get_files(directory, show_progress=True, *extensions):
     """Superseeds get_file_paths - includes toggleable progess"""
     d = to_path(directory, as_string=False)
 
     all_files = []
-    # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
     for current_file in tqdm(
         d.glob("**/*"), desc="reading files", disable=(not show_progress)
     ):
@@ -1160,10 +1196,8 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = (
-        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-            video_file
-        )
+    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+        video_file
     )
     jsonstr = None
     try:
