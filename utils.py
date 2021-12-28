@@ -427,7 +427,7 @@ def get_folders(directory, show_progress=True, *names):
 
     all_files = []
     for current_path in tqdm(
-        d.glob("**/*"), desc="reading files", disable=(not show_progress)
+        d.glob("**/*"), desc="reading folders", disable=(not show_progress)
     ):
         if current_path.is_file():
             continue
