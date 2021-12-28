@@ -437,6 +437,7 @@ def get_folders(directory, show_progress=True, *names):
             for n in names:
                 if n in last_part:
                     all_files.append(current_path.as_posix())
+                    break
         else:
             all_files.append(current_path.as_posix())
 
