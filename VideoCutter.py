@@ -218,6 +218,7 @@ class VideoCutter:
         if "frames" in kwargs.keys():
             from_time_secs = self.timedelta_to_secs(from_time)
             from_frame = self.secs_to_frame(from_time_secs)
+            from_frame = int(kwargs["from_frame"])
             to_frame = from_frame + (
                 int(kwargs["frames"]) - 1
             )  # last frame is inclusive subtract 1 to get exact #frames
