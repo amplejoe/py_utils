@@ -13,8 +13,11 @@
 # IMPORTANT: python 3.6+ required
 ###
 
+#### ------------------------------------------------------------------------------------------ ####
+####    IMPORTS
+#### ------------------------------------------------------------------------------------------ ####
 
-# # IMPORTS
+
 import os
 import sys
 import errno
@@ -35,9 +38,12 @@ import decimal
 import concurrent.futures
 import tempfile
 import getpass
+import readline
 
 
-# # USER INPUT RELATED
+#### ------------------------------------------------------------------------------------------ ####
+####    USER INPUT
+#### ------------------------------------------------------------------------------------------ ####
 
 
 def select_option(options, *, msg=None, default=0):
@@ -78,19 +84,6 @@ def select_option(options, *, msg=None, default=0):
             answer = default
         answer = int(answer)
     return answer, options[answer]
-
-
-def round_half_up(num):
-    """
-    Python rounds half numbers, like 0.5 down, i.e. round(0.5) = 0.
-    This function rounds half numbers up, i.e. round(0.5) = 1.
-    """
-    res = None
-    if (float(num) % 1) >= 0.5:
-        res = math.ceil(num)
-    else:
-        res = round(num)
-    return res
 
 
 def confirm(msg=None, default=None):
@@ -157,7 +150,9 @@ def confirm_overwrite(path, default=None):
     return confirmed
 
 
-# # FILE OPERATIONS
+#### ------------------------------------------------------------------------------------------ ####
+####    FILE OPERATIONS
+#### ------------------------------------------------------------------------------------------ ####
 
 
 def exists_dir(*p):
@@ -625,313 +620,6 @@ def rename_file(src_path, dst_path):
     return shutil.move(src_path, dst_path)
 
 
-# # MEMORY
-
-
-# from: https://goshippo.com/blog/measure-real-size-any-python-object/
-def get_size(obj, seen=None):
-    """Recursively finds size of objects in bytes"""
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
-    seen.add(obj_id)
-    if isinstance(obj, dict):
-        size += sum([get_size(v, seen) for v in obj.values()])
-        size += sum([get_size(k, seen) for k in obj.keys()])
-    elif hasattr(obj, "__dict__"):
-        size += get_size(obj.__dict__, seen)
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
-        size += sum([get_size(i, seen) for i in obj])
-    return size
-
-
-# # Numpy specific
-
-
-def is_np_arr_in_list(np_array, lst):
-    """Checks if a list of numpy arrays contains a specific numpy array (Identity)."""
-    return next((True for elem in lst if elem is np_array), False)
-
-
-def remove_np_from_list(lst, np_array):
-    """Removes a numpy array from a list."""
-    ind = 0
-    size = len(lst)
-    while ind != size and not np.array_equal(lst[ind], np_array):
-        ind += 1
-    if ind != size:
-        lst.pop(ind)
-    else:
-        pass
-        # raise ValueError('array not found in list.')
-
-
-# # MISCELLANEOUS
-
-# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
-def set_object_attr(obj, attr, val):
-    """Allows for setting object attributes recursively via strings.
-       E.g: set_object_attr(person, "car.tire.brand", "Goodyear")
-    Args:
-        obj (object): the object to process
-        attr (object): the attribute to alter
-        val (object): the new vale
-
-    Returns:
-        object: the new value via get_object_attr
-    """
-    pre, _, post = attr.rpartition(".")
-    return setattr(get_object_attr(obj, pre) if pre else obj, post, val)
-
-
-# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
-def get_object_attr(obj, attr, *args):
-    """Allows for getting object attributes recursively via strings.
-       E.g: get_object_attr(person, "car.tire.brand") -> "Goodyear"
-    Args:
-        obj (object): the object to process
-        attr (object): the attribute to get
-        args (list or agrs): getattr args
-
-    Returns:
-        object: the value of attr
-    """
-
-    def _getattr(obj, attr):
-        return getattr(obj, attr, *args)
-
-    return functools.reduce(_getattr, [obj] + attr.split("."))
-
-
-def exit(msg=None):
-    """Exits script with optional message."""
-    if msg:
-        print(f"{msg}")
-    print("Exit script.")
-    sys.exit()
-
-
-def is_array(var):
-    return isinstance(var, (list, tuple, np.ndarray))
-
-
-def left_pad_zeros(var, num_zeros):
-    var = str(var)
-    return var.zfill(num_zeros)
-
-
-# ONLY works for Python 3.8, disable for now
-# def get_var_name(any_var):
-#     """ Gets variable name as string. """
-#     return f'{any_var=}'.split('=')[0]
-
-
-def get_regex_match_list(in_string, regex):
-    matches = re.finditer(regex, in_string)
-    match_list = []
-    for matchNum, match in enumerate(matches, start=1):
-        match_list.append(match.group().strip("'").strip('"'))
-    return match_list
-
-
-def float_to_string(float_var, precision=3):
-    return "%.*f" % (precision, float_var)
-
-
-def get_decimals(float_number):
-    """Gets the number of decimals in a float number"""
-    d = decimal.Decimal(str(float_number))
-    return abs(d.as_tuple().exponent)
-
-
-# TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
-def exec_shell_command(command, print_output=False, silent=False):
-    """Executes a shell command using the subprocess module.
-    command: standard shell command (SPACE separated - escape paths with '' or "")
-    print_output: output command result to console
-    returns: list containing all shell output lines
-    """
-    if not silent:
-        print(f"Exec shell command '{command}'")
-    # pre 2021:
-    # regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
-    # command_list = get_regex_match_list(command, regex)
-
-    # 2021: simplified - maybe breaks some older calls
-    # WARNING: use shlex.quote with strings containing user input
-    # (cf. https://stackoverflow.com/questions/54581349/python-subprocess-ignores-backslash-in-convert-command)
-    command_list = shlex.split(command)
-
-    # DEBUG
-    # print(command_list)
-
-    process = subprocess.Popen(
-        command_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-
-    output = []
-    # execute reading output line by line
-    for line in iter(process.stdout.readline, b""):
-        line = line.decode(sys.stdout.encoding)
-        output.append(line.replace("\n", ""))
-        if print_output:
-            sys.stdout.write(line)
-    return output
-
-
-def get_string_before_char(input_string, stop_char):
-    """Cuts out substring from input_string until a certain character.
-    Info: Returns tuple: (cut out string w/o stop_char, rest of input_string w/o stop_character)
-          i.e. stop_char is lost in any case!
-    """
-    cur_substring = ""
-    rest_string = input_string
-    for c in input_string:
-        rest_string = rest_string[1:]  # cut 1 char from string (in any case)
-        if c != stop_char:
-            cur_substring += c
-        else:
-            break
-    return cur_substring, rest_string
-
-
-def get_attribute_from(file_name, attribute):
-    """gets an attribute from a file name as string
-    format: a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
-    Info:
-      * Exceptional characters for VALs: '_', '.', '(', ')'
-      * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses
-        (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4")
-      * Exceptional string char: NO parentheses are allowed in VAL strings!!
-      * '.EXT' is optional
-    """
-    file_name = get_full_file_name(file_name)  # make sure file_name is no path
-
-    # parse file for attributes from beginning to end
-    attribute_dict = {}
-
-    while len(file_name) > 0:
-        cur_attr, file_name = get_string_before_char(file_name, "_")
-        attribute_dict[cur_attr] = None
-        if len(file_name) == 0:
-            break
-        cur_val = ""
-        if file_name[0] == "(":
-            file_name = file_name[1:]  # cut '(' from string
-            cur_val, file_name = get_string_before_char(file_name, ")")
-            file_name = file_name[1:]  # cut '_' from string
-        else:
-            cur_val, file_name = get_string_before_char(file_name, "_")
-            cur_val = cur_val.split(".")[0]  # strip potential file EXT
-        attribute_dict[cur_attr] = cur_val
-
-    ret_val = attribute_dict[attribute] if attribute in attribute_dict.keys() else None
-
-    ## OLD methodology using 'split
-    # attribute_split = file_name.split(f"{attribute}_")
-    # ret_value = None
-    # if len(attribute_split) > 1:
-    #     # attribute has been found in string
-    #     split_one = attribute_split[1]
-    #     ret_value = split_one.split("_")[0] # default: no parentheses in VAL
-    #     if "(" in ret_value:
-    #         # value begins with parenthesis '('
-    #         ret_value = split_one.split(")")[0].replace("(", "")
-    #     else:
-    #         ret_value = ret_value.split(".")[0] # strip potential file EXT
-
-    return ret_val
-
-
-def avg_list(lst):
-    """Average value of a list of values"""
-    if len(lst) == 0:
-        return 0
-    return sum(lst) / len(lst)
-
-
-def create_dict_key(in_dict, key, value=0):
-    """Adds key to dict if necessary, init'd with value"""
-    if key not in in_dict.keys():
-        in_dict[f"{key}"] = value
-
-
-def increment_dict_key(in_dict, key, by_value=1):
-    """Increments a dict key (default: by 1), if necessary, initializes it first"""
-    if key not in in_dict.keys():
-        create_dict_key(in_dict, key)
-    in_dict[key] = in_dict[key] + by_value
-
-
-def add_to_dict_key(in_dict, key, obj):
-    """Adds an object to the list of a dict key, if necessary, initializes it first"""
-    if key not in in_dict.keys():
-        create_dict_key(in_dict, key, [])
-    in_dict[key].append(obj)
-
-
-def get_dict_value(in_dict, key, not_found_value=None):
-    """Returns dictionary value if key it exists, else not_found_value.
-
-    Args:
-        in_dict ([dict of objects]): Input dict.
-        key ([str]): The key in question
-        not_found_value (object): Return value if key was not found.
-    """
-    if key not in in_dict.keys():
-        return not_found_value
-    return in_dict[key]
-
-
-def safe_div(x, y):
-    """Zero safe division"""
-    if y == 0:
-        return 0
-    return x / y
-
-
-def getTimeStamp(file_name_friendly=False):
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if file_name_friendly:
-        ts = ts.replace(" ", "-")
-        return remove_invalid_file_chars(ts)
-    else:
-        return ts
-
-
-def get_date():
-    """Get today date object."""
-    return datetime.today()
-
-
-def get_date_str():
-    """Get today's date as string in form of YYYY/MM/DD"""
-    today = get_date()
-    return today.strftime("%Y/%m/%d")
-
-
-def get_current_dir():
-    """Returns current working directory."""
-    return to_path(pathlib.Path.cwd())
-
-
-def get_script_dir():
-    """Returns directory of currently running script (i.e. calling file of this method)."""
-    # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)
-    calling_file = inspect.stack()[1][1]  # [frame idx] [file name]
-    # return directory of calling file
-    return os.path.dirname(os.path.abspath(calling_file))
-
-
-def get_user_name():
-    return getpass.getuser()
-
-
 def is_absolute_path(path):
     """Checks if path is absolute (also for non-existing paths!)."""
     if path is None:
@@ -947,72 +635,6 @@ def rel_to_abs_path(path, rel_to_path=None):
     if rel_to_path is not None:
         target_dir = rel_to_path
     return join_paths_str(target_dir, path)
-
-
-def is_number(var, strict=False):
-    """Checks if a variable is a number. Use strict to disallow strings containing numbers.
-
-    Args:
-        s ([type]): [description]
-        strict (bool, optional): [description]. Defaults to False.
-
-    Returns:
-        bool: is a number?
-    """
-    try:
-        # test string
-        if strict and isinstance(var, str):
-            return False
-        # test None
-        if var == None:
-            return False
-        # test number
-        float(var)
-        return True
-    except ValueError:
-        return False
-
-
-def is_partial_word_in_list(word, lst):
-    res = filter_list_by_partial_word(word, lst)
-    return len(res) > 0
-
-
-def filter_list_by_partial_word(word, list_to_filter):
-    """partially matches a word with a list and returns filtered list"""
-    return list(filter(lambda x: word in x, list_to_filter))
-
-
-def nat_sort_list(l, descending=False):
-    """sorts a list naturally"""
-    return natsorted(l, key=lambda y: y.lower(), reverse=descending)
-
-
-def set_environment_variable(key, value):
-    """Sets an OS environment variable."""
-    os.environ[key] = value
-
-
-def sort_list_nicely(l):
-    """Sort the given list in the way that humans expect."""
-
-    def convert(text):
-        return int(text) if text.isdigit() else text
-
-    def alphanum_key(key):
-        return [convert(c) for c in re.split("([0-9]+)", key)]
-
-    l.sort(key=alphanum_key)
-
-
-def nat_sort_dict_list_by_key(dict_list, key, descending=False):
-    return natsorted(dict_list, key=lambda i: i[key], reverse=descending)
-
-
-# https://www.geeksforgeeks.org/python-find-most-frequent-element-in-a-list/
-def find_most_frequent(List):
-    """Finds most frequent element in a list"""
-    return max(set(List), key=List.count)
 
 
 def read_json(path, silent=True):
@@ -1155,6 +777,474 @@ def prompt_folder_confirm(target_path, folder_list, name):
     return sim_folder
 
 
+#### ------------------------------------------------------------------------------------------ ####
+####    DEBUG AND CONTROL
+#### ------------------------------------------------------------------------------------------ ####
+
+
+# from: https://goshippo.com/blog/measure-real-size-any-python-object/
+def get_size(obj, seen=None):
+    """Recursively finds size of objects in bytes"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([get_size(v, seen) for v in obj.values()])
+        size += sum([get_size(k, seen) for k in obj.keys()])
+    elif hasattr(obj, "__dict__"):
+        size += get_size(obj.__dict__, seen)
+    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([get_size(i, seen) for i in obj])
+    return size
+
+
+def exit(msg=None):
+    """Exits script with optional message."""
+    if msg:
+        print(f"{msg}")
+    print("Exit script.")
+    sys.exit()
+
+
+def get_date_str():
+    """Get today's date as string in form of YYYY/MM/DD"""
+    today = get_date()
+    return today.strftime("%Y/%m/%d")
+
+
+def get_current_dir():
+    """Returns current working directory."""
+    return to_path(pathlib.Path.cwd())
+
+
+def get_script_dir():
+    """Returns directory of currently running script (i.e. calling file of this method)."""
+    # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)
+    calling_file = inspect.stack()[1][1]  # [frame idx] [file name]
+    # return directory of calling file
+    return os.path.dirname(os.path.abspath(calling_file))
+
+
+def get_user_name():
+    return getpass.getuser()
+
+
+def set_environment_variable(key, value):
+    """Sets an OS environment variable."""
+    os.environ[key] = value
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    STRING MANIPULATION
+#### ------------------------------------------------------------------------------------------ ####
+
+
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def set_object_attr(obj, attr, val):
+    """Allows for setting object attributes recursively via strings.
+       E.g: set_object_attr(person, "car.tire.brand", "Goodyear")
+    Args:
+        obj (object): the object to process
+        attr (object): the attribute to alter
+        val (object): the new vale
+
+    Returns:
+        object: the new value via get_object_attr
+    """
+    pre, _, post = attr.rpartition(".")
+    return setattr(get_object_attr(obj, pre) if pre else obj, post, val)
+
+
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
+def get_object_attr(obj, attr, *args):
+    """Allows for getting object attributes recursively via strings.
+       E.g: get_object_attr(person, "car.tire.brand") -> "Goodyear"
+    Args:
+        obj (object): the object to process
+        attr (object): the attribute to get
+        args (list or agrs): getattr args
+
+    Returns:
+        object: the value of attr
+    """
+
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+
+    return functools.reduce(_getattr, [obj] + attr.split("."))
+
+
+def left_pad_zeros(var, num_zeros):
+    var = str(var)
+    return var.zfill(num_zeros)
+
+
+def get_regex_match_list(in_string, regex):
+    matches = re.finditer(regex, in_string)
+    match_list = []
+    for matchNum, match in enumerate(matches, start=1):
+        match_list.append(match.group().strip("'").strip('"'))
+    return match_list
+
+
+def get_string_before_char(input_string, stop_char):
+    """Cuts out substring from input_string until a certain character.
+    Info: Returns tuple: (cut out string w/o stop_char, rest of input_string w/o stop_character)
+          i.e. stop_char is lost in any case!
+    """
+    cur_substring = ""
+    rest_string = input_string
+    for c in input_string:
+        rest_string = rest_string[1:]  # cut 1 char from string (in any case)
+        if c != stop_char:
+            cur_substring += c
+        else:
+            break
+    return cur_substring, rest_string
+
+
+def get_attribute_from(file_name, attribute):
+    """gets an attribute from a file name as string
+    format: a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
+    Info:
+      * Exceptional characters for VALs: '_', '.', '(', ')'
+      * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses
+        (e.g. v_(my_video.mp4) -> search for "v" -> "my_video.mp4")
+      * Exceptional string char: NO parentheses are allowed in VAL strings!!
+      * '.EXT' is optional
+    """
+    file_name = get_full_file_name(file_name)  # make sure file_name is no path
+
+    # parse file for attributes from beginning to end
+    attribute_dict = {}
+
+    while len(file_name) > 0:
+        cur_attr, file_name = get_string_before_char(file_name, "_")
+        attribute_dict[cur_attr] = None
+        if len(file_name) == 0:
+            break
+        cur_val = ""
+        if file_name[0] == "(":
+            file_name = file_name[1:]  # cut '(' from string
+            cur_val, file_name = get_string_before_char(file_name, ")")
+            file_name = file_name[1:]  # cut '_' from string
+        else:
+            cur_val, file_name = get_string_before_char(file_name, "_")
+            cur_val = cur_val.split(".")[0]  # strip potential file EXT
+        attribute_dict[cur_attr] = cur_val
+
+    ret_val = attribute_dict[attribute] if attribute in attribute_dict.keys() else None
+
+    ## OLD methodology using 'split
+    # attribute_split = file_name.split(f"{attribute}_")
+    # ret_value = None
+    # if len(attribute_split) > 1:
+    #     # attribute has been found in string
+    #     split_one = attribute_split[1]
+    #     ret_value = split_one.split("_")[0] # default: no parentheses in VAL
+    #     if "(" in ret_value:
+    #         # value begins with parenthesis '('
+    #         ret_value = split_one.split(")")[0].replace("(", "")
+    #     else:
+    #         ret_value = ret_value.split(".")[0] # strip potential file EXT
+
+    return ret_val
+
+
+def remove_invalid_file_chars(input_string):
+    """
+    Removes invalid chars (Windows) from string.
+    """
+    invalid = '<>:"/\\|?* '
+    for char in invalid:
+        input_string = input_string.replace(char, "")
+    return input_string
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    MATH AND NUMBERS
+#### ------------------------------------------------------------------------------------------ ####
+
+
+def float_to_string(float_var, precision=3):
+    return "%.*f" % (precision, float_var)
+
+
+def get_decimals(float_number):
+    """Gets the number of decimals in a float number"""
+    d = decimal.Decimal(str(float_number))
+    return abs(d.as_tuple().exponent)
+
+
+def round_half_up(num):
+    """
+    Python rounds half numbers, like 0.5 down, i.e. round(0.5) = 0.
+    This function rounds half numbers up, i.e. round(0.5) = 1.
+    """
+    res = None
+    if (float(num) % 1) >= 0.5:
+        res = math.ceil(num)
+    else:
+        res = round(num)
+    return res
+
+
+def safe_div(x, y):
+    """Zero safe division"""
+    if y == 0:
+        return 0
+    return x / y
+
+
+def avg_list(lst):
+    """Average value of a list of values"""
+    if len(lst) == 0:
+        return 0
+    return sum(lst) / len(lst)
+
+
+def is_number(var, strict=False):
+    """Checks if a variable is a number. Use strict to disallow strings containing numbers.
+
+    Args:
+        s ([type]): [description]
+        strict (bool, optional): [description]. Defaults to False.
+
+    Returns:
+        bool: is a number?
+    """
+    try:
+        # test string
+        if strict and isinstance(var, str):
+            return False
+        # test None
+        if var == None:
+            return False
+        # test number
+        float(var)
+        return True
+    except ValueError:
+        return False
+
+
+def format_number(number, precision=3, width=0):
+    """Formats a number with precision and width.
+
+    Args:
+        number (number): Any number
+        precision (int, optional): decimal precision. Defaults to 3.
+        width (int, optional): width of resulting string. Defaults to 0.
+
+    Returns:
+        string: formatted number as string
+    """
+    return f"{number:{width}.{precision}f}"
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    LISTS: SEARCH & MANIPULATION
+#### ------------------------------------------------------------------------------------------ ####
+
+
+def is_array(var):
+    return isinstance(var, (list, tuple, np.ndarray))
+
+
+def is_np_arr_in_list(np_array, lst):
+    """Checks if a list of numpy arrays contains a specific numpy array (Identity)."""
+    return next((True for elem in lst if elem is np_array), False)
+
+
+def remove_np_from_list(lst, np_array):
+    """Removes a numpy array from a list."""
+    ind = 0
+    size = len(lst)
+    while ind != size and not np.array_equal(lst[ind], np_array):
+        ind += 1
+    if ind != size:
+        lst.pop(ind)
+    else:
+        pass
+        # raise ValueError('array not found in list.')
+
+
+def is_partial_word_in_list(word, lst):
+    res = filter_list_by_partial_word(word, lst)
+    return len(res) > 0
+
+
+def filter_list_by_partial_word(word, list_to_filter):
+    """partially matches a word with a list and returns filtered list"""
+    return list(filter(lambda x: word in x, list_to_filter))
+
+
+def nat_sort_list(l, descending=False):
+    """sorts a list naturally"""
+    return natsorted(l, key=lambda y: y.lower(), reverse=descending)
+
+
+def sort_list_nicely(l):
+    """Sort the given list in the way that humans expect."""
+
+    def convert(text):
+        return int(text) if text.isdigit() else text
+
+    def alphanum_key(key):
+        return [convert(c) for c in re.split("([0-9]+)", key)]
+
+    l.sort(key=alphanum_key)
+
+
+def nat_sort_dict_list_by_key(dict_list, key, descending=False):
+    return natsorted(dict_list, key=lambda i: i[key], reverse=descending)
+
+
+# https://www.geeksforgeeks.org/python-find-most-frequent-element-in-a-list/
+def find_most_frequent(List):
+    """Finds most frequent element in a list"""
+    return max(set(List), key=List.count)
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    DICTIONARIES: SEARCH & MANIPULATION
+#### ------------------------------------------------------------------------------------------ ####
+
+
+def create_dict_key(in_dict, key, value=0):
+    """Adds key to dict if necessary, init'd with value"""
+    if key not in in_dict.keys():
+        in_dict[f"{key}"] = value
+
+
+def increment_dict_key(in_dict, key, by_value=1):
+    """Increments a dict key (default: by 1), if necessary, initializes it first"""
+    if key not in in_dict.keys():
+        create_dict_key(in_dict, key)
+    in_dict[key] = in_dict[key] + by_value
+
+
+def add_to_dict_key(in_dict, key, obj):
+    """Adds an object to the list of a dict key, if necessary, initializes it first"""
+    if key not in in_dict.keys():
+        create_dict_key(in_dict, key, [])
+    in_dict[key].append(obj)
+
+
+def get_dict_value(in_dict, key, not_found_value=None):
+    """Returns dictionary value if key it exists, else not_found_value.
+
+    Args:
+        in_dict ([dict of objects]): Input dict.
+        key ([str]): The key in question
+        not_found_value (object): Return value if key was not found.
+    """
+    if key not in in_dict.keys():
+        return not_found_value
+    return in_dict[key]
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    DATE
+#### ------------------------------------------------------------------------------------------ ####
+
+
+def getTimeStamp(file_name_friendly=False):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if file_name_friendly:
+        ts = ts.replace(" ", "-")
+        return remove_invalid_file_chars(ts)
+    else:
+        return ts
+
+
+def get_date():
+    """Get today date object."""
+    return datetime.today()
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    MULTITHREADING
+#### ------------------------------------------------------------------------------------------ ####
+
+
+def run_multithreaded(func, args, num_workers=10, show_progress=True):
+    """Runs a particular function in multithread mode with a pool of num_workers workers.
+
+    Args:
+        func ([type]): function to run in multithreaded mode
+        args ([type]): arguments as a list/generator, must be tuples when more than one. E.g.:
+                       args = [(i, f) for i, f in enumerate(file_list)] yields a list with (index, file) entries
+        num_workers (int, optional): Thread pool number of workers. Defaults to 10.
+        show_progress (bool, optional): tqdm progress. Defaults to True.
+
+    Returns:
+        [type]: Thread results as a list (None entries if nothing is returned).
+    """
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        if show_progress:
+            results = list(
+                tqdm(executor.map(lambda p: func(*p), args), total=len(args))
+            )
+        else:
+            results = list(executor.map(lambda p: func(*p), args))
+
+    return results
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    MISCELLANEOUS
+#### ------------------------------------------------------------------------------------------ ####
+
+
+# ONLY works for Python 3.8, disable for now
+# def get_var_name(any_var):
+#     """ Gets variable name as string. """
+#     return f'{any_var=}'.split('=')[0]
+
+
+# TODO: https://stackoverflow.com/questions/56437081/using-tqdm-with-subprocess
+def exec_shell_command(command, print_output=False, silent=False):
+    """Executes a shell command using the subprocess module.
+    command: standard shell command (SPACE separated - escape paths with '' or "")
+    print_output: output command result to console
+    returns: list containing all shell output lines
+    """
+    if not silent:
+        print(f"Exec shell command '{command}'")
+    # pre 2021:
+    # regex = r"[^\s\"']+|\"([^\"]*)\"|'([^']*)'"
+    # command_list = get_regex_match_list(command, regex)
+
+    # 2021: simplified - maybe breaks some older calls
+    # WARNING: use shlex.quote with strings containing user input
+    # (cf. https://stackoverflow.com/questions/54581349/python-subprocess-ignores-backslash-in-convert-command)
+    command_list = shlex.split(command)
+
+    # DEBUG
+    # print(command_list)
+
+    process = subprocess.Popen(
+        command_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+
+    output = []
+    # execute reading output line by line
+    for line in iter(process.stdout.readline, b""):
+        line = line.decode(sys.stdout.encoding)
+        output.append(line.replace("\n", ""))
+        if print_output:
+            sys.stdout.write(line)
+    return output
+
+
 def update_config_file(cfg_path, update_dict):
     if not bool(update_dict):
         # empty update dict
@@ -1174,30 +1264,6 @@ def update_config_file(cfg_path, update_dict):
         print(f"{k} => {v}")
 
     write_json(cfg_path, cfg, True)
-
-
-def format_number(number, precision=3, width=0):
-    """Formats a number with precision and width.
-
-    Args:
-        number (number): Any number
-        precision (int, optional): decimal precision. Defaults to 3.
-        width (int, optional): width of resulting string. Defaults to 0.
-
-    Returns:
-        string: formatted number as string
-    """
-    return f"{number:{width}.{precision}f}"
-
-
-def remove_invalid_file_chars(input_string):
-    """
-    Removes invalid chars (Windows) from string.
-    """
-    invalid = '<>:"/\\|?* '
-    for char in invalid:
-        input_string = input_string.replace(char, "")
-    return input_string
 
 
 # Advanced info about video (requires FFMPG!!)
@@ -1306,31 +1372,3 @@ class switch(object):
         else:
             return False
 
-
-# # MULTITHREADING
-
-
-def run_multithreaded(func, args, num_workers=10, show_progress=True):
-    """Runs a particular function in multithread mode with a pool of num_workers workers.
-
-    Args:
-        func ([type]): function to run in multithreaded mode
-        args ([type]): arguments as a list/generator, must be tuples when more than one. E.g.:
-                       args = [(i, f) for i, f in enumerate(file_list)] yields a list with (index, file) entries
-        num_workers (int, optional): Thread pool number of workers. Defaults to 10.
-        show_progress (bool, optional): tqdm progress. Defaults to True.
-
-    Returns:
-        [type]: Thread results as a list (None entries if nothing is returned).
-    """
-
-    results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        if show_progress:
-            results = list(
-                tqdm(executor.map(lambda p: func(*p), args), total=len(args))
-            )
-        else:
-            results = list(executor.map(lambda p: func(*p), args))
-
-    return results
