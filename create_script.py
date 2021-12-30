@@ -16,7 +16,12 @@ import argparse
 import sys
 import utils
 
-TEMPLATE_FILE = "main_template.py"
+TEMPLATE_OPTIONS = {
+    "main": "./templates/main_template.py",
+    "class": "./templates/class_template.py",
+    "bash": "./templates/bash_template.sh"
+}
+DEFAULT_TEMPLATE = "main"
 
 PY_UTILS_DIR = "py_utils"
 PY_UTILS_FILE = "utils.py"
@@ -32,7 +37,19 @@ def main():
     scd = utils.get_script_dir()
     # utils_dir_name = utils.get_nth_parentdir(scd)
 
-    template_path = utils.join_paths_str(scd, TEMPLATE_FILE)
+    copy_utils = g_args.copy_utils
+
+    # user input
+    if not g_args.type:
+        utils.read_string_input(init_value=DEFAULT_TEMPLATE)
+    if not g_args.output:
+        utils.read_path_input(msg="file path")
+    if not g_args.description:
+        utils.read_string_input(msg="description", init_value=HEADER_DESCRIPTION)
+
+    copy_utils = utils.confirm("Copy utilities?", "y" if g_args.copy_utils else "n")
+
+    template_path = utils.join_paths_str(scd, TEMPLATE_OPTIONS['main'])
 
     if utils.exists_dir(g_args.output):
         print(f"Error: target path is a directory!")
@@ -51,7 +68,7 @@ def main():
     utils.copy_to(template_path, g_args.output)
     print(f"Created file {g_args.output}")
 
-    if g_args.copy_utils:
+    if copy_utils:
         utils_folder = PY_UTILS_DIR
         out_py_utils_dir = utils.join_paths(out_folder, utils_folder)
         utils.make_dir(out_py_utils_dir)
@@ -82,8 +99,15 @@ def parse_args():
         "--output",
         dest="output",
         type=utils.to_path,
-        help="output file path",
-        required=True,
+        help="output file path"
+    )
+    ap.add_argument(
+        "-t",
+        "--type",
+        dest="type",
+        type=str,
+        help=f"script type ({TEMPLATE_OPTIONS.keys()})",
+        choices=TEMPLATE_OPTIONS.keys()
     )
     ap.add_argument(
         "-d",
