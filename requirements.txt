@@ -8,3 +8,4 @@ scipy>=1.7.1
 simplejson>=3.17.6
 tqdm>=4.62.3
 yattag>=1.14.0
+pyautogui>=0.9.53

@@ -39,6 +39,7 @@ import concurrent.futures
 import tempfile
 import getpass
 import readline
+from pyautogui import typewrite
 
 
 #### ------------------------------------------------------------------------------------------ ####
@@ -148,6 +149,66 @@ def confirm_overwrite(path, default=None):
         if ext == "":
             make_dir(path, True)
     return confirmed
+
+
+def complete_path(text, state):
+    incomplete_path = pathlib.Path(text)
+    if incomplete_path.is_dir():
+        completions = [p.as_posix() for p in incomplete_path.iterdir()]
+    elif incomplete_path.exists():
+        completions = [incomplete_path]
+    else:
+        exists_parts = pathlib.Path(".")
+        for part in incomplete_path.parts:
+            test_next_part = exists_parts / part
+            if test_next_part.exists():
+                exists_parts = test_next_part
+
+        completions = []
+        for p in exists_parts.iterdir():
+            p_str = p.as_posix()
+            if p_str.startswith(text):
+                completions.append(p_str)
+    return completions[state]
+
+
+def read_string_input(*, init_value="", msg="input text"):
+    """Reads a string from user input.
+
+    Args:
+        init_value (str, optional): [description]. Defaults to "".
+        msg (str, optional): [description]. Defaults to "input text".
+
+    Returns:
+        [type]: [description]
+    """
+    # only works on linux - use pyautogui instead
+    # readline.set_startup_hook(lambda: readline.insert_text(init_value))
+    typewrite(init_value)
+    return input(f"{msg}:")
+
+
+def read_path_input(*, init_path=None, msg="input path"):
+    """Reads a path from user input. Supports path completion.
+
+    Args:
+        init_path ([type], optional): [description]. Defaults to None.
+        msg (str, optional): [description]. Defaults to "input path".
+
+    Returns:
+        [type]: [description]
+    """
+    if init_path is None:
+        init_path = get_user_home_dir()
+    init_path = to_path(init_path)
+    # we want to treat '/' as part of a word, so override the delimiters
+    readline.set_completer_delims(" \t\n;")
+    readline.parse_and_bind("tab: complete")
+    # only works on linux - use pyautogui instead
+    # readline.set_startup_hook(lambda: readline.insert_text(init_path))
+    readline.set_completer(complete_path)
+    typewrite(init_path)
+    return input(f"{msg}:")
 
 
 #### ------------------------------------------------------------------------------------------ ####
@@ -469,7 +530,8 @@ def get_file_paths(directory, *extensions):
     d = to_path(directory, as_string=False)
 
     all_files = []
-    # don't use tqdm here - it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
+    # DON'T use tqdm here:
+    # it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
     for current_file in d.glob("**/*"):
         if not current_file.is_file():
             continue
@@ -833,6 +895,10 @@ def get_script_dir():
 
 def get_user_name():
     return getpass.getuser()
+
+
+def get_user_home_dir():
+    return to_path(pathlib.Path.home())
 
 
 def set_environment_variable(key, value):
