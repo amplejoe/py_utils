@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ###
 # File: create_main.py
@@ -17,23 +17,16 @@ import sys
 import utils
 
 TEMPLATE_FILE = "main_template.py"
-REPLACE_TEXT = "py_utils"
 
-def replace_comment_filename(file):
-    fn_full = utils.get_full_file_name(file)
-    fin = open(file, "rt")
-    data = fin.read()
-    data = data.replace(TEMPLATE_FILE, fn_full)
-    fin.close()
-    fin = open(file, "wt")
-    fin.write(data)
-    fin.close()
+PY_UTILS_DIR = "py_utils"
+PY_UTILS_FILE = "utils.py"
+COPY_UTILS = False
 
+HEADER_DESCRIPTION = "[DESCRIPTION]"
+HEADER_AUTHOR = "[AUTHOR]"
+HEADER_DATE = "[DATE]"
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("target_path")
-    args = parser.parse_args()
 
     cwd = utils.get_current_dir()
     scd = utils.get_script_dir()
@@ -41,55 +34,77 @@ def main():
 
     template_path = utils.join_paths_str(scd, TEMPLATE_FILE)
 
-    out_path = utils.to_path(args.target_path)
-    if not utils.is_absolute_path(out_path):
-        out_path = utils.join_paths_str(cwd, out_path)
-    out_dir = utils.get_file_path(out_path)
-    # file_name = utils.get_file_name(out_path)
-
-    if utils.exists_dir(out_path):
+    if utils.exists_dir(g_args.output):
         print(f"Error: target path is a directory!")
         sys.exit(0)
-    elif utils.exists_file(out_path):
-        if not utils.confirm_delete_file(out_path):
+    elif utils.exists_file(g_args.output):
+        if not utils.confirm_delete_file(g_args.output, "n"):
             utils.exit("Aborted")
 
+    out_folder = utils.get_file_path(g_args.output)
+    out_file = utils.get_file_path(g_args.output)
+
+    if not utils.exists_dir(out_folder):
+        utils.make_dir(g_args.output)
+
     # copy template
-    utils.copy_to(template_path, out_path)
-    print(f"Created file {out_path}")
+    utils.copy_to(template_path, g_args.output)
+    print(f"Created file {g_args.output}")
 
-    if out_dir not in cwd:
-        # py_utils path is not relative to created file
-        print(
-            "Important: Please make sure that python utils are available, i.e. inside PYTHONPATH."
-        )
-        print("Clone repository via:")
-        print("git clone https://github.com/amplejoe/py_utils.git")
+    if g_args.copy_utils:
+        utils_folder = PY_UTILS_DIR
+        out_py_utils_dir = utils.join_paths(out_folder, utils_folder)
+        utils.make_dir(out_py_utils_dir)
+        utils.copy_to(PY_UTILS_FILE, out_py_utils_dir)
+        print(f"Created file {out_py_utils_dir}/{PY_UTILS_FILE}")
     else:
-        # py_utils path is relative to created file
-        replace_string = REPLACE_TEXT
+        print(
+        """
+        Important: Please make sure that python utils are available, i.e. inside PYTHONPATH.
+        Clone repository via: git clone https://github.com/amplejoe/py_utils.git
+        """
+        )
 
-        # find relative path
-        rel_path_to_utils = cwd.replace(f"{out_dir}", "")
-        if rel_path_to_utils.startswith("/"):
-            # chop first '/'
-            rel_path_to_utils = rel_path_to_utils[1:]
-        # replace remaining '/' with '.'
-        utils_import_string = rel_path_to_utils.replace("/", ".")
-        if utils_import_string == "":
-            # don't import from specific folder
-            replace_string = f"from {replace_string} "
-
-        # replace utils path in copied file
-        fin = open(out_path, "rt")
-        data = fin.read()
-        data = data.replace(replace_string, utils_import_string)
-        fin.close()
-        fin = open(out_path, "wt")
-        fin.write(data)
-        fin.close()
-    replace_comment_filename(out_path)
+    # header information
+    date = utils.get_date_str()
+    user = utils.get_user_name()
+    utils.replace_file_text(g_args.output, HEADER_DATE, date)
+    utils.replace_file_text(g_args.output, HEADER_AUTHOR, user)
+    if g_args.description:
+        utils.replace_file_text(g_args.output, HEADER_DESCRIPTION, g_args.description)
 
 
-# call main function
-main()
+
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        type=utils.to_path,
+        help="output file path",
+        required=True,
+    )
+    ap.add_argument(
+        "-d",
+        "--description",
+        dest="description",
+        type=str,
+        help="script description"
+    )
+    ap.add_argument(
+        "-c",
+        "--copy-utils",
+        dest="copy_utils",
+        action="store_true",  # default: False
+        help="copy utils to output folder",
+    )
+    args = ap.parse_args()
+    args.script_dir = utils.get_script_dir()
+    args.current_dir = utils.get_current_dir()
+    return args
+
+
+if __name__ == "__main__":
+    g_args = parse_args()
+    main()

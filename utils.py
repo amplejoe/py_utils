@@ -34,6 +34,7 @@ import shlex
 import decimal
 import concurrent.futures
 import tempfile
+import getpass
 
 
 # # USER INPUT RELATED
@@ -927,6 +928,10 @@ def get_script_dir():
     return os.path.dirname(os.path.abspath(calling_file))
 
 
+def get_user_name():
+    return getpass.getuser()
+
+
 def is_absolute_path(path):
     """Checks if path is absolute (also for non-existing paths!)."""
     if path is None:
@@ -1075,6 +1080,23 @@ def read_file_to_array(path):
 def write_string_to_file(str_to_write, file_path):
     with open(file_path, "w", newline="") as file:
         file.write(str_to_write)
+
+
+def replace_file_text(file, text, replace_text):
+    """Replaces a string in a file with another string.
+
+    Args:
+        file (str): file path
+        text (str): original text
+        text (str): replace text
+    """
+    fin = open(file, "rt")
+    data = fin.read()
+    data = data.replace(text, replace_text)
+    fin.close()
+    fin = open(file, "wt")
+    fin.write(data)
+    fin.close()
 
 
 def find_similar_folder(target_path, folder_list):
