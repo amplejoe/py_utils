@@ -177,7 +177,7 @@ def convert_to_float(frac_str):
 def get_fps(video):
     """Gets fps from a video using ffprobe"""
     return convert_to_float(
-        utils.exec_shell_command(SHELL_CMD_GET_FPS + " " + video, silent=True)[0]
+        utils.exec_shell_command(f"{SHELL_CMD_GET_FPS} '{video}'", silent=True)[0]
     )
 
 
