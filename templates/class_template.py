@@ -1,13 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------------
-""" [DESCRIPTION] """
-# ----------------------------------------------------------------------------
-__author__  = "[AUTHOR]"
-__date__    = "[DATE]"
-__version__ = "1.0"
-# ---------------------------------------------------------------------------
+# =============================================================================
+__description__ = """
+[DESCRIPTION]
+"""
+# =============================================================================
+# @author   : [AUTHOR]
+# @date     : [DATE]
+# @version  : 1.0
+# =============================================================================
 
 from py_utils import utils
 import numpy as np
 from tqdm import tqdm
+
+
+class CLASS_NAME:
+    """
+    [DESCRIPTION]
+    """
+
+    def __init__(self, **kwargs):
+        """
+            kwargs:
+                arg1 (str): purpose1
+        """
+        # if kwargs['arg1']:
+        #     pass
+
+    pass
+
+    @classmethod
+    def get_name(self):
+        return __qualname__

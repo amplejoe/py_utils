@@ -185,7 +185,7 @@ def read_string_input(*, init_value="", msg="input text"):
     # only works on linux - use pyautogui instead
     # readline.set_startup_hook(lambda: readline.insert_text(init_value))
     typewrite(init_value)
-    return input(f"{msg}:")
+    return input(f"{msg}: ")
 
 
 def read_path_input(*, init_path=None, msg="input path"):
@@ -208,7 +208,7 @@ def read_path_input(*, init_path=None, msg="input path"):
     # readline.set_startup_hook(lambda: readline.insert_text(init_path))
     readline.set_completer(complete_path)
     typewrite(init_path)
-    return input(f"{msg}:")
+    return input(f"{msg}: ")
 
 
 #### ------------------------------------------------------------------------------------------ ####

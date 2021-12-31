@@ -15,6 +15,8 @@
 import argparse
 import sys
 import utils
+import textwrap
+
 
 TEMPLATE_OPTIONS = {
     "main": "./templates/main_template.py",
@@ -30,26 +32,28 @@ COPY_UTILS = False
 HEADER_DESCRIPTION = "[DESCRIPTION]"
 HEADER_AUTHOR = "[AUTHOR]"
 HEADER_DATE = "[DATE]"
+CLASS_NAME = "CLASS_NAME"
+
+def format_description(desc, width=70):
+    desc = textwrap.wrap(desc, width)
+    desc = "\n".join(desc)
+    return textwrap.indent(desc, "\t")
 
 def main():
 
-    cwd = utils.get_current_dir()
-    scd = utils.get_script_dir()
-    # utils_dir_name = utils.get_nth_parentdir(scd)
-
-    copy_utils = g_args.copy_utils
-
     # user input
     if not g_args.type:
-        utils.read_string_input(init_value=DEFAULT_TEMPLATE)
+        g_args.type = utils.read_string_input(msg="type", init_value=DEFAULT_TEMPLATE)
     if not g_args.output:
-        utils.read_path_input(msg="file path")
+        g_args.output = utils.read_path_input(msg="file path")
+    g_args.author = utils.read_string_input(msg="author", init_value=g_args.author)
     if not g_args.description:
-        utils.read_string_input(msg="description", init_value=HEADER_DESCRIPTION)
+        g_args.description = utils.read_string_input(msg="description", init_value=HEADER_DESCRIPTION)
+    g_args.description = format_description(g_args.description)
+    if g_args.type != "bash":
+        g_args.copy_utils = utils.confirm("Copy utilities?", "y" if g_args.copy_utils else "n")
 
-    copy_utils = utils.confirm("Copy utilities?", "y" if g_args.copy_utils else "n")
-
-    template_path = utils.join_paths_str(scd, TEMPLATE_OPTIONS['main'])
+    template_path = utils.join_paths_str(g_args.script_dir, TEMPLATE_OPTIONS[g_args.type])
 
     if utils.exists_dir(g_args.output):
         print(f"Error: target path is a directory!")
@@ -59,7 +63,8 @@ def main():
             utils.exit("Aborted")
 
     out_folder = utils.get_file_path(g_args.output)
-    out_file = utils.get_file_path(g_args.output)
+    out_file = utils.get_file_name(g_args.output)
+
 
     if not utils.exists_dir(out_folder):
         utils.make_dir(g_args.output)
@@ -68,25 +73,28 @@ def main():
     utils.copy_to(template_path, g_args.output)
     print(f"Created file {g_args.output}")
 
-    if copy_utils:
-        utils_folder = PY_UTILS_DIR
-        out_py_utils_dir = utils.join_paths(out_folder, utils_folder)
-        utils.make_dir(out_py_utils_dir)
-        utils.copy_to(PY_UTILS_FILE, out_py_utils_dir)
-        print(f"Created file {out_py_utils_dir}/{PY_UTILS_FILE}")
-    else:
-        print(
-        """
-        Important: Please make sure that python utils are available, i.e. inside PYTHONPATH.
-        Clone repository via: git clone https://github.com/amplejoe/py_utils.git
-        """
-        )
+    if g_args.type == "class":
+        utils.replace_file_text(g_args.output, CLASS_NAME, out_file)
+
+    if g_args.type != "bash":
+        if g_args.copy_utils:
+            utils_folder = PY_UTILS_DIR
+            out_py_utils_dir = utils.join_paths(out_folder, utils_folder)
+            utils.make_dir(out_py_utils_dir)
+            utils.copy_to(PY_UTILS_FILE, out_py_utils_dir)
+            print(f"Created file {out_py_utils_dir}/{PY_UTILS_FILE}")
+        else:
+            print(
+            """
+            Important: Please make sure that python utils are available, i.e. inside PYTHONPATH.
+            Clone repository via: git clone https://github.com/amplejoe/py_utils.git
+            """
+            )
 
     # header information
     date = utils.get_date_str()
-    user = utils.get_user_name()
     utils.replace_file_text(g_args.output, HEADER_DATE, date)
-    utils.replace_file_text(g_args.output, HEADER_AUTHOR, user)
+    utils.replace_file_text(g_args.output, HEADER_AUTHOR, g_args.author)
     if g_args.description:
         utils.replace_file_text(g_args.output, HEADER_DESCRIPTION, g_args.description)
 
@@ -108,6 +116,15 @@ def parse_args():
         type=str,
         help=f"script type ({TEMPLATE_OPTIONS.keys()})",
         choices=TEMPLATE_OPTIONS.keys()
+    )
+    ap.add_argument(
+        "-a",
+        "--author",
+        dest="author",
+        type=str,
+        help=f"author name",
+        nargs="?",
+        default=utils.get_user_name()
     )
     ap.add_argument(
         "-d",

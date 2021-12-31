@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ----------------------------------------------------------------------------
-""" [DESCRIPTION] """
-# ----------------------------------------------------------------------------
-__author__  = "[AUTHOR]"
-__date__    = "[DATE]"
-__version__ = "1.0"
-# ---------------------------------------------------------------------------
+# =============================================================================
+__description__ = """
+[DESCRIPTION]
+"""
+# =============================================================================
+# @author   : [AUTHOR]
+# @date     : [DATE]
+# @version  : 1.0
+# =============================================================================
 
 import argparse
 from py_utils import utils
@@ -43,7 +45,7 @@ def exit(msg=None):
 
 def parse_args():
     # construct the argument parser and parse the arguments
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__description__)
     ap.add_argument(
         "-i",
         "--input",
