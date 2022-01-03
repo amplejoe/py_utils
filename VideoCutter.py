@@ -52,7 +52,7 @@ CONVERSIONS[MODES[1]] = {
     "avc1": {"code": "avc1", "container": "mp4"},
     "pim1": {"code": "pim1", "container": "avi"},
     "mjpg": {"code": "mjpg", "container": "mp4"},
-    "vp80": {"code": "avc1", "container": "webm"}
+    "vp80": {"code": "avc1", "container": "webm"},
 }
 
 
@@ -71,11 +71,10 @@ class VideoCutter:
             force_overwrite (bool): (optional) sets overwrite flags for ffmpeg (default: False)
         """
         self.video = in_video
-        self.fps = ecat_tools.get_fps(self.video, use_opencv = True)
-        self.calc_frame = False
+        self.fps = ecat_tools.get_fps(self.video, use_opencv=True)
+        self.override_fps = None
         if "override_fps" in kwargs.keys():
-            self.fps = kwargs['override_fps']
-            self.calc_frame = True
+            self.override_fps = kwargs["override_fps"]
         self.total_duration = ecat_tools.get_duration(self.video)
 
         self.out_root = None
@@ -152,11 +151,29 @@ class VideoCutter:
         sec_float = sec + (mic / 1000000.0)
         return sec_float
 
-    def frame_to_secs(self, frame):
-        return int(frame) / self.fps
+    def frame_to_secs(self, in_frame):
+        comp_frame = in_frame
+        if self.override_fps != None and self.mode != "opencv":
+            secs = int(in_frame) / self.fps
+            override_secs = int(in_frame) / self.override_fps
+            if secs != override_secs:
+                comp_frame = round(override_secs * self.fps)
+                # DEBUG
+                tqdm.write(
+                    f"Compensating fps-caused frame difference ({self.fps} vs. {self.override_fps}): {override_secs}s -> {secs}s"
+                )
+        return int(comp_frame) / self.fps
 
-    def secs_to_frame(self, time_in_secs):
-        return int(time_in_secs * self.fps)
+    def secs_to_frame(self, in_time_in_secs):
+        out_frame = int(in_time_in_secs * self.fps)
+        if self.override_fps != None and self.mode != "opencv":
+            in_frame = out_frame
+            out_frame =  int(in_time_in_secs * self.override_fps)
+            # DEBUG
+            tqdm.write(
+                f"Compensating fps-caused time difference ({self.fps} vs. {self.override_fps}): {in_frame} -> {out_frame}"
+            )
+        return out_frame
 
     def re_encode_with_keyframes(self, kf_list):
         string_list = ",".join(kf_list)
@@ -206,10 +223,10 @@ class VideoCutter:
             duration_time = self.str_to_timedelta(kwargs["duration"])
             to_time = from_time + duration_time
         elif "frames" in kwargs.keys():
-            secs_float = int(kwargs["frames"]) / self.fps
+            secs_float = self.frame_to_secs(kwargs["frames"])
             duration_time = self.secs_to_timedelta(secs_float)
             to_time = from_time + duration_time
-            # print(f"{utils.get_file_name(self.video)}: f {kwargs['frames']} fps {self.fps} -> {secs}s")
+            # print(f"{utils.get_file_name(self.video)}: f {kwargs["frames"]} fps {self.fps} -> {secs}s")
 
         # build output file: timestamped of via given parameter
         in_file_name = utils.get_file_name(self.video)
@@ -222,7 +239,9 @@ class VideoCutter:
             if out_file_ext == kwarg_ext:
                 out_file = kwargs["out_file"]
             else:
-                out_file = utils.replace_right(kwargs["out_file"], kwarg_ext, out_file_ext)
+                out_file = utils.replace_right(
+                    kwargs["out_file"], kwarg_ext, out_file_ext
+                )
 
         # full out path
         out_path = utils.join_paths(self.out_root, out_file)
@@ -295,14 +314,7 @@ class VideoCutter:
         # clean up tmp file
         # utils.remove_file(self.tmp_file_path)
 
-    def run_opencv(
-        self,
-        cap,
-        from_time,
-        to_time,
-        duration_time,
-        out_path
-    ):
+    def run_opencv(self, cap, from_time, to_time, duration_time, out_path):
         """[summary]
 
         Args:
@@ -325,19 +337,19 @@ class VideoCutter:
             return
 
         # Define the codec and create VideoWriter object
-        fourcc = cv2.VideoWriter_fourcc(*self.conversion['code'])
+        fourcc = cv2.VideoWriter_fourcc(*self.conversion["code"])
         out = cv2.VideoWriter(out_path, fourcc, self.fps, (int(width), int(height)))
 
         from_frame = self.secs_to_frame(self.timedelta_to_secs(from_time))
         to_frame = self.secs_to_frame(self.timedelta_to_secs(to_time))
-        num_frames = (to_frame - from_frame) + 1 # frames start at 0
+        num_frames = (to_frame - from_frame) + 1  # frames start at 0
 
         pbar = tqdm(total=num_frames, desc="cut", leave=False)
 
         current_frame = 0
 
         # set start frame depending on method
-        if self.calc_frame:
+        if self.override_fps is not None:
             real_fps = ecat_tools.get_fps(self.video, True)
             # leave 100 frames margin for error
             from_compensated = round((from_frame / self.fps) * real_fps) - 100
@@ -354,11 +366,11 @@ class VideoCutter:
         while cap.isOpened():
             # Capture frame-by-frame
             # ret, frame = cap.read()
-            ret = cap.grab() # faster than always decoding all frames
+            ret = cap.grab()  # faster than always decoding all frames
             frame = None
 
             if ret == True:
-                if self.calc_frame:
+                if self.override_fps is not None:
                     # calculate frame using MSEC
                     millis = cap.get(cv2.CAP_PROP_POS_MSEC)
                     secs = millis / 1000.0
@@ -372,7 +384,7 @@ class VideoCutter:
                         break
                 else:
                     if current_frame > to_frame:
-                         break
+                        break
                     _, frame = cap.retrieve()
 
                 # frame overlay
@@ -423,7 +435,9 @@ class VideoCutter:
         if "seconds" in kwargs.keys():
             num_seconds = float(kwargs["seconds"])
         elif "frames" in kwargs.keys():
-            num_seconds = int(kwargs["frames"]) / self.fps
+            num_seconds = self.frame_to_secs(
+                self.get_compensated_frame(kwargs["frames"])
+            )
 
         if self.mode == "ffmpeg":
             # re-encode video making keyframes in given seconds interval
