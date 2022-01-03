@@ -158,10 +158,10 @@ class VideoCutter:
             override_secs = int(in_frame) / self.override_fps
             if secs != override_secs:
                 comp_frame = round(override_secs * self.fps)
-                # DEBUG
-                tqdm.write(
-                    f"Compensating fps-caused frame difference ({self.fps} vs. {self.override_fps}): {override_secs}s -> {secs}s"
-                )
+                # # DEBUG
+                # tqdm.write(
+                #     f"Compensating fps-caused frame difference ({self.fps} vs. {self.override_fps}): {override_secs}s -> {secs}s"
+                # )
         return int(comp_frame) / self.fps
 
     def secs_to_frame(self, in_time_in_secs):
@@ -169,10 +169,10 @@ class VideoCutter:
         if self.override_fps != None and self.mode != "opencv":
             in_frame = out_frame
             out_frame =  int(in_time_in_secs * self.override_fps)
-            # DEBUG
-            tqdm.write(
-                f"Compensating fps-caused time difference ({self.fps} vs. {self.override_fps}): {in_frame} -> {out_frame}"
-            )
+            # # DEBUG
+            # tqdm.write(
+            #     f"Compensating fps-caused time difference ({self.fps} vs. {self.override_fps}): {in_frame} -> {out_frame}"
+            # )
         return out_frame
 
     def re_encode_with_keyframes(self, kf_list):
