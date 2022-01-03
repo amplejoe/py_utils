@@ -14,6 +14,7 @@
 
 import json
 import pandas as pd
+import cv2
 from tqdm import tqdm
 import random
 from . import utils
@@ -174,11 +175,18 @@ def convert_to_float(frac_str):
         return whole - frac if whole < 0 else whole + frac
 
 
-def get_fps(video):
-    """Gets fps from a video using ffprobe"""
-    return convert_to_float(
-        utils.exec_shell_command(f"{SHELL_CMD_GET_FPS} '{video}'", silent=True)[0]
-    )
+def get_fps(video, use_opencv=False):
+    """Gets fps from a video using ffprobe (legacy requirement) or the more accurate opencv"""
+
+    if use_opencv:
+        video_cap = cv2.VideoCapture(video)
+        fps = video_cap.get(cv2.CAP_PROP_FPS)
+        video_cap.release()
+        return fps
+    else:
+        return convert_to_float(
+            utils.exec_shell_command(f"{SHELL_CMD_GET_FPS} '{video}'", silent=True)[0]
+        )
 
 
 def get_duration(video):

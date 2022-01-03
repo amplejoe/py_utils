@@ -1033,6 +1033,21 @@ def remove_invalid_file_chars(input_string):
     return input_string
 
 
+def replace_right(source, target, replacement, replacements=1):
+    """Replaces text in a string starting from the end.
+
+    Args:
+        source ([type]): [description]
+        target ([type]): [description]
+        replacement ([type]): [description]
+        replacements (int, optional): how many strings to replace. Defaults to 1.
+
+    Returns:
+        [type]: [description]
+    """
+    return replacement.join(source.rsplit(target, replacements))
+
+
 #### ------------------------------------------------------------------------------------------ ####
 ####    MATH AND NUMBERS
 #### ------------------------------------------------------------------------------------------ ####
