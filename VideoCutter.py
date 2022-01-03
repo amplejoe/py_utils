@@ -350,9 +350,8 @@ class VideoCutter:
 
         # set start frame depending on method
         if self.override_fps is not None:
-            real_fps = ecat_tools.get_fps(self.video, True)
-            # leave 100 frames margin for error
-            from_compensated = round((from_frame / self.fps) * real_fps) - 100
+            # leave a 100 frames margin for error
+            from_compensated = round((from_frame / self.override_fps) * self.fps) - 100
             if from_compensated < 0:
                 from_compensated = 0
             current_frame = from_compensated
