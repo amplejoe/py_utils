@@ -336,10 +336,19 @@ class VideoCutter:
 
         current_frame = 0
 
-        if not self.calc_frame:
+        # set start frame depending on method
+        if self.calc_frame:
+            real_fps = ecat_tools.get_fps(self.video, True)
+            # leave 100 frames margin for error
+            from_compensated = int((from_frame / self.fps) * real_fps) - 100
+            if from_compensated < 0:
+                from_compensated = 0
+            current_frame = from_compensated
+        else:
             current_frame = from_frame
-            # seek to start frame
-            assert cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
+
+        # seek to start frame
+        assert cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
 
         # while(True):
         while cap.isOpened():
