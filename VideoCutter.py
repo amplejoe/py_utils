@@ -168,7 +168,7 @@ class VideoCutter:
         out_frame = int(in_time_in_secs * self.fps)
         if self.override_fps != None and self.mode != "opencv":
             in_frame = out_frame
-            out_frame =  int(in_time_in_secs * self.override_fps)
+            out_frame = int(in_time_in_secs * self.override_fps)
             # # DEBUG
             # tqdm.write(
             #     f"Compensating fps-caused time difference ({self.fps} vs. {self.override_fps}): {in_frame} -> {out_frame}"
@@ -358,8 +358,16 @@ class VideoCutter:
         else:
             current_frame = from_frame
 
-        # seek to start frame
+        # seek by time
+        # current_time_ms = (current_frame * self.fps) * 1000.0
+        # assert cap.set(cv2.CAP_PROP_POS_MSEC, current_time_ms)
+
+        # seek to start time, make sure frames match
         assert cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame)
+        # DEBUG
+        # tqdm.write(f"{current_frame} - {cap.get(cv2.CAP_PROP_POS_FRAMES)}")
+        # tqdm.write(f"{current_time_ms} - {cap.get(cv2.CAP_PROP_POS_MSEC)}")
+        assert current_frame == cap.get(cv2.CAP_PROP_POS_FRAMES)
 
         # while(True):
         while cap.isOpened():
