@@ -373,7 +373,7 @@ class VideoCutter:
                     # calculate frame using MSEC
                     millis = cap.get(cv2.CAP_PROP_POS_MSEC)
                     secs = millis / 1000.0
-                    calc_frame = round(secs * self.fps)
+                    calc_frame = round(secs * self.override_fps)
                     if calc_frame >= from_frame and calc_frame <= to_frame:
                         _, frame = cap.retrieve()
                     elif calc_frame < from_frame:
