@@ -19,6 +19,7 @@
 
 from . import utils, ecat_tools
 
+from vidgear.gears import WriteGear
 import cv2
 
 from datetime import datetime, timedelta
@@ -47,12 +48,17 @@ CONVERSIONS[MODES[0]] = {
 CONVERSIONS[MODES[1]] = {
     "default": {"code": "mp4v", "container": "mp4"},
     # Windows - check for appropriate releases: https://github.com/cisco/openh264/releases to place into path
-    "x264": {"code": "x264", "container": "mkv"},
-    "h264": {"code": "h264", "container": "mkv"},
     "avc1": {"code": "avc1", "container": "mp4"},
+    "x264": {"code": "x264", "container": "mkv"},
+    # usage examples: https://abhitronix.github.io/vidgear/latest/gears/writegear/compression/usage/#using-compression-mode-with-opencv
+    "x264_vg": {"code": "x264", "container": "mp4", "params": {"-vcodec":"libx264", "-crf": 20, "-preset": "fast"}},
+    "h264": {"code": "h264", "container": "mkv"},
+    "xvid": {"code": "xvid", "container": "avi"},
     "pim1": {"code": "pim1", "container": "avi"},
     "mjpg": {"code": "mjpg", "container": "mp4"},
     "vp80": {"code": "avc1", "container": "webm"},
+    # https://stackoverflow.com/questions/49530857/python-opencv-video-format-play-in-browser
+    "workaround": {"code": 0x00000021, "container": "mp4"}
 }
 
 
@@ -336,10 +342,6 @@ class VideoCutter:
             tqdm.write(f"File exists (overwrite = False): {out_path}")
             return
 
-        # Define the codec and create VideoWriter object
-        fourcc = cv2.VideoWriter_fourcc(*self.conversion["code"])
-        out = cv2.VideoWriter(out_path, fourcc, self.fps, (int(width), int(height)))
-
         from_frame = self.secs_to_frame(self.timedelta_to_secs(from_time))
         to_frame = self.secs_to_frame(self.timedelta_to_secs(to_time))
         num_frames = (to_frame - from_frame) + 1  # frames start at 0
@@ -348,6 +350,7 @@ class VideoCutter:
 
         current_frame = 0
 
+        out_fps = None
         # set start frame depending on method
         if self.override_fps is not None:
             # leave a 100 frames margin for error
@@ -355,8 +358,28 @@ class VideoCutter:
             if from_compensated < 0:
                 from_compensated = 0
             current_frame = from_compensated
+            out_fps = self.override_fps
         else:
             current_frame = from_frame
+            out_fps = self.fps
+
+        # check if ffmpeg params are provided
+        use_WriteGear = "params" in self.conversion
+        writer = None
+
+        if use_WriteGear:
+            # use WriteGear handling ffmpeg (https://github.com/abhiTronix/vidgear)
+            # https://stackoverflow.com/questions/38686359/opencv-videowriter-control-bitrate
+            #Define writer with output filename
+            writer = WriteGear(output_filename = out_path, compression_mode = True, logging = False, **self.conversion['params'])
+        else:
+            # use opencv VideoWriter
+            # Define the codec and create VideoWriter object
+            if isinstance(self.conversion["code"], str):
+                fourcc = cv2.VideoWriter_fourcc(*self.conversion["code"])
+            else:
+                fourcc = self.conversion["code"]
+            writer = cv2.VideoWriter(out_path, fourcc, out_fps, (int(width), int(height)))
 
         # seek by time
         # current_time_ms = (current_frame * self.fps) * 1000.0
@@ -400,7 +423,7 @@ class VideoCutter:
 
                 # Saves for video
                 if frame is not None:
-                    out.write(frame)
+                    writer.write(frame)
 
                 # Display the resulting frame
                 # cv2.imshow('frame',frame)
@@ -415,7 +438,10 @@ class VideoCutter:
                 pbar.update(1)
 
         pbar.close()
-        out.release()
+        if use_WriteGear:
+            writer.close()
+        else:
+            writer.release()
         cv2.destroyAllWindows()
 
     def multi_cut(self, **kwargs):
