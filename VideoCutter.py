@@ -368,6 +368,7 @@ class VideoCutter:
         writer = None
 
         if use_WriteGear:
+            self.conversion['params']['-input_framerate'] = out_fps
             # use WriteGear handling ffmpeg (https://github.com/abhiTronix/vidgear)
             # https://stackoverflow.com/questions/38686359/opencv-videowriter-control-bitrate
             #Define writer with output filename
