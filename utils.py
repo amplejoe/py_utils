@@ -173,7 +173,7 @@ def complete_path(text, state):
     return completions[state]
 
 
-def read_string_input(*, init_value="", msg="input text: "):
+def read_string_input(*, init_value="", msg="input text"):
     """Reads a string from user input.
 
     Args:
@@ -189,7 +189,7 @@ def read_string_input(*, init_value="", msg="input text: "):
         readline.redisplay()
 
     readline.set_pre_input_hook(prefill_hook)
-    result = input(msg)
+    result = input(f"{msg}: ")
     readline.set_pre_input_hook()
     return result
 
@@ -215,7 +215,7 @@ def read_string_input(*, init_value="", msg="input text: "):
 #     return input(f"{msg}: ")
 
 
-def read_path_input(*, init_path=None, msg="input path: "):
+def read_path_input(*, init_path=None, msg="input path"):
     """Reads a path from user input. Supports path completion.
 
     Args:
