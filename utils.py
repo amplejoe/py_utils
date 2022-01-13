@@ -39,7 +39,8 @@ import concurrent.futures
 import tempfile
 import getpass
 import readline
-from pyautogui import typewrite
+
+# from pyautogui import typewrite
 
 
 #### ------------------------------------------------------------------------------------------ ####
@@ -172,7 +173,7 @@ def complete_path(text, state):
     return completions[state]
 
 
-def read_string_input(*, init_value="", msg="input text"):
+def read_string_input(*, init_value="", msg="input text: "):
     """Reads a string from user input.
 
     Args:
@@ -182,13 +183,39 @@ def read_string_input(*, init_value="", msg="input text"):
     Returns:
         [type]: [description]
     """
-    # only works on linux - use pyautogui instead
-    # readline.set_startup_hook(lambda: readline.insert_text(init_value))
-    typewrite(init_value)
-    return input(f"{msg}: ")
+    # must be defined within function
+    def prefill_hook():
+        readline.insert_text(init_value)
+        readline.redisplay()
+
+    readline.set_pre_input_hook(prefill_hook)
+    result = input(msg)
+    readline.set_pre_input_hook()
+    return result
 
 
-def read_path_input(*, init_path=None, msg="input path"):
+# OLD: problems with different keyboard layouts
+# TODO: test on windows, then remove
+# def read_string_input(*, init_value="", msg="input text"):
+#     """Reads a string from user input.
+
+#     Args:
+#         init_value (str, optional): [description]. Defaults to "".
+#         msg (str, optional): [description]. Defaults to "input text".
+
+#     Returns:
+#         [type]: [description]
+#     """
+#     # only works on linux - use pyautogui instead
+#     # readline.set_startup_hook(lambda: readline.insert_text(init_value))
+#     print("----------------")
+#     print(init_value)
+#     print("----------------")
+#     typewrite(init_value)
+#     return input(f"{msg}: ")
+
+
+def read_path_input(*, init_path=None, msg="input path: "):
     """Reads a path from user input. Supports path completion.
 
     Args:
@@ -201,14 +228,23 @@ def read_path_input(*, init_path=None, msg="input path"):
     if init_path is None:
         init_path = get_user_home_dir()
     init_path = to_path(init_path)
+    # must be defined within function
+    def prefill_hook():
+        readline.insert_text(init_path)
+        readline.redisplay()
+
+    readline.set_pre_input_hook(prefill_hook)
     # we want to treat '/' as part of a word, so override the delimiters
     readline.set_completer_delims(" \t\n;")
     readline.parse_and_bind("tab: complete")
     # only works on linux - use pyautogui instead
     # readline.set_startup_hook(lambda: readline.insert_text(init_path))
     readline.set_completer(complete_path)
-    typewrite(init_path)
-    return input(f"{msg}: ")
+
+    # typewrite(init_path)
+    result = input(f"{msg}: ")
+    readline.set_pre_input_hook()
+    return result
 
 
 #### ------------------------------------------------------------------------------------------ ####
@@ -1366,8 +1402,10 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-        video_file
+    cmd = (
+        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+            video_file
+        )
     )
     jsonstr = None
     try:
@@ -1452,4 +1490,3 @@ class switch(object):
             return True
         else:
             return False
-
