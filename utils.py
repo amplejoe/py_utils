@@ -40,6 +40,11 @@ import tempfile
 import getpass
 import readline
 
+# Windows fix for missing redisplay
+# https://github.com/pyreadline/pyreadline/issues/49
+if not hasattr(readline, "redisplay"):
+    readline.redisplay = lambda: None
+
 # from pyautogui import typewrite
 
 
@@ -1402,10 +1407,8 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = (
-        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-            video_file
-        )
+    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+        video_file
     )
     jsonstr = None
     try:
