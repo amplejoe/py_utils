@@ -531,6 +531,14 @@ def bgr_to_rgb_image(in_rgb):
     return cv2.cvtColor(in_rgb, cv2.COLOR_BGR2RGB)
 
 
+def rotate_image(image, angle):
+    image = get_image(image)
+    image_center = tuple(np.array(image.shape[1::-1]) / 2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+    return result
+
+
 # maybe better: https://stackoverflow.com/questions/51365126/combine-2-images-with-mask
 def blend_image(in_bg, in_overlay, blend=BLEND_ALPHA):
     """Blends two images with transparency.
