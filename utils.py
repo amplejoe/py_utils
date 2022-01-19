@@ -249,7 +249,7 @@ def read_path_input(*, init_path=None, msg="input path"):
     # typewrite(init_path)
     result = input(f"{msg}: ")
     readline.set_pre_input_hook()
-    return result
+    return to_path(result)
 
 
 #### ------------------------------------------------------------------------------------------ ####
