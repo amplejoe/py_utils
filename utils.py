@@ -815,6 +815,7 @@ def replace_file_text(file, text, replace_text):
         text (str): original text
         text (str): replace text
     """
+    file = to_path(file)
     fin = open(file, "rt")
     data = fin.read()
     data = data.replace(text, replace_text)
