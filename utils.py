@@ -802,7 +802,7 @@ def read_file_to_array(path):
     return arr
 
 
-def write_string_to_file(str_to_write, file_path, show_info="True"):
+def write_string_to_file(str_to_write, file_path, show_info=True):
     with open(file_path, "w", newline="") as file:
         file.write(str_to_write)
     if show_info:
