@@ -817,14 +817,12 @@ def replace_file_text(file, text, replace_text):
         text (str): original text
         text (str): replace text
     """
-    file = to_path(file)
-    fin = open(file, "rt")
-    data = fin.read()
-    data = data.replace(text, replace_text)
-    fin.close()
-    fin = open(file, "wt")
-    fin.write(data)
-    fin.close()
+    with open(file, "r+") as f:
+        data = f.read()
+        data = data.replace(text, replace_text)
+        f.seek(0)
+        f.write(data)
+        f.truncate()
 
 
 def find_similar_folder(target_path, folder_list):
