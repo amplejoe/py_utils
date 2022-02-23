@@ -300,7 +300,7 @@ def draw_rotated_line(img, x_pos_percent=0.5, y_pos_percent=0.5, angle=0, line_t
         img ([type]): path or image
         x_pos_percent ([type]): percentage of width, default 0.50
         y_pos_percent ([type]): percentage of height, default 0.50
-        angle ([type]): rotation angle, default 0 (horizontal line)
+        angle ([type]): rotation angle, default 0, -180 < 0 < 180 (horizontal line)
         color (tuple, optional): [description]. Defaults to (0,255,0).
     """
     img = get_image(img)
@@ -313,6 +313,11 @@ def draw_rotated_line(img, x_pos_percent=0.5, y_pos_percent=0.5, angle=0, line_t
     # horizontal line through rot point (default)
     x1, y1 = 0, rot_pt_y
     x2, y2 = width, rot_pt_y
+
+    if angle == 180:
+        angle = 0
+    if angle == -180:
+        angle = 0
 
     if angle != 0:
         x1_length = (rot_pt_x-width) / math.cos(angle)
