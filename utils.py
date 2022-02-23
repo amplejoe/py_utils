@@ -1208,12 +1208,12 @@ def filter_list_by_partial_word(word, list_to_filter):
 
 
 def nat_sort_list(l, descending=False):
-    """sorts a list naturally"""
+    """sorts a list naturally. Does not change original - returns sorted list!"""
     return natsorted(l, key=lambda y: y.lower(), reverse=descending)
 
 
 def sort_list_nicely(l):
-    """Sort the given list in the way that humans expect."""
+    """Sort the given list in the way that humans expect. Change original list (no return value)."""
 
     def convert(text):
         return int(text) if text.isdigit() else text
