@@ -19,6 +19,7 @@ import sys
 import cv2
 import numpy as np
 from tqdm import tqdm
+import math
 
 from . import utils
 
@@ -292,8 +293,68 @@ def draw_line(img, p_a, p_b, *, color=(255, 255, 255), thickness=1):
     return img_altered
 
 
-def draw_horizontal_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
+def draw_rotated_line(img, x_pos_percent=0.5, y_pos_percent=0.5, angle=0, line_thickness=1, color=(0, 255, 0)):
+    """Draws a straigh and rotated line through an input picture (always touching borders). rot point is given by percentages.
+
+    Args:
+        img ([type]): path or image
+        x_pos_percent ([type]): percentage of width, default 0.50
+        y_pos_percent ([type]): percentage of height, default 0.50
+        angle ([type]): rotation angle, default 0 (horizontal line)
+        color (tuple, optional): [description]. Defaults to (0,255,0).
+    """
+    img = get_image(img)
+    img_altered = img.copy()
+    width, height = img.shape[1], img.shape[0]
+
+    # point around which to rotate
+    rot_pt_x, rot_pt_y = int(width * x_pos_percent), int(height * y_pos_percent)
+
+    # horizontal line through rot point (default)
+    x1, y1 = 0, rot_pt_y
+    x2, y2 = width, rot_pt_y
+
+    if angle != 0:
+        x1_length = (rot_pt_x-width) / math.cos(angle)
+        y1_length = (rot_pt_y-height) / math.sin(angle)
+        length = max(abs(x1_length), abs(y1_length))
+        x1 = rot_pt_x + length * math.cos(math.radians(angle))
+        y1 = rot_pt_y + length * math.sin(math.radians(angle))
+
+        x2_length = (rot_pt_x-width) / math.cos(angle+180)
+        y2_length = (rot_pt_y-height) / math.sin(angle+180)
+        length = max(abs(x2_length), abs(y2_length))
+        x2 = rot_pt_x + length * math.cos(math.radians(angle+180))
+        y2 = rot_pt_y + length * math.sin(math.radians(angle+180))
+
+        x1, y1 = int(x1), int(y1)
+        x2, y2 = int(x2), int(y2)
+
+    # print(f"({x1},{y1}) - ({x2},{y2})")
+
+    cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
+    return img_altered
+
+
+def draw_horizontal_line(img, y_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
     """Draws a horizontal line through an input picture. position is given as a percentage.
+
+    Args:
+        img ([type]): path or image
+        y_pos_percent ([type]): percentage of width, default 0.50
+        color (tuple, optional): [description]. Defaults to (0,255,0).
+    """
+    img = get_image(img)
+    img_altered = img.copy()
+    width, height = img.shape[1], img.shape[0]
+    x1, y1 = 0, int(height * y_pos_percent)
+    x2, y2 = width, int(width * y_pos_percent)
+    cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
+    return img_altered
+
+
+def draw_vertical_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
+    """Draws a vertical line through an input picture. position is given as a percentage.
 
     Args:
         img ([type]): path or image
@@ -532,6 +593,16 @@ def bgr_to_rgb_image(in_rgb):
 
 
 def rotate_image(image, angle):
+    """ Rotates image using angle.
+
+    Args:
+        image (_type_): _description_
+        angle (float): angle - positive = clockwise, negative = counterclockwise
+
+    Returns:
+        _type_: _description_
+    """
+    angle = -angle # invert direction (default positive dir = counterclockwise)
     image = get_image(image)
     image_center = tuple(np.array(image.shape[1::-1]) / 2)
     rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
