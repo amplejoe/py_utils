@@ -1243,6 +1243,8 @@ def create_dict_key(in_dict, key, value=0):
     """Adds key to dict if necessary, init'd with value"""
     if key not in in_dict.keys():
         in_dict[f"{key}"] = value
+        return True
+    return False
 
 
 def increment_dict_key(in_dict, key, by_value=1):
