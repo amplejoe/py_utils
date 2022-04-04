@@ -293,7 +293,14 @@ def draw_line(img, p_a, p_b, *, color=(255, 255, 255), thickness=1):
     return img_altered
 
 
-def draw_rotated_line(img, x_pos_percent=0.5, y_pos_percent=0.5, angle=0, line_thickness=1, color=(0, 255, 0)):
+def draw_rotated_line(
+    img,
+    x_pos_percent=0.5,
+    y_pos_percent=0.5,
+    angle=0,
+    line_thickness=1,
+    color=(0, 255, 0),
+):
     """Draws a straigh and rotated line through an input picture (always touching borders). rot point is given by percentages.
 
     Args:
@@ -320,17 +327,17 @@ def draw_rotated_line(img, x_pos_percent=0.5, y_pos_percent=0.5, angle=0, line_t
         angle = 0
 
     if angle != 0:
-        x1_length = (rot_pt_x-width) / math.cos(angle)
-        y1_length = (rot_pt_y-height) / math.sin(angle)
+        x1_length = (rot_pt_x - width) / math.cos(angle)
+        y1_length = (rot_pt_y - height) / math.sin(angle)
         length = max(abs(x1_length), abs(y1_length))
         x1 = rot_pt_x + length * math.cos(math.radians(angle))
         y1 = rot_pt_y + length * math.sin(math.radians(angle))
 
-        x2_length = (rot_pt_x-width) / math.cos(angle+180)
-        y2_length = (rot_pt_y-height) / math.sin(angle+180)
+        x2_length = (rot_pt_x - width) / math.cos(angle + 180)
+        y2_length = (rot_pt_y - height) / math.sin(angle + 180)
         length = max(abs(x2_length), abs(y2_length))
-        x2 = rot_pt_x + length * math.cos(math.radians(angle+180))
-        y2 = rot_pt_y + length * math.sin(math.radians(angle+180))
+        x2 = rot_pt_x + length * math.cos(math.radians(angle + 180))
+        y2 = rot_pt_y + length * math.sin(math.radians(angle + 180))
 
         x1, y1 = int(x1), int(y1)
         x2, y2 = int(x2), int(y2)
@@ -598,7 +605,7 @@ def bgr_to_rgb_image(in_rgb):
 
 
 def rotate_image(image, angle):
-    """ Rotates image using angle.
+    """Rotates image using angle.
 
     Args:
         image (_type_): _description_
@@ -607,7 +614,7 @@ def rotate_image(image, angle):
     Returns:
         _type_: _description_
     """
-    angle = -angle # invert direction (default positive dir = counterclockwise)
+    angle = -angle  # invert direction (default positive dir = counterclockwise)
     image = get_image(image)
     image_center = tuple(np.array(image.shape[1::-1]) / 2)
     rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
@@ -715,6 +722,45 @@ def move_contour_to(contour, center_x, center_y):
     # tqdm.write(f"t {center_x}, {center_y}")
     # tqdm.write(f"move {new_x}, {new_y}")
     return new_contour
+
+
+def is_window_visible(window_title):
+    """Checks whether a window is visible.
+
+    Args:
+        window_title (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    try:
+        return cv2.getWindowProperty(window_title, cv2.WND_PROP_VISIBLE) >= 1
+    except:
+        return False
+
+
+def set_on_mouse_func(window_title, cb, params):
+    """Sets a mouse callback function for listening to mouse events.
+
+    Args:
+        window_title (str): the window title as string
+        cb (function): callback function including params (event, x, y, flags, params)
+                        event (flag)    : OpenCV mouse event, common -> EVENT_MOUSEMOVE, EVENT_LBUTTONDOWN, EVENT_LBUTTONUP
+                                          (all events: https://docs.opencv.org/4.x/d0/d90/group__highgui__window__flags.html#ga927593befdddc7e7013602bca9b079b0)
+
+                        x (int)         : x coord
+
+                        y (int)         : y coord
+
+                        flags (flag)    : https://docs.opencv.org/4.x/d0/d90/group__highgui__window__flags.html#gaab4dc057947f70058c80626c9f1c25ce
+
+                        params          : additional custom params
+        params: additional custom params (gets passed into callback params, recommended to use dict)
+    """
+    # window must be visible, if not create an empty window
+    if not is_window_visible(window_title):
+        cv2.namedWindow(window_title)
+    cv2.setMouseCallback(window_title, cb, params)
 
 
 def save_image(img, file_path, info=True):
