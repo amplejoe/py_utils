@@ -19,6 +19,8 @@
 
 
 import os
+import pwd
+import grp
 import sys
 import errno
 import json, simplejson
@@ -409,6 +411,45 @@ def make_dir(path, show_info=False, overwrite=False):
     if show_info:
         tqdm.write(f"Created dir: {path}")
     return True
+
+
+def get_owner(path):
+    """Gets owner and group of a path.
+
+    Args:
+        path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    path = to_path(path, as_string=False)
+    if exists_dir(path):
+        return path.owner(), path.group()
+    return False, False
+
+
+def change_owner(path, user, group, silent=False):
+    """Changes the user and group of a path. IMPORTANT: requires root privileges in Linux.
+
+    Args:
+        path (_type_): _description_
+        user (_type_): _description_
+        group (_type_): _description_
+    """
+    if exists_dir(path):
+
+        # alternative
+        # uid = pwd.getpwnam(user).pw_uid
+        # gid = grp.getgrnam(group).gr_gid
+        # os.chown(path, uid, gid)
+        
+        try:
+            shutil.chown(path, user, group)
+            if not silent:
+                print(f"Changed owner for {path} -> {user}:{group}")
+            return True
+        except OSError as e:
+            raise e
 
 
 def remove_dir(path):
