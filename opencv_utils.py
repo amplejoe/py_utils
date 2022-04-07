@@ -139,13 +139,14 @@ def is_image(variable):
     return type(variable) is np.ndarray
 
 
-def get_image(path_or_image):
+def get_image(path_or_image, copy=False):
     """Returns an OpenCV image, whether a path or an image is provided.
     Ensures that most methods can be used by passing the image path OR the image itself.
     Parameters:
     -----------
     path_or_image: string or openCV image object
         path or OpenCV image
+    copy: create a copy of potentially already loaded opencv image
     returns:
         loaded OpenCV image
         (path_or_image if it already is an OpenCV image,
@@ -153,7 +154,10 @@ def get_image(path_or_image):
 
     """
     if is_image(path_or_image):
-        return path_or_image
+        if copy:
+            return path_or_image.copy()
+        else:
+            return path_or_image
     else:
         # path must have been provided (TODO: error handling)
         return cv2.imread(path_or_image)
@@ -194,14 +198,12 @@ def pil_to_cv_img(pil_image):
 
 
 def get_bgr_image(img_or_path):
-    image = get_image(img_or_path)
-    img_copy = image.copy()
+    img_copy = get_image(img_or_path, True)
     return cv2.cvtColor(img_copy, cv2.COLOR_RGB2BGR)
 
 
 def get_rgb_image(img_or_path):
-    image = get_image(img_or_path)
-    img_copy = image.copy()
+    img_copy = get_image(img_or_path, True)
     return cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
 
 
@@ -274,23 +276,23 @@ def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
-def draw_line(img, p_a, p_b, *, color=(255, 255, 255), thickness=1):
+def draw_line(img, p_a, p_b, *, create_copy = True, color=(255, 255, 255), thickness=1):
     """Draws a line from p_a to p_b
 
     Args:
         image ([type]): path or image
         p_a (tuple of int): point in form (x, y)
         p_b (tuple of int): point in form (x, y)
+        create_copy: return altered image copy or alter original image
         color (tuple, optional): [description]. Defaults to (255, 255, 255).
         thickness (int, optional): [description]. Defaults to 1.
 
     Returns:
         [type]: [description]
     """
-    img = get_image(img)
-    img_altered = img.copy()
-    cv2.line(img_altered, p_a, p_b, color, thickness)
-    return img_altered
+    img = get_image(img, create_copy)
+    cv2.line(img, p_a, p_b, color, thickness)
+    return img
 
 
 def draw_rotated_line(
@@ -310,8 +312,7 @@ def draw_rotated_line(
         angle ([type]): rotation angle, default 0, -180 < 0 < 180 (horizontal line)
         color (tuple, optional): [description]. Defaults to (0,255,0).
     """
-    img = get_image(img)
-    img_altered = img.copy()
+    img_altered = get_image(img, True)
     width, height = img.shape[1], img.shape[0]
 
     # point around which to rotate
@@ -356,8 +357,7 @@ def draw_horizontal_line(img, y_pos_percent=0.5, line_thickness=1, color=(0, 255
         y_pos_percent ([type]): percentage of width, default 0.50
         color (tuple, optional): [description]. Defaults to (0,255,0).
     """
-    img = get_image(img)
-    img_altered = img.copy()
+    img_altered = get_image(img, True)
     width, height = img.shape[1], img.shape[0]
     x1, y1 = 0, int(height * y_pos_percent)
     x2, y2 = width, int(width * y_pos_percent)
@@ -373,8 +373,7 @@ def draw_vertical_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 
         x_pos_percent ([type]): percentage of width, default 0.50
         color (tuple, optional): [description]. Defaults to (0,255,0).
     """
-    img = get_image(img)
-    img_altered = img.copy()
+    img_altered = get_image(img, True)
     width, height = img.shape[1], img.shape[0]
     x1, y1 = int(width * x_pos_percent), 0
     x2, y2 = int(width * x_pos_percent), height
@@ -513,8 +512,7 @@ def overlay_text(
     Returns: np.array
         image with a text overlay
     """
-    img = get_image(img)
-    altered_img = img.copy()
+    altered_img = get_image(img, True)
     # height, _, _ = altered_img.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (x_pos, y_pos)
