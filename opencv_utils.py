@@ -84,7 +84,7 @@ def gui_select_option(
     options, bg_image, *, window_title="Option Select", msg=None, default=0
 ):
     """
-    Ask user to select one of several options using .
+    Ask user to select one of several options using a string list.
     Parameters
     ----------
     bg_image: string or np.array
