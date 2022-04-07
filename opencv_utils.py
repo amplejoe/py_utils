@@ -43,7 +43,26 @@ MAC_ARROW_KEY_CODES = {"up": 63232, "down": 63233, "left": 63234, "right": 63235
 LINUX_ARROW_KEY_CODES = {"up": 65362, "down": 65364, "left": 65361, "right": 65363}
 
 
-def get_options_txt_image(img, options, selected, msg=None):
+def get_options_txt_image(img, options, selected, msg=None, pos="top"):
+    """Creates an image with text options (used by gui_select_option)
+
+    Args:
+        img (_type_): _description_
+        options (_type_): _description_
+        selected (_type_): _description_
+        msg (_type_, optional): _description_. Defaults to None.
+        pos (str, optional): "top" or "bottom". Defaults to "top".
+
+    Returns:
+        _type_: _description_
+    """
+
+    if pos == "top":
+        y_pos = 20
+    if pos == "bottom":
+        img_dims = get_img_dimensions(img)
+        y_pos = img_dims["height"] - 40
+
     if selected < 0 or selected > len(options) - 1:
         selected = 0
     user_prompt = ""
@@ -57,7 +76,7 @@ def get_options_txt_image(img, options, selected, msg=None):
             user_prompt += f"{i}. {o}\n"
 
     user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
-    res = overlay_text(img, user_prompt, scale=0.5, y_pos=20)
+    res = overlay_text(img, user_prompt, scale=0.5, y_pos=y_pos)
     return res
 
 
@@ -81,7 +100,7 @@ def is_arrow_key_pressed(direction, pressed_keycode):
 
 
 def gui_select_option(
-    options, bg_image, *, window_title="Option Select", msg=None, default=0
+    options, bg_image, *, window_title="Option Select", msg=None, default=0, position="top"
 ):
     """
     Ask user to select one of several options using a string list.
@@ -97,6 +116,7 @@ def gui_select_option(
         user prompt message
     default: integer
         default selected idx
+    position: display position ["top", "bottom"]
     return: tuple (integer, object)
         idx and value of selected option
 
@@ -110,7 +130,7 @@ def gui_select_option(
     sel_option = None
     key = -1
     while key != KEY_SPACE and key != KEY_ENTER:
-        prompt_img = get_options_txt_image(overlay, options, sel_idx, msg=msg)
+        prompt_img = get_options_txt_image(overlay, options, sel_idx, msg=msg, pos=position)
         display_img = overlay_image(bg, prompt_img)
         cv2.imshow(window_title, display_img)
         # wait and listen to keypresses
