@@ -113,9 +113,6 @@ def get_options_txt_image(
     elif pos == "center":
         text_size = get_text_size(user_prompt, scale=scale, thickness=thickness)
         # get center coords based on boundary
-        # print(
-        #     f"[{img_dims['width'], img_dims['height']}] - [{text_size['width'], text_size['height']}]"
-        # )
         x_pos = (img_dims["width"] - text_size["width"]) / 2
         y_pos = (img_dims["height"] - text_size["height"]) / 2
 
@@ -130,8 +127,6 @@ def get_options_txt_image(
 
     x_pos = int(x_pos)
     y_pos = int(y_pos)
-
-    # print(f"{x_pos, y_pos}")
 
     res = overlay_text(
         img,
@@ -453,8 +448,6 @@ def draw_rotated_line(
 
         x1, y1 = int(x1), int(y1)
         x2, y2 = int(x2), int(y2)
-
-    # print(f"({x1},{y1}) - ({x2},{y2})")
 
     cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
     return img_altered
