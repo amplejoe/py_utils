@@ -43,7 +43,9 @@ MAC_ARROW_KEY_CODES = {"up": 63232, "down": 63233, "left": 63234, "right": 63235
 LINUX_ARROW_KEY_CODES = {"up": 65362, "down": 65364, "left": 65361, "right": 65363}
 
 
-def get_options_txt_image(img, options, selected, msg=None, pos="top"):
+def get_options_txt_image(
+    img, options, selected, msg=None, pos="top", draw_outline=False
+):
     """Creates an image with text options (used by gui_select_option)
 
     Args:
@@ -76,7 +78,13 @@ def get_options_txt_image(img, options, selected, msg=None, pos="top"):
             user_prompt += f"{i}. {o}\n"
 
     user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
-    res = overlay_text(img, user_prompt, scale=0.5, y_pos=y_pos)
+
+    ol_color = None
+    if draw_outline:
+        ol_color = (0, 0, 0)
+
+    res = overlay_text(img, user_prompt, scale=0.5, y_pos=y_pos, outline_color=ol_color)
+
     return res
 
 
@@ -100,7 +108,14 @@ def is_arrow_key_pressed(direction, pressed_keycode):
 
 
 def gui_select_option(
-    options, bg_image, *, window_title="Option Select", msg=None, default=0, position="top"
+    options,
+    bg_image,
+    *,
+    window_title="Option Select",
+    msg=None,
+    default=0,
+    position="top",
+    draw_outline=False,
 ):
     """
     Ask user to select one of several options using a string list.
@@ -117,21 +132,32 @@ def gui_select_option(
     default: integer
         default selected idx
     position: display position ["top", "bottom"]
+    draw_outline: draws outline around text
     return: tuple (integer, object)
         idx and value of selected option
 
     """
     bg = get_image(bg_image)
     bg_dims = get_img_dimensions(bg)
-    overlay = create_blank_image(bg_dims["width"], bg_dims["height"])
+
+    # old method - create overlay image with text and combine with bg
+    # overlay = create_blank_image(bg_dims["width"], bg_dims["height"])
 
     # user prompt
     sel_idx = default
     sel_option = None
     key = -1
     while key != KEY_SPACE and key != KEY_ENTER:
-        prompt_img = get_options_txt_image(overlay, options, sel_idx, msg=msg, pos=position)
-        display_img = overlay_image(bg, prompt_img)
+        display_img = bg.copy()
+        display_img = get_options_txt_image(
+            display_img,
+            options,
+            sel_idx,
+            msg=msg,
+            pos=position,
+            draw_outline=draw_outline,
+        )
+        # display_img = overlay_image(bg, prompt_img) # old method
         cv2.imshow(window_title, display_img)
         # wait and listen to keypresses
         key = cv2.waitKeyEx(0)  # & 0xFF -> don't use here, disables arrow key use
@@ -150,6 +176,7 @@ def gui_select_option(
             break
         # update selected value
         sel_option = options[sel_idx]
+        del display_img
 
     return sel_idx, sel_option
 
@@ -296,7 +323,7 @@ def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
-def draw_line(img, p_a, p_b, *, create_copy = True, color=(255, 255, 255), thickness=1):
+def draw_line(img, p_a, p_b, *, create_copy=True, color=(255, 255, 255), thickness=1):
     """Draws a line from p_a to p_b
 
     Args:
@@ -521,6 +548,7 @@ def overlay_text(
     color=(255, 255, 255),
     color_mix=None,
     thickness=1,
+    outline_color=None,
 ):
     """Overlays text on an opencv image, does not change original image. Supports multiline text using '\n'.
     Parameters
@@ -529,6 +557,8 @@ def overlay_text(
     txt: string
     color: RGB Tuple
     color_mix: list of RGB color tuples overriding 'color' (each line is created in a different color out of the mix)
+    draw_outline: draw outline around text
+    outline_color: RGB color tuple for outline - no outline is drawn if set to None (default)
     Returns: np.array
         image with a text overlay
     """
@@ -544,6 +574,20 @@ def overlay_text(
         fontColors = color_mix
 
     for i, line in enumerate(txt.split("\n")):
+        # text outline
+        if outline_color != None:
+            ol_color = RGB_to_BGR(outline_color)
+            cv2.putText(
+                img=altered_img,
+                text=line,
+                org=bottomLeftCornerOfText,
+                fontFace=font,
+                fontScale=fontScale,
+                color=ol_color,
+                lineType=lineType,
+                thickness=thickness * 2,
+            )
+        # text
         cur_color_idx = i % len(fontColors)
         cur_color = fontColors[cur_color_idx]
         cur_color = RGB_to_BGR(cur_color)
