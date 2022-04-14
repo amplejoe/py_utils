@@ -42,9 +42,30 @@ WIN_ARROW_KEY_CODES = {
 MAC_ARROW_KEY_CODES = {"up": 63232, "down": 63233, "left": 63234, "right": 63235}
 LINUX_ARROW_KEY_CODES = {"up": 65362, "down": 65364, "left": 65361, "right": 65363}
 
+# misc
+TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
+
+# https://gist.github.com/xcsrz/8938a5d4a47976c745407fe2788c813a
+def get_text_size(text, font=TEXT_FONT, scale=1, thickness=1):
+    lines = text.split("\n")
+    num_rows = len(lines)
+    longest_string = max(lines, key=len)
+
+    # get boundary of text
+    textsize = cv2.getTextSize(longest_string, font, scale, thickness)[0]
+    return {"width": textsize[0], "height": textsize[1] * num_rows}
+
 
 def get_options_txt_image(
-    img, options, selected, msg=None, pos="top", draw_outline=False
+    img,
+    options,
+    selected,
+    msg=None,
+    pos="top",
+    draw_outline=False,
+    show_help=True,
+    scale=0.5,
+    thickness=1,
 ):
     """Creates an image with text options (used by gui_select_option)
 
@@ -53,17 +74,13 @@ def get_options_txt_image(
         options (_type_): _description_
         selected (_type_): _description_
         msg (_type_, optional): _description_. Defaults to None.
-        pos (str, optional): "top" or "bottom". Defaults to "top".
+        pos (str, optional): "top", "bottom" or "center". Defaults to "top".
+        draw_outline: optionally draw a black outline around the text
+        show_help: show user info for selecting values
 
     Returns:
         _type_: _description_
     """
-
-    if pos == "top":
-        y_pos = 20
-    if pos == "bottom":
-        img_dims = get_img_dimensions(img)
-        y_pos = img_dims["height"] - 40
 
     if selected < 0 or selected > len(options) - 1:
         selected = 0
@@ -77,13 +94,54 @@ def get_options_txt_image(
         else:
             user_prompt += f"{i}. {o}\n"
 
-    user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
+    if show_help:
+        user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
 
+    # color
     ol_color = None
     if draw_outline:
         ol_color = (0, 0, 0)
 
-    res = overlay_text(img, user_prompt, scale=0.5, y_pos=y_pos, outline_color=ol_color)
+    # positions
+
+    # top
+    x_pos = 10
+    y_pos = 20
+    img_dims = get_img_dimensions(img)
+    if pos == "bottom":
+        y_pos = img_dims["height"] - 40
+    elif pos == "center":
+        text_size = get_text_size(user_prompt, scale=scale, thickness=thickness)
+        # get center coords based on boundary
+        # print(
+        #     f"[{img_dims['width'], img_dims['height']}] - [{text_size['width'], text_size['height']}]"
+        # )
+        x_pos = (img_dims["width"] - text_size["width"]) / 2
+        y_pos = (img_dims["height"] - text_size["height"]) / 2
+
+    if x_pos < 0:
+        x_pos = 0
+    if x_pos > img_dims["width"]:
+        x_pos = img_dims["width"]
+    if y_pos < 0:
+        y_pos = 0
+    if y_pos > img_dims["height"]:
+        y_pos = img_dims["height"]
+
+    x_pos = int(x_pos)
+    y_pos = int(y_pos)
+
+    # print(f"{x_pos, y_pos}")
+
+    res = overlay_text(
+        img,
+        user_prompt,
+        scale=scale,
+        thickness=thickness,
+        x_pos=x_pos,
+        y_pos=y_pos,
+        outline_color=ol_color,
+    )
 
     return res
 
@@ -116,6 +174,9 @@ def gui_select_option(
     default=0,
     position="top",
     draw_outline=False,
+    show_help=True,
+    scale=0.5,
+    thickness=1,
 ):
     """
     Ask user to select one of several options using a string list.
@@ -156,6 +217,9 @@ def gui_select_option(
             msg=msg,
             pos=position,
             draw_outline=draw_outline,
+            show_help=show_help,
+            scale=scale,
+            thickness=thickness,
         )
         # display_img = overlay_image(bg, prompt_img) # old method
         cv2.imshow(window_title, display_img)
@@ -564,16 +628,23 @@ def overlay_text(
     """
     altered_img = get_image(img, True)
     # height, _, _ = altered_img.shape
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    font = TEXT_FONT
     bottomLeftCornerOfText = (x_pos, y_pos)
     fontScale = scale
     fontColors = [color]
     lineType = cv2.FILLED
 
+    rows = txt.split("\n")
+    num_rows = len(rows)
+
+    text_size = get_text_size(txt, scale=scale, thickness=thickness)
+    row_height = int(text_size["height"] / num_rows)
+    row_gap = 16
+
     if color_mix is not None and len(color_mix) > 0:
         fontColors = color_mix
 
-    for i, line in enumerate(txt.split("\n")):
+    for i, line in enumerate(rows):
         # text outline
         if outline_color != None:
             ol_color = RGB_to_BGR(outline_color)
@@ -601,11 +672,9 @@ def overlay_text(
             lineType=lineType,
             thickness=thickness,
         )
-        size, _ = cv2.getTextSize(txt, font, fontScale, lineType)
-        # baseline += thickness
-        w, h = size
         x_pos, y_pos = bottomLeftCornerOfText
-        bottomLeftCornerOfText = (x_pos, y_pos + h + 5 + thickness)
+        # bottomLeftCornerOfText = (x_pos, y_pos + h + 5 + thickness)
+        bottomLeftCornerOfText = (x_pos, int(y_pos + row_height + row_gap * scale))
 
     return altered_img
 
