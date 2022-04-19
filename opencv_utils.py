@@ -366,6 +366,14 @@ def create_blank_image(width, height, num_channels=NUM_CHANNELS):
         return np.zeros(shape=(height, width, num_channels), dtype=np.uint8)
 
 
+def shift_image(img_or_path, x_shift, y_shift):
+    img_alt = get_image(img_or_path, True)
+    img_dims = get_img_dimensions(img_alt)
+    # src: https://www.youtube.com/watch?v=FWg2BPmXvdk
+    matrix = np.float32([[1, 0, x_shift], [0, 1, y_shift]])
+    return cv2.warpAffine(img_alt, matrix, (img_dims["width"], img_dims["height"]))
+
+
 def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     """Draws a rectangle to an image in a desired color (default: white)
     Parameters
