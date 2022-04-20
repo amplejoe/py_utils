@@ -64,6 +64,7 @@ def get_options_txt_image(
     pos="top",
     draw_outline=False,
     show_help=True,
+    show_idx=True,
     scale=0.5,
     thickness=1,
 ):
@@ -77,6 +78,7 @@ def get_options_txt_image(
         pos (str, optional): "top", "bottom" or "center". Defaults to "top".
         draw_outline: optionally draw a black outline around the text
         show_help: show user info for selecting values
+        show_idx: show available indices for selecting values
 
     Returns:
         _type_: _description_
@@ -89,10 +91,13 @@ def get_options_txt_image(
         user_prompt += f"{msg}\n"
 
     for i, o in enumerate(options):
+        idx_txt = ""
+        if show_idx:
+            idx_txt = f"{i}. "
         if selected == i:
-            user_prompt += f"{i}. [{o}]\n"
+            user_prompt += f"{idx_txt}[{o}]\n"
         else:
-            user_prompt += f"{i}. {o}\n"
+            user_prompt += f"{idx_txt}{o}\n"
 
     if show_help:
         user_prompt += f"\nHint: Use 'arrow' keys or 'w'/'s' to select options\nand 'Enter'/'Space' to confirm. Press 'Escape' to cancel."
@@ -170,6 +175,7 @@ def gui_select_option(
     position="top",
     draw_outline=False,
     show_help=True,
+    show_idx=True,
     scale=0.5,
     thickness=1,
 ):
@@ -185,6 +191,10 @@ def gui_select_option(
         options to select
     msg: string
         user prompt message
+    show_help:
+        shows help message for selecting options
+    show_idx:
+        shows option indices next to options
     default: integer
         default selected idx
     position: display position ["top", "bottom"]
@@ -213,6 +223,7 @@ def gui_select_option(
             pos=position,
             draw_outline=draw_outline,
             show_help=show_help,
+            show_idx=show_idx,
             scale=scale,
             thickness=thickness,
         )
