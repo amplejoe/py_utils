@@ -712,7 +712,10 @@ def remove_file(path):
     """
     p = to_path(path, as_string=False)
     if exists_file(p):
-        p.unlink()
+        try:
+            p.unlink()
+        except OSError as e:
+            print("Error: %s : %s" % (p, e.strerror))
 
 
 def copy_to(src_path, dst_path, follow_symlinks=True, ignore_list=None):
