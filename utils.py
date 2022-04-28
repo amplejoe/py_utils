@@ -1140,6 +1140,8 @@ def replace_right(source, target, replacement, replacements=1):
 
 
 def float_to_string(float_var, precision=3):
+    if not is_number(float_var):
+        return float("NAN")
     return "%.*f" % (precision, float_var)
 
 
