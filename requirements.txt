@@ -9,3 +9,4 @@ simplejson==3.17.5
 tqdm==4.19.5
 vidgear==0.2.5
 yattag==1.13.2
+pyreadline==2.1
