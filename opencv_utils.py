@@ -849,6 +849,20 @@ def get_contour_centroid(contour):
     return {"x": cx, "y": cy}
 
 
+def get_distance(point_a, point_b):
+    """calcs distance between two points
+
+    Args:
+        point_a (_type_): _description_
+        point_b (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    dist = math.sqrt((point_a[1] - point_a[0])**2 + (point_b[1] - point_b[0])**2)
+    return dist
+
+
 def move_contour_to(contour, center_x, center_y):
     """Moves a contour by its centroid, given coords are taken as new position center coordinates
 
