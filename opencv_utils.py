@@ -853,11 +853,11 @@ def get_distance(point_a, point_b):
     """calcs distance between two points
 
     Args:
-        point_a (_type_): _description_
-        point_b (_type_): _description_
+        point_a (int): tuple of x1, y1
+        point_b (int): tuple of x2, y2
 
     Returns:
-        _type_: _description_
+        float: distance
     """
     dist = math.sqrt((point_a[1] - point_a[0])**2 + (point_b[1] - point_b[0])**2)
     return dist
