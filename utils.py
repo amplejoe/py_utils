@@ -998,7 +998,7 @@ def set_environment_variable(key, value):
 #### ------------------------------------------------------------------------------------------ ####
 
 
-def unindent_multiline_input(ml_string):
+def unindent_multiline_string(ml_string):
     result = textwrap.dedent(ml_string)
     # make sure not to start with a blank line
     if result.startswith("\n"):
