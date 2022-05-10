@@ -39,7 +39,6 @@ import concurrent.futures
 import tempfile
 import getpass
 import readline
-import textwrap
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -141,7 +140,10 @@ def confirm_delete_path(path, default=None):
 
 
 def confirm_overwrite(path, default=None):
-    """Confirms overwriting a path or a file."""
+    """ Confirms overwriting a path or a file.
+        Dermines items to create by file extension, hence,
+        will NOT create new directories if path contains a '.'.
+    """
     p = to_path(path, as_string=False)
     confirmed = False
     if p.is_dir():
@@ -151,7 +153,9 @@ def confirm_overwrite(path, default=None):
         confirmed = confirm_delete_file(path, default)
     else:
         confirmed = True
-        # check if a dir needs to be created
+        # TODO:  improve this or create separate function for files
+        # here we don't know if the new element should be a file or a directory
+        # -> decide by checking for extension
         ext = get_file_ext(path)
         if ext == "":
             make_dir(path, True)
@@ -998,14 +1002,6 @@ def set_environment_variable(key, value):
 #### ------------------------------------------------------------------------------------------ ####
 
 
-def unindent_multiline_string(ml_string):
-    result = textwrap.dedent(ml_string)
-    # make sure not to start with a blank line
-    if result.startswith("\n"):
-        result = result.replace("\n", "", 1)
-    return result
-
-
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
     """Allows for setting object attributes recursively via strings.
@@ -1465,8 +1461,10 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-        video_file
+    cmd = (
+        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+            video_file
+        )
     )
     jsonstr = None
     try:
