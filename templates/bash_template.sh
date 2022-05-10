@@ -19,6 +19,7 @@ if [ $# -ne 2 ]; then
     echo ""
     echo "usage: bash $script IN_PATH OUT_PATH"
     echo "encapsule paths within '' if they contain spaces"
+    exit 1
 fi
 
 # timestamp function
@@ -49,3 +50,9 @@ hide_spinner() {
 # reads path without '/'
 IN_PATH=${1%/}
 OUT_PATH=${2%/}
+
+# file info
+# IN_DIR=$(dirname "$IN_PATH")
+# IN_NAME_FULL="$(basename -- $IN_PATH)"
+# IN_EXT="${IN_PATH#*.}"
+# IN_NAME="$(basename -- $IN_PATH $IN_EXT)"
