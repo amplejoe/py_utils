@@ -410,7 +410,36 @@ def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
-def draw_partial_circle(image, *, copy_image=True, center=(0,0), radius=10, start_angle=180, end_angle=360, color=COLOR_WHITE, thickness=1):
+def draw_polygon(img, poly,*, is_closed=True, color=BB_COLOR, thickness=cv2.FILLED):
+    """Draws a polygon to an image in a desired color (default: white)
+    Parameters
+    ----------
+    img: np array (Opencv image) or path
+    poly: array / list of coords -> [[x1, y1], [x2, y2], ...]
+        bounding box of format (x, y, w, h)
+    color: 3-tuple
+        RGB color values
+    """
+    img = get_image(img)
+    pts_2d = np.array(poly, np.int32)
+    pts_1d = pts_2d.reshape((-1, 1, 2)) # pts to 1d points
+    if thickness == cv2.FILLED:
+        cv2.fillPoly(img, pts=[pts_2d], color=color)
+    else:
+        cv2.polylines(img, [pts_1d], isClosed=is_closed, thickness=thickness, color=color)
+
+
+def draw_partial_circle(
+    image,
+    *,
+    copy_image=True,
+    center=(0, 0),
+    radius=10,
+    start_angle=180,
+    end_angle=360,
+    color=COLOR_WHITE,
+    thickness=1,
+):
     """Draws a (partial) circle around point by taking a starting and ending angle.
 
     Args:
@@ -427,7 +456,6 @@ def draw_partial_circle(image, *, copy_image=True, center=(0,0), radius=10, star
     # http://docs.opencv.org/modules/core/doc/drawing_functions.html#ellipse
     cv2.ellipse(img, center, axes, angle, start_angle, end_angle, color, thickness)
     return img
-
 
 
 def draw_line(img, p_a, p_b, *, create_copy=True, color=(255, 255, 255), thickness=1):
