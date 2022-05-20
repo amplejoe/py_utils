@@ -851,24 +851,25 @@ def read_csv_df(path, *, header_line: int = 0):
     return df
 
 
-def read_csv(path, header_line=0):
+def read_csv(path,*,  header_line: int=0):
     """ Reads csv to dict. Use header line=None to disable header."""
     df = read_csv_df(path, header_line=header_line)
     return df.to_dict()
 
 
-def read_csv_arr(path, header_line=0):
+def read_csv_arr(path,*,  header_line=0):
     """ Reads csv to list. Use header line=None to disable header."""
     df = read_csv_df(path, header_line=header_line)
     return df.values.tolist()
 
 
-def get_n_last_csv_rows(path, n=1):
+def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
     """ Gets n rows from the end of a csv file counted from the back as a list,
         i.e. last (1), last + second to last (2), ... Default: 1 (last)
         src: https://linuxtut.com/en/02d5c656cc2faa7e35ad/
+        Use header line=None to disable header.
     """
-    df = pd.read_csv(path)
+    df = read_csv_df(path, header_line=header_line)
     return df.tail(n).values.tolist()
 
 
