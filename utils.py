@@ -8,7 +8,6 @@
 # Last Modified: Tuesday, 30th March 2021 3:09:18 am
 # Modified By: Andreas (amplejoe@gmail.com)
 # -----
-# Copyright (c) 2021 Klagenfurt University
 #
 # IMPORTANT: python 3.6+ required
 ###
