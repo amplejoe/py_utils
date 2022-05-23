@@ -5,10 +5,9 @@
 # Created: Tuesday, 12th May 2020 5:46:35 pm
 # Author: Andreas (amplejoe@gmail.com)
 # -----
-# Last Modified: Tuesday, 30th March 2021 3:09:18 am
+# Last Modified: May 2022
 # Modified By: Andreas (amplejoe@gmail.com)
 # -----
-# Copyright (c) 2021 Klagenfurt University
 #
 # IMPORTANT: python 3.6+ required
 ###
@@ -40,6 +39,7 @@ import tempfile
 import getpass
 import readline
 import textwrap
+import pandas as pd
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -846,6 +846,34 @@ def get_attribute_from_json(path, attr):
     return read_json(path)[attr]
 
 
+def read_csv_df(path, *, header_line: int = 0):
+    """ Reads csv to pandas df. Use header line=None to disable header."""
+    df = pd.read_csv(path, header=header_line)
+    return df
+
+
+def read_csv(path,*,  header_line: int=0):
+    """ Reads csv to dict. Use header line=None to disable header."""
+    df = read_csv_df(path, header_line=header_line)
+    return df.to_dict()
+
+
+def read_csv_arr(path,*,  header_line=0):
+    """ Reads csv to list. Use header line=None to disable header."""
+    df = read_csv_df(path, header_line=header_line)
+    return df.values.tolist()
+
+
+def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
+    """ Gets n rows from the end of a csv file counted from the back as a list,
+        i.e. last (1), last + second to last (2), ... Default: 1 (last)
+        src: https://linuxtut.com/en/02d5c656cc2faa7e35ad/
+        Use header line=None to disable header.
+    """
+    df = read_csv_df(path, header_line=header_line)
+    return df.tail(n).values.tolist()
+
+
 def read_file_to_array(path):
     """Reads all lines of a file into an array."""
     arr = None
@@ -1475,10 +1503,8 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = (
-        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-            video_file
-        )
+    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+        video_file
     )
     jsonstr = None
     try:

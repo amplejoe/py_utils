@@ -20,6 +20,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import math
+from PIL import Image
 
 from . import utils
 
@@ -984,3 +985,17 @@ def save_image(img, file_path, info=True):
     cv2.imwrite(file_path, img)
     if info:
         tqdm.write(f"Wrote {file_path}")
+
+
+# IMAGE TRANSFORMATIONS
+
+def opencv_to_pil(img_cv):
+    # src: https://chowdera.com/2021/07/20210707185741848M.html
+    # opencv -> pil
+    return Image.fromarray(cv2.cvtColor(img_cv,cv2.COLOR_BGR2RGB))
+
+def pil_to_opencv(img_pil):
+    # src: https://chowdera.com/2021/07/20210707185741848M.html
+    # pil -> opencv
+    return cv2.cvtColor(np.asarray(img_pil),cv2.COLOR_RGB2BGR)
+
