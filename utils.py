@@ -39,6 +39,7 @@ import concurrent.futures
 import tempfile
 import getpass
 import readline
+import textwrap
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -163,6 +164,8 @@ def confirm_overwrite(path, default=None):
 
 
 def complete_path(text, state):
+    """ Path autocompletion like bash.
+    """
     incomplete_path = pathlib.Path(text)
     if incomplete_path.is_dir():
         completions = [p.as_posix() for p in incomplete_path.iterdir()]
@@ -1001,6 +1004,17 @@ def set_environment_variable(key, value):
 ####    STRING MANIPULATION
 #### ------------------------------------------------------------------------------------------ ####
 
+def unindent_multiline_string(ml_string):
+    """ Unindents multiline strings, e.g. the following containing 3 indentations unindented:
+        '''
+            Hello there!
+        '''
+    """
+    result = textwrap.dedent(ml_string)
+    # make sure not to start with a blank line
+    if result.startswith("\n"):
+        result = result.replace("\n", "", 1)
+    return result
 
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
