@@ -31,13 +31,19 @@ LABELS_FILE = "labels.txt"
 HTML_FILE = "label_colors.html"
 BACKGROUND_LABELS = ["background", "bg"]
 
+# DEFAULT_COLORS = OrderedDict(
+#     {
+#         "background": (0, 0, 0),  # black (bg)
+#         "peritoneum": (228, 26, 28),  # red
+#         "ovary": (55, 126, 184),  # blue
+#         "die": (77, 175, 74),  # green
+#         "uterus": (152, 78, 163),  # violet
+#     }
+# )
 DEFAULT_COLORS = OrderedDict(
     {
         "background": (0, 0, 0),  # black (bg)
-        "peritoneum": (228, 26, 28),  # red
-        "ovary": (55, 126, 184),  # blue
-        "die": (77, 175, 74),  # green
-        "uterus": (152, 78, 163),  # violet
+        "default": (255, 255, 255),  # white (fg)
     }
 )
 
@@ -100,6 +106,11 @@ class ColorLabeler:
         return ret
 
     def label_to_color(self, label):
+        if label not in self.colors:
+            if label == 'background':
+                return DEFAULT_COLORS['background']
+            else:
+                return DEFAULT_COLORS['default']
         return self.colors[label]
 
     def color_to_label(self, color):

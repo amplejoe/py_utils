@@ -5,10 +5,9 @@
 # Created: Tuesday, 12th May 2020 5:46:35 pm
 # Author: Andreas (amplejoe@gmail.com)
 # -----
-# Last Modified: Tuesday, 30th March 2021 3:09:18 am
+# Last Modified: May 2022
 # Modified By: Andreas (amplejoe@gmail.com)
 # -----
-# Copyright (c) 2021 Klagenfurt University
 #
 # IMPORTANT: python 3.6+ required
 ###
@@ -19,8 +18,6 @@
 
 
 import os
-# import pwd
-# import grp
 import sys
 import errno
 import json, simplejson
@@ -41,6 +38,8 @@ import concurrent.futures
 import tempfile
 import getpass
 import readline
+import textwrap
+import pandas as pd
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -142,7 +141,10 @@ def confirm_delete_path(path, default=None):
 
 
 def confirm_overwrite(path, default=None):
-    """Confirms overwriting a path or a file."""
+    """ Confirms overwriting a path or a file.
+        Dermines items to create by file extension, hence,
+        will NOT create new directories if path contains a '.'.
+    """
     p = to_path(path, as_string=False)
     confirmed = False
     if p.is_dir():
@@ -152,7 +154,9 @@ def confirm_overwrite(path, default=None):
         confirmed = confirm_delete_file(path, default)
     else:
         confirmed = True
-        # check if a dir needs to be created
+        # TODO:  improve this or create separate function for files
+        # here we don't know if the new element should be a file or a directory
+        # -> decide by checking for extension
         ext = get_file_ext(path)
         if ext == "":
             make_dir(path, True)
@@ -160,6 +164,8 @@ def confirm_overwrite(path, default=None):
 
 
 def complete_path(text, state):
+    """ Path autocompletion like bash.
+    """
     incomplete_path = pathlib.Path(text)
     if incomplete_path.is_dir():
         completions = [p.as_posix() for p in incomplete_path.iterdir()]
@@ -439,6 +445,8 @@ def change_owner(path, user, group, silent=False):
     if exists_dir(path):
 
         # alternative
+        # import pwd
+        # import grp
         # uid = pwd.getpwnam(user).pw_uid
         # gid = grp.getgrnam(group).gr_gid
         # os.chown(path, uid, gid)
@@ -712,7 +720,10 @@ def remove_file(path):
     """
     p = to_path(path, as_string=False)
     if exists_file(p):
-        p.unlink()
+        try:
+            p.unlink()
+        except OSError as e:
+            print("Error: %s : %s" % (p, e.strerror))
 
 
 def copy_to(src_path, dst_path, follow_symlinks=True, ignore_list=None):
@@ -833,6 +844,34 @@ def read_json_arr(json_path):
 def get_attribute_from_json(path, attr):
     """gets attribute from json file"""
     return read_json(path)[attr]
+
+
+def read_csv_df(path, *, header_line: int = 0):
+    """ Reads csv to pandas df. Use header line=None to disable header."""
+    df = pd.read_csv(path, header=header_line)
+    return df
+
+
+def read_csv(path,*,  header_line: int=0):
+    """ Reads csv to dict. Use header line=None to disable header."""
+    df = read_csv_df(path, header_line=header_line)
+    return df.to_dict()
+
+
+def read_csv_arr(path,*,  header_line=0):
+    """ Reads csv to list. Use header line=None to disable header."""
+    df = read_csv_df(path, header_line=header_line)
+    return df.values.tolist()
+
+
+def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
+    """ Gets n rows from the end of a csv file counted from the back as a list,
+        i.e. last (1), last + second to last (2), ... Default: 1 (last)
+        src: https://linuxtut.com/en/02d5c656cc2faa7e35ad/
+        Use header line=None to disable header.
+    """
+    df = read_csv_df(path, header_line=header_line)
+    return df.tail(n).values.tolist()
 
 
 def read_file_to_array(path):
@@ -993,6 +1032,17 @@ def set_environment_variable(key, value):
 ####    STRING MANIPULATION
 #### ------------------------------------------------------------------------------------------ ####
 
+def unindent_multiline_string(ml_string):
+    """ Unindents multiline strings, e.g. the following containing 3 indentations unindented:
+        '''
+            Hello there!
+        '''
+    """
+    result = textwrap.dedent(ml_string)
+    # make sure not to start with a blank line
+    if result.startswith("\n"):
+        result = result.replace("\n", "", 1)
+    return result
 
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
@@ -1137,6 +1187,8 @@ def replace_right(source, target, replacement, replacements=1):
 
 
 def float_to_string(float_var, precision=3):
+    if not is_number(float_var):
+        return float("NAN")
     return "%.*f" % (precision, float_var)
 
 

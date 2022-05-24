@@ -20,12 +20,22 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import math
+from PIL import Image
 
 from . import utils
 
+
+# colors in opencv BGR
+COLOR_WHITE = (255, 255, 255)
+COLOR_BLACK = (0, 0, 0)
+COLOR_GREEN = (0, 255, 0)
+COLOR_RED = (0, 0, 255)
+COLOR_BLUE = (255, 0, 0)
+
 BLEND_ALPHA = 0.5
 NUM_CHANNELS = 3
-BB_COLOR = (255, 255, 255)
+BB_COLOR = COLOR_WHITE
+
 
 # Opencv Keycodes
 KEY_ESCAPE = 27
@@ -105,7 +115,7 @@ def get_options_txt_image(
     # color
     ol_color = None
     if draw_outline:
-        ol_color = (0, 0, 0)
+        ol_color = COLOR_BLACK
 
     # positions
 
@@ -294,7 +304,7 @@ def image_to_binary_image(img_or_path):
     dims = get_img_dimensions(img_or_path)
     image_binary = np.zeros((dims["height"], dims["width"], 1), np.uint8)
     cv2.drawContours(
-        image_binary, [max(contours, key=cv2.contourArea)], -1, (255, 255, 255), -1
+        image_binary, [max(contours, key=cv2.contourArea)], -1, COLOR_WHITE, -1
     )
     return image_binary
 
@@ -401,6 +411,54 @@ def draw_rectangle(img, bb, color=BB_COLOR, thickness=cv2.FILLED):
     cv2.rectangle(img, (bb[0], bb[1]), (x2, y2), color=color, thickness=thickness)
 
 
+def draw_polygon(img, poly,*, is_closed=True, color=BB_COLOR, thickness=cv2.FILLED):
+    """Draws a polygon to an image in a desired color (default: white)
+    Parameters
+    ----------
+    img: np array (Opencv image) or path
+    poly: array / list of coords -> [[x1, y1], [x2, y2], ...]
+        bounding box of format (x, y, w, h)
+    color: 3-tuple
+        RGB color values
+    """
+    img = get_image(img)
+    pts_2d = np.array(poly, np.int32)
+    pts_1d = pts_2d.reshape((-1, 1, 2)) # pts to 1d points
+    if thickness == cv2.FILLED:
+        cv2.fillPoly(img, pts=[pts_2d], color=color)
+    else:
+        cv2.polylines(img, [pts_1d], isClosed=is_closed, thickness=thickness, color=color)
+
+
+def draw_partial_circle(
+    image,
+    *,
+    copy_image=True,
+    center=(0, 0),
+    radius=10,
+    start_angle=180,
+    end_angle=360,
+    color=COLOR_WHITE,
+    thickness=1,
+):
+    """Draws a (partial) circle around point by taking a starting and ending angle.
+
+    Args:
+        image (_type_): _description_
+        radius (_type_): _description_
+        start_angle (int, optional): _description_. Defaults to 180.
+        end_angle (int, optional): _description_. Defaults to 360.
+        thickness (int, optional): _description_. Defaults to 1.
+    """
+    img = get_image(image, copy_image)
+    # Ellipse parameters
+    axes = (radius, radius)
+    angle = 0
+    # http://docs.opencv.org/modules/core/doc/drawing_functions.html#ellipse
+    cv2.ellipse(img, center, axes, angle, start_angle, end_angle, color, thickness)
+    return img
+
+
 def draw_line(img, p_a, p_b, *, create_copy=True, color=(255, 255, 255), thickness=1):
     """Draws a line from p_a to p_b
 
@@ -409,7 +467,7 @@ def draw_line(img, p_a, p_b, *, create_copy=True, color=(255, 255, 255), thickne
         p_a (tuple of int): point in form (x, y)
         p_b (tuple of int): point in form (x, y)
         create_copy: return altered image copy or alter original image
-        color (tuple, optional): [description]. Defaults to (255, 255, 255).
+        color (tuple, optional): [description]. Defaults to COLOR_WHITE.
         thickness (int, optional): [description]. Defaults to 1.
 
     Returns:
@@ -426,7 +484,7 @@ def draw_rotated_line(
     y_pos_percent=0.5,
     angle=0,
     line_thickness=1,
-    color=(0, 255, 0),
+    color=COLOR_GREEN,
 ):
     """Draws a straigh and rotated line through an input picture (always touching borders). rot point is given by percentages.
 
@@ -468,11 +526,11 @@ def draw_rotated_line(
         x1, y1 = int(x1), int(y1)
         x2, y2 = int(x2), int(y2)
 
-    cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
+    cv2.line(img_altered, (x1, y1), (x2, y2), COLOR_GREEN, thickness=line_thickness)
     return img_altered
 
 
-def draw_horizontal_line(img, y_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
+def draw_horizontal_line(img, y_pos_percent=0.5, line_thickness=1, color=COLOR_GREEN):
     """Draws a horizontal line through an input picture. position is given as a percentage.
 
     Args:
@@ -484,11 +542,11 @@ def draw_horizontal_line(img, y_pos_percent=0.5, line_thickness=1, color=(0, 255
     width, height = img.shape[1], img.shape[0]
     x1, y1 = 0, int(height * y_pos_percent)
     x2, y2 = width, int(width * y_pos_percent)
-    cv2.line(img_altered, (x1, y1), (x2, y2), (0, 255, 0), thickness=line_thickness)
+    cv2.line(img_altered, (x1, y1), (x2, y2), COLOR_GREEN, thickness=line_thickness)
     return img_altered
 
 
-def draw_vertical_line(img, x_pos_percent=0.5, line_thickness=1, color=(0, 255, 0)):
+def draw_vertical_line(img, x_pos_percent=0.5, line_thickness=1, color=COLOR_GREEN):
     """Draws a vertical line through an input picture. position is given as a percentage.
 
     Args:
@@ -589,12 +647,12 @@ def RGB_to_BGR(rgb):
     return b, g, r
 
 
-def add_colored_border(img_or_path, *, color=(255, 255, 255), size=5):
+def add_colored_border(img_or_path, *, color=COLOR_WHITE, size=5):
     """[summary]
 
     Args:
         img_or_path ([type]): Image of Path.
-        color (tuple, optional): RGB color tuple. Defaults to (255, 255, 255).
+        color (tuple, optional): RGB color tuple. Defaults to white.
         size_pixel (int, optional): Border size in pixels. Defaults to 5.
 
     Returns:
@@ -621,7 +679,7 @@ def overlay_text(
     x_pos=10,
     y_pos=25,
     scale=1,
-    color=(255, 255, 255),
+    color=COLOR_WHITE,
     color_mix=None,
     thickness=1,
     outline_color=None,
@@ -849,6 +907,22 @@ def get_contour_centroid(contour):
     return {"x": cx, "y": cy}
 
 
+def get_distance(point_a, point_b):
+    """calcs distance between two points
+
+    Args:
+        point_a (int): tuple of x1, y1
+        point_b (int): tuple of x2, y2
+
+    Returns:
+        float: distance
+    """
+    x_diff = point_a[0] - point_b[0]
+    y_diff = point_a[1] - point_b[1]
+    dist = math.sqrt((x_diff * x_diff) + (y_diff * y_diff))
+    return dist
+
+
 def move_contour_to(contour, center_x, center_y):
     """Moves a contour by its centroid, given coords are taken as new position center coordinates
 
@@ -911,3 +985,17 @@ def save_image(img, file_path, info=True):
     cv2.imwrite(file_path, img)
     if info:
         tqdm.write(f"Wrote {file_path}")
+
+
+# IMAGE TRANSFORMATIONS
+
+def opencv_to_pil(img_cv):
+    # src: https://chowdera.com/2021/07/20210707185741848M.html
+    # opencv -> pil
+    return Image.fromarray(cv2.cvtColor(img_cv,cv2.COLOR_BGR2RGB))
+
+def pil_to_opencv(img_pil):
+    # src: https://chowdera.com/2021/07/20210707185741848M.html
+    # pil -> opencv
+    return cv2.cvtColor(np.asarray(img_pil),cv2.COLOR_RGB2BGR)
+

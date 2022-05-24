@@ -293,7 +293,7 @@ def get_custom_cfg():
     return c_cfg
 
 
-def create_d2_cfgs(ds_info, cnn_cfg, script_dir):
+def create_d2_cfgs(ds_info, cnn_cfg, script_dir, use_validation=True):
     """Get detectron2 configs for a specific dataset. Returns list of cfgs depending on parameters
     Parameters
     ----------
@@ -331,7 +331,10 @@ def create_d2_cfgs(ds_info, cnn_cfg, script_dir):
         old_ds_name = ds_info["ds_name"]
         # legacy problem: train, test = val
         base_cfg.DATASETS.TRAIN = (f"{ds_name}_train",)
-        base_cfg.DATASETS.TEST = (f"{ds_name}_val",)
+        if use_validation:
+            base_cfg.DATASETS.TEST = (f"{ds_name}_val",)
+        else:
+            base_cfg.DATASETS.TEST = ()
 
         #  D2 weights
         if is_key_set(cnn, "weight_url"):
