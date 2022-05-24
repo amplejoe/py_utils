@@ -19,8 +19,8 @@
 
 
 import os
-import pwd
-import grp
+# import pwd
+# import grp
 import sys
 import errno
 import json, simplejson
@@ -442,7 +442,7 @@ def change_owner(path, user, group, silent=False):
         # uid = pwd.getpwnam(user).pw_uid
         # gid = grp.getgrnam(group).gr_gid
         # os.chown(path, uid, gid)
-        
+
         try:
             shutil.chown(path, user, group)
             if not silent:
