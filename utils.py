@@ -17,6 +17,7 @@
 #### ------------------------------------------------------------------------------------------ ####
 
 
+from io import TextIOWrapper
 import os
 import sys
 import errno
@@ -37,9 +38,12 @@ import decimal
 import concurrent.futures
 import tempfile
 import getpass
+# Windows: pip install pyreadline
 import readline
 import textwrap
 import pandas as pd
+import csv
+import typing
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -845,6 +849,32 @@ def get_attribute_from_json(path, attr):
     """gets attribute from json file"""
     return read_json(path)[attr]
 
+
+def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWriter] :
+    """Gets csv writer and creates OR opens an existing csv in append mode.
+       Writer usage:
+            writer.writerow(dict)
+
+       IMPORTANT: don't forget to close file when done, i.e. file.close()
+
+    Args:
+        path (str): path to file
+        headers (list[str]): optional header line - ignored in append mode
+    """
+    fileHandle = None
+    is_new_file = False
+    if exists_file(path):
+        fileHandle = open(path, mode='a', newline="")
+    else:
+        fileHandle = open(path, mode='w', newline="")
+        is_new_file = True
+
+
+    writer = csv.DictWriter(fileHandle, fieldnames=headers)
+    if is_new_file:
+        writer.writeheader()
+
+    return fileHandle, writer
 
 def read_csv_df(path, *, header_line: int = 0):
     """ Reads csv to pandas df. Use header line=None to disable header."""
