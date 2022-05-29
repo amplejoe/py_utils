@@ -38,7 +38,7 @@ import decimal
 import concurrent.futures
 import tempfile
 import getpass
-# Windows: pip install pyreadline
+# Windows: pip install pyreadline3
 import readline
 import textwrap
 import pandas as pd
@@ -875,6 +875,39 @@ def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWr
         writer.writeheader()
 
     return fileHandle, writer
+
+def csv_row_reader(path, has_headers = True) -> typing.Tuple[TextIOWrapper, csv.DictWriter] :
+    """Gets csv line-by-line reader generator. Recommended for large files - for smaller files use read_csv*.
+       Usage:
+            Simply loop over returned generator:
+            for row in get_csv_dict_reader(path):
+                print(row['some_header_fild'])
+                # or for no headers:
+                print(row[0])
+
+       No Need to close the file after reading.
+
+    Args:
+        path (str): path to file
+        has_headers (bool): indicate if the file contains a header line
+    """
+
+    with open(path, "r") as csvfile:
+        datareader = csv.reader(csvfile)
+        if has_headers:
+            headers = next(datareader)
+
+        for row in datareader:
+            ret = None
+            if has_headers:
+                ret = {}
+                for i, h in enumerate(headers):
+                    # return dict with headers as keys
+                    ret[h] = row[i]
+            else:
+                # return simple list
+                ret = row
+            yield ret
 
 def read_csv_df(path, *, header_line: int = 0):
     """ Reads csv to pandas df. Use header line=None to disable header."""
