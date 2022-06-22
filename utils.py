@@ -876,12 +876,21 @@ def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWr
 
     return fileHandle, writer
 
-def csv_row_reader(path, has_headers = True) -> typing.Tuple[TextIOWrapper, csv.DictWriter] :
+
+def get_csv_headers(path):
+    headers = None
+    with open(path, "r") as csvfile:
+        datareader = csv.reader(csvfile)
+        headers = next(datareader)
+    return headers
+
+
+def csv_row_reader(path, has_headers = True):
     """Gets csv line-by-line reader generator. Recommended for large files - for smaller files use read_csv*.
        Usage:
             Simply loop over returned generator:
             for row in get_csv_dict_reader(path):
-                print(row['some_header_fild'])
+                print(row['some_header_field'])
                 # or for no headers:
                 print(row[0])
 
