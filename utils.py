@@ -1116,6 +1116,20 @@ def unindent_multiline_string(ml_string):
         result = result.replace("\n", "", 1)
     return result
 
+def wrap_key_value_string(key: str, value: str, width: int = 80) -> str:
+    """
+        Generates text wrapped output of key value pair, e.g.:
+            print(utils.wrap_key_value_string("seq", "a b c d e f g", width=10))
+        creates:
+            seq: a b c
+                 d e f
+                 g
+    """
+    key_str = f"{key}: "
+    wrapper = textwrap.TextWrapper(initial_indent=key_str, width=width,
+                                subsequent_indent=' '*len(key_str))
+    return wrapper.fill(value)
+
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
     """Allows for setting object attributes recursively via strings.
