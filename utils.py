@@ -1116,6 +1116,28 @@ def unindent_multiline_string(ml_string):
         result = result.replace("\n", "", 1)
     return result
 
+def indent_multiline_string(ml_string):
+    """ Indents multiline strings, e.g. for the following each line's indentation is matched:
+        '''
+            print(indent_multiline_string("     first(NL)second(NL)third"))
+            ->
+                 first
+                 second
+                 third
+
+        '''
+    """
+
+    leading_spaces = len(ml_string) - len(ml_string.lstrip(' '));
+    ml_string = ml_string.lstrip(' ')
+    parts = ml_string.split("\n")
+
+    parts = [" " * leading_spaces + x for x in parts]
+
+    return "\n".join(parts)
+
+
+
 def wrap_key_value_string(key: str, value: str, width: int = 80) -> str:
     """
         Generates text wrapped output of key value pair, e.g.:
