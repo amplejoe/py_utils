@@ -11,6 +11,13 @@ __description__ = """
 # @version  : 1.0
 # =============================================================================
 
+import sys
+
+MIN_PYTHON = (3, 8)
+if sys.version_info < MIN_PYTHON:
+    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
+
+
 import argparse
 from py_utils import utils
 import sys
@@ -32,24 +39,36 @@ def main():
     ):
         exit("IN cannot be the same as OUT, '.' or script path.")
 
-    if not (utils.confirm_overwrite(g_args.output, "n")):
-        print("Skip folder creation.")
+    # if not (utils.confirm_overwrite(g_args.output, "n")):
+    #     print("Skip folder creation.")
 
     in_files = utils.get_file_paths(g_args.input)
 
     for f in tqdm(in_files):
         fn = utils.get_file_name(f)
+        fext = utils.get_file_ext(f)
         out_root = g_args.output
         if g_args.keep_dir_structure:
-          rel_path = utils.path_to_relative_path(f, g_args.input, remove_file=True)
-          out_root = utils.join_paths(g_args.output, rel_path)
-          utils.make_dir(out_root)
-        lnk = utils.join_paths(out_root, fn)
-        if utils.exists_file(lnk):
-          tqdm.write(f"Skipping existing link: {lnk}")
+            rel_path = utils.path_to_relative_path(f, g_args.input, remove_file=True)
+            out_root = utils.join_paths(g_args.output, rel_path)
+        # do NOT join paths here as symlinks are resolved - build own path instead
+        lnk = f"{utils.to_path(out_root)}/{fn}{fext}"
+        # lnk = utils.join_paths(out_root, f"{fn}{fext}")
+        # dont use utils.confirm_overwrite here - they follow symlinks
+        if utils.exists_file(lnk) and not utils.confirm(f"File exists: {lnk} - overwrite?", "n"):
+            tqdm.write(f"Skipping existing link: {lnk}")
         else:
-          os.symlink(f, lnk)
-          tqdm.write(f"Created: {f} <===> {lnk}")
+            try:
+                if utils.exists_file(lnk):
+                  os.unlink(lnk)
+                utils.make_dir(out_root)
+                os.symlink(f, lnk)
+                tqdm.write(f"Created: {f} <===> {lnk}")
+            except:
+                tqdm.write(f"Error creating link: {lnk}")
+                tqdm.write(
+                    "  -> Windows users: this script requires enabled Developer Mode."
+                )
 
 
 def exit(msg=None):
@@ -77,7 +96,7 @@ def parse_args():
         "--keep-dir-structure",
         dest="keep_dir_structure",
         help="force keeping original directory structure",
-        action='store_true'
+        action="store_true",
     )
     ap.add_argument(
         "-o",
