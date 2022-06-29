@@ -29,6 +29,8 @@ IN_IMG_EXT = [".jpg", ".png"]
 IN_VID_EXT = [".mp4", ".avi", ".mov"]
 IN_DATA_EXT = [".npy", ".csv", ".json"]
 
+MODES = ['file', 'folder']
+DEFAULT_MODE = 'file'
 
 def main():
 
@@ -42,18 +44,32 @@ def main():
     # if not (utils.confirm_overwrite(g_args.output, "n")):
     #     print("Skip folder creation.")
 
-    in_files = utils.get_file_paths(g_args.input)
 
-    for f in tqdm(in_files):
-        fn = utils.get_file_name(f)
-        fext = utils.get_file_ext(f)
+    if not g_args.mode in MODES:
+        exit(f"Invalid mode given: {g_args.mode}")
+
+    in_items = []
+    if g_args.recursive:
+        if g_args.mode == "file":
+            in_items = utils.get_file_paths(g_args.input)
+        else:
+            # todo get folders
+            in_items = utils.get_folders(g_args.input, False)
+    else:
+        if g_args.mode == "file":
+            in_items = utils.get_immediate_subfiles(g_args.input)
+        else:
+            in_items = utils.get_immediate_subdirs(g_args.input)
+
+
+    for f in tqdm(in_items):
+        fn_full = utils.get_file_name(f, True)
         out_root = g_args.output
         if g_args.keep_dir_structure:
             rel_path = utils.path_to_relative_path(f, g_args.input, remove_file=True)
             out_root = utils.join_paths(g_args.output, rel_path)
         # do NOT join paths here as symlinks are resolved - build own path instead
-        lnk = f"{utils.to_path(out_root)}/{fn}{fext}"
-        # lnk = utils.join_paths(out_root, f"{fn}{fext}")
+        lnk = f"{utils.to_path(out_root)}/{fn_full}"
         # dont use utils.confirm_overwrite here - they follow symlinks
         if utils.exists_file(lnk) and not utils.confirm(f"File exists: {lnk} - overwrite?", "n"):
             tqdm.write(f"Skipping existing link: {lnk}")
@@ -86,16 +102,33 @@ def parse_args():
         "--input",
         dest="input",
         type=utils.to_path,
-        help="path to input folder - contains all files one wants to link",
+        help="path to input folder - contains all files/folders one wants to link",
         required=True,
         # multiple (at least one) arguments gathered into list
         # nargs='+',
+    )
+    ap.add_argument(
+        "-m",
+        "--mode",
+        dest="mode",
+        type=str,
+        help=f"operation mode: {MODES}",
+        # either argument is given or current './out' is used by default
+        nargs="?",
+        default=DEFAULT_MODE,
     )
     ap.add_argument(
         "-k",
         "--keep-dir-structure",
         dest="keep_dir_structure",
         help="force keeping original directory structure",
+        action="store_true",
+    )
+    ap.add_argument(
+        "-r",
+        "--recursive",
+        dest="recursive",
+        help="recursively traverse source dir",
         action="store_true",
     )
     ap.add_argument(
