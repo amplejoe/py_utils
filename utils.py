@@ -38,12 +38,14 @@ import decimal
 import concurrent.futures
 import tempfile
 import getpass
+
 # Windows: pip install pyreadline3
 import readline
 import textwrap
 import pandas as pd
 import csv
 import typing
+import timeit
 
 # Windows fix for missing redisplay
 # https://github.com/pyreadline/pyreadline/issues/49
@@ -145,9 +147,9 @@ def confirm_delete_path(path, default=None):
 
 
 def confirm_overwrite(path, default=None):
-    """ Confirms overwriting a path or a file.
-        Dermines items to create by file extension, hence,
-        will NOT create new directories if path contains a '.'.
+    """Confirms overwriting a path or a file.
+    Dermines items to create by file extension, hence,
+    will NOT create new directories if path contains a '.'.
     """
     p = to_path(path, as_string=False)
     confirmed = False
@@ -168,8 +170,7 @@ def confirm_overwrite(path, default=None):
 
 
 def complete_path(text, state):
-    """ Path autocompletion like bash.
-    """
+    """Path autocompletion like bash."""
     incomplete_path = pathlib.Path(text)
     if incomplete_path.is_dir():
         completions = [p.as_posix() for p in incomplete_path.iterdir()]
@@ -850,7 +851,7 @@ def get_attribute_from_json(path, attr):
     return read_json(path)[attr]
 
 
-def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWriter] :
+def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWriter]:
     """Gets csv writer and creates OR opens an existing csv in append mode.
        Writer usage:
             writer.writerow(dict)
@@ -864,11 +865,10 @@ def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWr
     fileHandle = None
     is_new_file = False
     if exists_file(path):
-        fileHandle = open(path, mode='a', newline="")
+        fileHandle = open(path, mode="a", newline="")
     else:
-        fileHandle = open(path, mode='w', newline="")
+        fileHandle = open(path, mode="w", newline="")
         is_new_file = True
-
 
     writer = csv.DictWriter(fileHandle, fieldnames=headers)
     if is_new_file:
@@ -885,7 +885,7 @@ def get_csv_headers(path):
     return headers
 
 
-def csv_row_reader(path, has_headers = True):
+def csv_row_reader(path, has_headers=True):
     """Gets csv line-by-line reader generator. Recommended for large files - for smaller files use read_csv*.
        Usage:
             Simply loop over returned generator:
@@ -918,29 +918,30 @@ def csv_row_reader(path, has_headers = True):
                 ret = row
             yield ret
 
+
 def read_csv_df(path, *, header_line: int = 0):
-    """ Reads csv to pandas df. Use header line=None to disable header."""
+    """Reads csv to pandas df. Use header line=None to disable header."""
     df = pd.read_csv(path, header=header_line)
     return df
 
 
-def read_csv(path,*,  header_line: int=0):
-    """ Reads csv to dict. Use header line=None to disable header."""
+def read_csv(path, *, header_line: int = 0):
+    """Reads csv to dict. Use header line=None to disable header."""
     df = read_csv_df(path, header_line=header_line)
     return df.to_dict()
 
 
-def read_csv_arr(path,*,  header_line=0):
-    """ Reads csv to list. Use header line=None to disable header."""
+def read_csv_arr(path, *, header_line=0):
+    """Reads csv to list. Use header line=None to disable header."""
     df = read_csv_df(path, header_line=header_line)
     return df.values.tolist()
 
 
 def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
-    """ Gets n rows from the end of a csv file counted from the back as a list,
-        i.e. last (1), last + second to last (2), ... Default: 1 (last)
-        src: https://linuxtut.com/en/02d5c656cc2faa7e35ad/
-        Use header line=None to disable header.
+    """Gets n rows from the end of a csv file counted from the back as a list,
+    i.e. last (1), last + second to last (2), ... Default: 1 (last)
+    src: https://linuxtut.com/en/02d5c656cc2faa7e35ad/
+    Use header line=None to disable header.
     """
     df = read_csv_df(path, header_line=header_line)
     return df.tail(n).values.tolist()
@@ -1074,6 +1075,15 @@ def get_date_str():
     return today.strftime("%Y/%m/%d")
 
 
+def show_processing_time(start_time, item_name="finished"):
+    # records the time at this instant
+    # of the program
+    end_processing = timeit.default_timer()
+    processing_time = end_processing - start_time
+    processing_time_formatted = float_to_string(processing_time)
+    tqdm.write(f"{item_name} - processing time: {processing_time_formatted} s")
+
+
 def get_current_dir():
     """Returns current working directory."""
     return to_path(pathlib.Path.cwd())
@@ -1104,11 +1114,12 @@ def set_environment_variable(key, value):
 ####    STRING MANIPULATION
 #### ------------------------------------------------------------------------------------------ ####
 
+
 def unindent_multiline_string(ml_string):
-    """ Unindents multiline strings, e.g. the following containing 3 indentations unindented:
-        '''
-            Hello there!
-        '''
+    """Unindents multiline strings, e.g. the following containing 3 indentations unindented:
+    '''
+        Hello there!
+    '''
     """
     result = textwrap.dedent(ml_string)
     # make sure not to start with a blank line
@@ -1116,20 +1127,21 @@ def unindent_multiline_string(ml_string):
         result = result.replace("\n", "", 1)
     return result
 
-def indent_multiline_string(ml_string):
-    """ Indents multiline strings, e.g. for the following each line's indentation is matched:
-        '''
-            print(indent_multiline_string("     first(NL)second(NL)third"))
-            ->
-                 first
-                 second
-                 third
 
-        '''
+def indent_multiline_string(ml_string):
+    """Indents multiline strings, e.g. for the following each line's indentation is matched:
+    '''
+        print(indent_multiline_string("     first(NL)second(NL)third"))
+        ->
+             first
+             second
+             third
+
+    '''
     """
 
-    leading_spaces = len(ml_string) - len(ml_string.lstrip(' '));
-    ml_string = ml_string.lstrip(' ')
+    leading_spaces = len(ml_string) - len(ml_string.lstrip(" "))
+    ml_string = ml_string.lstrip(" ")
     parts = ml_string.split("\n")
 
     parts = [" " * leading_spaces + x for x in parts]
@@ -1137,20 +1149,21 @@ def indent_multiline_string(ml_string):
     return "\n".join(parts)
 
 
-
 def wrap_key_value_string(key: str, value: str, width: int = 80) -> str:
     """
-        Generates text wrapped output of key value pair, e.g.:
-            print(utils.wrap_key_value_string("seq", "a b c d e f g", width=10))
-        creates:
-            seq: a b c
-                 d e f
-                 g
+    Generates text wrapped output of key value pair, e.g.:
+        print(utils.wrap_key_value_string("seq", "a b c d e f g", width=10))
+    creates:
+        seq: a b c
+             d e f
+             g
     """
     key_str = f"{key}: "
-    wrapper = textwrap.TextWrapper(initial_indent=key_str, width=width,
-                                subsequent_indent=' '*len(key_str))
+    wrapper = textwrap.TextWrapper(
+        initial_indent=key_str, width=width, subsequent_indent=" " * len(key_str)
+    )
     return wrapper.fill(value)
+
 
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
@@ -1611,8 +1624,10 @@ def get_video_info(video_file):
             storage_aspect_ratio,
             pixel_aspect_ratio}
     """
-    cmd = 'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
-        video_file
+    cmd = (
+        'ffprobe -i "{}" -v quiet -print_format json -show_format -show_streams'.format(
+            video_file
+        )
     )
     jsonstr = None
     try:
