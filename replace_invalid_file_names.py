@@ -50,6 +50,42 @@ def replace_invalid_chars(in_string, charset, default_replacement):
     return re.sub(charset, default_replacement, result)
 
 
+def rename_path_parts(parts):
+    renamed_path_parts = []
+    for p in parts:
+        part = replace_invalid_chars(p, g_args.invalid_chars, g_args.replace)
+        renamed_path_parts.append(part)
+    return renamed_path_parts
+
+
+def rename_path_if_existing(path, to_rename_paths):
+    fn = utils.get_file_name(path)
+    fext = utils.get_file_ext(path)
+    froot = utils.get_file_path(path)
+    # rename already existing output files
+    cnt = 0
+    while path in to_rename_paths.values():
+        renamed_last = f"{fn}_{cnt}{fext}"
+        path = utils.join_paths(froot, renamed_last)
+        cnt += 1
+    return path
+
+
+def rename_files(to_rename_paths, desc):
+    for src_path, dst_path in tqdm(to_rename_paths.items(), desc=desc):
+        tqdm.write(f"\n{src_path} ===>")
+        tqdm.write(f"{dst_path}")
+        if not g_args.dry_run:
+            if not utils.exists(src_path):
+                # in case paths were renamed before src_path needs to be adjusted
+                file_or_dir = utils.get_file_name(src_path, True)
+                parts = utils.split_path(src_path)[:-1]
+                renamed_parts = rename_path_parts(parts)
+                src_root = "/" + "/".join(renamed_parts)
+                src_path = utils.join_paths(src_root, file_or_dir)
+            utils.rename_file(src_path, dst_path)
+
+
 def main():
 
     if not utils.exists_dir(g_args.input):
@@ -58,92 +94,92 @@ def main():
     if g_args.character_set not in INVALID_CHARS.keys():
         exit(f"Character set not found: {g_args.character_set}")
 
-    invalid_chars = INVALID_CHARS[g_args.character_set]
+    g_args.invalid_chars = INVALID_CHARS[g_args.character_set]
 
     # make sure default replacement is not set to an illegal char
-    test = replace_invalid_chars(g_args.replace, invalid_chars, "-")
+    test = replace_invalid_chars(g_args.replace, g_args.invalid_chars, "-")
     if test != g_args.replace:
         exit(
-            f"Replacement char can not be an invalid char from charset: c {g_args.replace} -> charset {invalid_chars}"
+            f"Replacement char can not be an invalid char from charset: c {g_args.replace} -> charset {g_args.invalid_chars}"
         )
 
     d = utils.to_path(g_args.input, as_string=False)
 
-    all_dirs_files = []
-    # DON'T use tqdm here:
-    # it spams progress bars in other tools (and introducing a flag breaks backward compatibility - use get_files instead)
+    all_dirs = []
+    all_files = []
     for current_file in tqdm(d.glob("**/*"), desc="read"):
-        all_dirs_files.append(current_file.as_posix())
-
-    all_dirs_files_sorted = utils.nat_sort_list(all_dirs_files)
-
-    # renaming
-    to_rename = {}
-    for item in tqdm(all_dirs_files_sorted, desc="rename"):
-        cur_item_to_rename = utils.get_file_name(item, True)
-        cur_item_root = utils.get_nth_parentdir(item, 0, True)
-        renamed = replace_invalid_chars(
-            cur_item_to_rename, invalid_chars, g_args.replace
-        )
-        if utils.exists_file(item):
-            # file
-            # pot. check files for extensions
-            if RENAME_CAPITAL_EXT:
-                ext = utils.get_file_ext(renamed)
-                fn = utils.get_file_name(renamed)
-                lowercase = ext.lower()
-                if lowercase != ext:
-                    renamed = f"{fn}{lowercase}"
+        if current_file.is_file():
+            all_files.append(current_file.as_posix())
         else:
-            # dir
-            cur_item_root = cur_item_root.replace(cur_item_to_rename, "")
-        if renamed != cur_item_to_rename:
-            entry = utils.join_paths(cur_item_root, renamed)
-            fn = utils.get_file_name(entry)
-            fext = utils.get_file_ext(entry)
-            # rename already existing output files
-            cnt = 0
-            while entry in to_rename.values():
-                renamed = f"{fn}_{cnt}{fext}"
-                entry = utils.join_paths(cur_item_root, renamed)
-                cnt += 1
-            to_rename[item] = entry
+            all_dirs.append(current_file.as_posix())
 
+    # sort
+    all_dirs = utils.nat_sort_list(all_dirs)
+    all_files = utils.nat_sort_list(all_files)
+
+    # calc - dirs
+    to_rename_dirs = {}
+    for item in tqdm(all_dirs, desc="calc - dirs"):
+        path_parts = utils.split_path(item)
+        renamed_path_parts = rename_path_parts(path_parts)
+
+        # only rename if last part is different - assumptions:
+        #   * parent directories are first in list
+        renamed_last = renamed_path_parts[len(renamed_path_parts) - 1]
+
+        if renamed_last != path_parts[len(path_parts) - 1]:
+            entry = "/" + "/".join(renamed_path_parts)
+            entry = rename_path_if_existing(entry, to_rename_dirs)
+            to_rename_dirs[item] = entry
+
+    # calc - files
+    to_rename_files = {}
+    for item in tqdm(all_files, desc="calc - files"):
+        path_parts = utils.split_path(item)
+        renamed_path_parts = rename_path_parts(path_parts)
+
+        renamed_file = renamed_path_parts[len(renamed_path_parts) - 1]
+        # pot. check files for extensions
+        if RENAME_CAPITAL_EXT:
+            ext = utils.get_file_ext(renamed_file)
+            fn = utils.get_file_name(renamed_file)
+            lowercase = ext.lower()
+            if lowercase != ext:
+                renamed_file = f"{fn}{lowercase}"
+                renamed_path_parts[len(renamed_path_parts) - 1] = renamed_file
+
+        # only rename if last part is different
+        renamed_last = renamed_path_parts[len(renamed_path_parts) - 1]
+
+        if renamed_last != path_parts[len(path_parts) - 1]:
+            entry = "/" + "/".join(renamed_path_parts)
+            entry = rename_path_if_existing(entry, to_rename_files)
+            to_rename_files[item] = entry
 
     tqdm.write("\n")
-    tqdm.write("----------------------------------------- [SUMMARY] -----------------------------------------")
-    tqdm.write(f"       #files : {len(to_rename.keys())}")
-    tqdm.write(f"       dry-run: {g_args.dry_run}")
-    tqdm.write("---------------------------------------------------------------------------------------------")
+    tqdm.write(
+        "----------------------------------------- [SUMMARY] -----------------------------------------"
+    )
+    tqdm.write(f"               #dirs   : {len(to_rename_dirs.keys())}")
+    tqdm.write(f"               #files  : {len(to_rename_files.keys())}")
+    tqdm.write(f"               dry-run : {g_args.dry_run}")
+    tqdm.write(
+        "---------------------------------------------------------------------------------------------"
+    )
 
-    # replacing
-    for src_path, dst_path in tqdm(to_rename.items(), desc="replacing"):
-        # final_dst = dst_path
-        # final_dst_root = utils.get_nth_parentdir(final_dst, 0, True)
-        # fn = utils.get_file_name(final_dst)
-        # cnt = 0
+    tqdm.write(
+        "\n####################################### [DIRECTORIES] #######################################"
+    )
 
-        # if utils.exists_file(src_path):
-        #     # file
-        #     # rename dst if existing
-        #     while utils.exists_file(final_dst):
-        #         ext = utils.get_file_ext(final_dst)
-        #         final_dst_name = f"{fn}_{cnt}.{ext}"
-        #         final_dst = utils.join_paths(final_dst_root, final_dst_name)
-        #         cnt += 1
-        # else:
-        #     # dir
-        #     final_dst_root = final_dst_root.replace(fn, "")
-        #     # rename dst if existing
-        #     while utils.exists_file(final_dst):
-        #         final_dst = f"{final_dst}_{cnt}"
-        #         final_dst = utils.join_paths(final_dst_root, final_dst_name)
-        #         cnt += 1
+    # process dirs
+    rename_files(to_rename_dirs, "process - dirs")
 
-        tqdm.write(f"\n{src_path} ===>")
-        tqdm.write(f"{dst_path}")
-        if not g_args.dry_run:
-            utils.rename_file(src_path, dst_path)
+    tqdm.write(
+        "\n########################################## [FILES] ##########################################"
+    )
+
+    # process files
+    rename_files(to_rename_files, "process - files")
 
 
 def exit(msg=None):

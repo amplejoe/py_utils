@@ -280,6 +280,11 @@ def exists_file(*p):
     return to_path(*p, as_string=False).is_file()
 
 
+def exists(*p):
+    """Checks whether a path (file or dir) really exists."""
+    return to_path(*p, as_string=False).exists()
+
+
 def is_dir_path(path):
     """Rudimentary check if (non-existing) path is a directory.
         WARNING: only checks for '.' in last path part (files without extension are ignored!)
@@ -356,6 +361,24 @@ def to_path_str(*p):
     deprecated - 'to_path' does the same with as_string=True
     """
     return to_path(*p)
+
+
+def split_path(p, include_dir=False):
+    """Converts path string to list with one entry per path part.
+    WARNING: will convert any relative paths to absolute paths (corresponding to executing script).
+    ----------------------
+    include_dir: include root directory
+    returns: list(str) - the first entry is either the directory root or not set as defined by include_dir
+    """
+    pl_path = to_path(p, as_string=False)
+    pl_path_res = pl_path.resolve()
+
+    p_list = pathlib.PurePosixPath(pl_path_res).parts
+
+    if include_dir:
+        return p_list
+    else:
+        return p_list[1:]
 
 
 def join_paths(path, *paths, as_string=True):
