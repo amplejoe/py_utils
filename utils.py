@@ -1099,18 +1099,24 @@ def get_date_str():
 
 
 def get_default_time():
-    """ Returns timeit default timer, i.e. start_time for show_processing_time. """
+    """Returns timeit default timer, i.e. start_time for show_processing_time."""
     return timeit.default_timer()
 
 
-def show_processing_time(start_time, item_name="finished"):
-    """ Given a timeit start_time this prints the current execution time. """
-    # records the time at this instant
-    # of the program
+def get_processing_time(start_time, format=True):
+    """Given a timeit start_time this returns the current (formatted) execution time."""
     end_processing = timeit.default_timer()
     processing_time = end_processing - start_time
-    processing_time_formatted = float_to_string(processing_time)
-    tqdm.write(f"{item_name} - processing time: {processing_time_formatted} s")
+    if format:
+        return float_to_string(processing_time)
+    else:
+        return processing_time
+
+
+def show_processing_time(start_time, item_name="finished"):
+    """Given a timeit start_time this prints the current execution time."""
+    pt_formatted = get_processing_time(start_time)
+    tqdm.write(f"{item_name} - processing time: {pt_formatted} s")
 
 
 def get_current_dir():
