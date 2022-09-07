@@ -1098,7 +1098,13 @@ def get_date_str():
     return today.strftime("%Y/%m/%d")
 
 
+def get_default_time():
+    """ Returns timeit default timer, i.e. start_time for show_processing_time. """
+    return timeit.default_timer()
+
+
 def show_processing_time(start_time, item_name="finished"):
+    """ Given a timeit start_time this prints the current execution time. """
     # records the time at this instant
     # of the program
     end_processing = timeit.default_timer()
