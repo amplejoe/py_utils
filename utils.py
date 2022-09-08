@@ -1200,6 +1200,23 @@ def wrap_key_value_string(key: str, value: str, width: int = 80) -> str:
     return wrapper.fill(value)
 
 
+def table_output(lst_col_sizes, lst_col_content):
+    """
+    Pretty tabular output where items are put out in columns with custom maximum sizes.
+        Example:
+        IN:     table_output([4, 10, 60], ['', 'stat:', 1234])
+        OUT:    '    stat:     1234'
+
+    """
+    out_str = ""
+    assert len(lst_col_sizes) == len(lst_col_content)
+    # convert to strings
+    lst_col_content = [str(x) for x in lst_col_content]
+    for i, s in enumerate(lst_col_sizes):
+        out_str += f"{lst_col_content[i]:<{s}}"
+    tqdm.write(out_str)
+
+
 # https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties
 def set_object_attr(obj, attr, val):
     """Allows for setting object attributes recursively via strings.
