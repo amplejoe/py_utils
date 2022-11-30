@@ -1282,8 +1282,9 @@ def get_string_before_char(input_string, stop_char):
 
 
 def get_attribute_from(file_name, attribute):
-    """gets an attribute from a file name as string
-    format: a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
+    """gets an attribute from a file/dir name as string. Converts file names / last dir from paths.
+    format file: [OPTIONAL: ANY_PATH/]a1_VAL1_a2_(VAL2.txt)_a3_VAL3.EXT
+    format path: [OPTIONAL: ANY_PATH/]a1_VAL1_a2_(VAL2.txt)_a3_VAL3
     Info:
       * Exceptional characters for VALs: '_', '.', '(', ')'
       * If VALs should contain '_' or '.' they MUST be encapsulated by parentheses
@@ -1291,7 +1292,7 @@ def get_attribute_from(file_name, attribute):
       * Exceptional string char: NO parentheses are allowed in VAL strings!!
       * '.EXT' is optional
     """
-    file_name = get_full_file_name(file_name)  # make sure file_name is no path
+    file_name = get_full_file_name(file_name)  # make sure input is no path
 
     # parse file for attributes from beginning to end
     attribute_dict = {}
