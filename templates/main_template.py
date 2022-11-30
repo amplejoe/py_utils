@@ -14,6 +14,7 @@ import argparse
 from py_utils import utils
 import sys
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 IN_IMG_EXT = [".jpg", ".png"]
