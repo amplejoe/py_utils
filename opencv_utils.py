@@ -684,7 +684,7 @@ def overlay_text(
     thickness=1,
     outline_color=None,
 ):
-    """Overlays text on an opencv image, does not change original image. Supports multiline text using '\n'.
+    """Overlays text on an opencv image, does not change original image. Supports multiline text using '\\n'.
     Parameters
     ----------
     img: path or opencv image
