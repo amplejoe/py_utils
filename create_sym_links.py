@@ -53,7 +53,6 @@ def main():
         if g_args.mode == "file":
             in_items = utils.get_file_paths(g_args.input)
         else:
-            # todo get folders
             in_items = utils.get_folders(g_args.input, False)
     else:
         if g_args.mode == "file":
@@ -113,7 +112,6 @@ def parse_args():
         dest="mode",
         type=str,
         help=f"operation mode: {MODES}",
-        # either argument is given or current './out' is used by default
         nargs="?",
         default=DEFAULT_MODE,
     )
