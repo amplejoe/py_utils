@@ -1135,7 +1135,6 @@ def get_script_dir(resolve_symlinks=True):
         return os.path.dirname(calling_file)
 
 
-
 def get_user_name():
     return getpass.getuser()
 
