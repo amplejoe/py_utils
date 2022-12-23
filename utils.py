@@ -1124,12 +1124,16 @@ def get_current_dir():
     return to_path(pathlib.Path.cwd())
 
 
-def get_script_dir():
+def get_script_dir(resolve_symlinks=True):
     """Returns directory of currently running script (i.e. calling file of this method)."""
     # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)
     calling_file = inspect.stack()[1][1]  # [frame idx] [file name]
     # return directory of calling file
-    return os.path.dirname(os.path.abspath(calling_file))
+    if (resolve_symlinks):
+        return os.path.dirname(os.path.abspath(calling_file))
+    else:
+        return os.path.dirname(calling_file)
+
 
 
 def get_user_name():
