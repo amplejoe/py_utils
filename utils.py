@@ -1099,12 +1099,12 @@ def get_date_str():
 
 
 def get_default_time():
-    """Returns timeit default timer, i.e. start_time for show_processing_time."""
+    """Returns timeit default timer (float in seconds), i.e. start_time for show_processing_time."""
     return timeit.default_timer()
 
 
 def get_processing_time(start_time, format=True):
-    """Given a timeit start_time this returns the current (formatted) execution time."""
+    """Given a timeit start_time this returns the current (formatted) execution time in seconds."""
     end_processing = timeit.default_timer()
     processing_time = end_processing - start_time
     if format:
@@ -1114,7 +1114,7 @@ def get_processing_time(start_time, format=True):
 
 
 def show_processing_time(start_time, item_name="finished"):
-    """Given a timeit start_time this prints the current execution time."""
+    """Given a timeit start_time this prints the current execution time in seconds."""
     pt_formatted = get_processing_time(start_time)
     tqdm.write(f"{item_name} - processing time: {pt_formatted} s")
 
