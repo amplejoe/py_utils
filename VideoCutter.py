@@ -313,7 +313,7 @@ class VideoCutter:
                 # int(kwargs["frames"]) - 1
                 self.secs_to_frame(self.timedelta_to_secs(duration_time))
             )
-            cmd = f'ffmpeg {self.overwrite_flag} -i {in_video} -an -vf select="between(n\,{from_frame}\,{to_frame}),setpts=PTS-STARTPTS" {conversion} "{out_path}"'
+            cmd = f'ffmpeg {self.overwrite_flag} -i {in_video} -vf select="between(n\,{from_frame}\,{to_frame}),setpts=PTS-STARTPTS" {conversion} "{out_path}"'
 
         utils.exec_shell_command(cmd, silent=True)
 
