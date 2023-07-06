@@ -5,7 +5,7 @@ numpy==1.22.0
 opencv_contrib_python==4.6.0.66
 pandas==1.5.2
 Pillow==9.3.0
-scipy==1.8.0
+scipy==1.10.0
 simplejson==3.18.0
 tqdm==4.48.0
 vidgear==0.2.6
