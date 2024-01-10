@@ -839,6 +839,11 @@ def read_json(path, silent=True):
     return data
 
 
+def print_dict_pretty(in_dict, indent=4):
+    pretty_json = simplejson.dumps(in_dict, indent)
+    print(pretty_json)
+
+
 def write_json(path, data, pretty_print=False, handle_nan=False):
     """Writes a json dict variable to a file.
     Parameters:
