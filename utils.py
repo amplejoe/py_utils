@@ -953,11 +953,18 @@ def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
     return df.tail(n).values.tolist()
 
 
-def read_file_to_array(path):
+def read_file_to_array(path, remove_new_lines=False, remove_blanks=False):
     """Reads all lines of a file into an array."""
     arr = None
     with open(path) as file:
-        arr = file.readlines()
+        if remove_new_lines:
+            arr = file.read().splitlines()
+        else:
+            arr = file.readlines()
+
+    if arr is not None:
+        arr = [x for x in arr if (x != '' and x != '\n')]
+
     return arr
 
 
