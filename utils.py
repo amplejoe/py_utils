@@ -21,7 +21,8 @@ from io import TextIOWrapper
 import os
 import sys
 import errno
-import json, simplejson
+import json
+import simplejson
 from datetime import datetime
 import shutil
 from natsort import natsorted
@@ -40,20 +41,16 @@ import tempfile
 import getpass
 from dictlib import Dict
 
-# Windows: pip install pyreadline3
-import readline
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import Completer
+from prompt_toolkit.completion import PathCompleter
+import wslconv
+
 import textwrap
 import pandas as pd
 import csv
 import typing
 import timeit
-
-# Windows fix for missing redisplay
-# https://github.com/pyreadline/pyreadline/issues/49
-if not hasattr(readline, "redisplay"):
-    readline.redisplay = lambda: None
-
-# from pyautogui import typewrite
 
 
 #### ------------------------------------------------------------------------------------------ ####
@@ -202,14 +199,7 @@ def read_string_input(*, init_value="", msg="input text"):
     Returns:
         [type]: [description]
     """
-    # must be defined within function
-    def prefill_hook():
-        readline.insert_text(init_value)
-        readline.redisplay()
-
-    readline.set_pre_input_hook(prefill_hook)
-    result = input(f"{msg}: ")
-    readline.set_pre_input_hook()
+    result = prompt(f"{msg}: ", default=init_value)
     return result
 
 
@@ -246,23 +236,11 @@ def read_path_input(*, init_path=None, msg="input path"):
     """
     if init_path is None:
         init_path = get_user_home_dir()
-    init_path = to_path(init_path)
-    # must be defined within function
-    def prefill_hook():
-        readline.insert_text(init_path)
-        readline.redisplay()
 
-    readline.set_pre_input_hook(prefill_hook)
-    # we want to treat '/' as part of a word, so override the delimiters
-    readline.set_completer_delims(" \t\n;")
-    readline.parse_and_bind("tab: complete")
-    # only works on linux - use pyautogui instead
-    # readline.set_startup_hook(lambda: readline.insert_text(init_path))
-    readline.set_completer(complete_path)
+    init_path = str(to_path(init_path, as_string=False)) # completer can only handle system specific paths, so omit posix conversion
 
-    # typewrite(init_path)
-    result = input(f"{msg}: ")
-    readline.set_pre_input_hook()
+    completer = PathCompleter()
+    result = prompt(f"{msg}: ", default=init_path, completer=completer)
     return to_path(result)
 
 
