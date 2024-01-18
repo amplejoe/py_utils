@@ -38,6 +38,7 @@ import decimal
 import concurrent.futures
 import tempfile
 import getpass
+from dictlib import Dict
 
 # Windows: pip install pyreadline3
 import readline

@@ -11,3 +11,4 @@ tqdm==4.48.0
 vidgear==0.2.6
 yattag==1.13.2
 pyreadline3>=3.4.1
+dictlib
