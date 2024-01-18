@@ -956,7 +956,7 @@ def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
 def read_file_to_array(path, remove_new_lines=False, remove_blanks=False):
     """Reads all lines of a file into an array."""
     arr = None
-    with open(path) as file:
+    with open(path, 'r', encoding='utf-8') as file:
         if remove_new_lines:
             arr = file.read().splitlines()
         else:
