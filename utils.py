@@ -243,7 +243,9 @@ def read_path_input(*, init_path=None, msg="input path"):
     if init_path is None:
         init_path = get_user_home_dir()
 
-    init_path = str(to_path(init_path, as_string=False)) # completer can only handle system specific paths, so omit posix conversion
+    init_path = str(
+        to_path(init_path, as_string=False)
+    )  # completer can only handle system specific paths, so omit posix conversion
 
     completer = PathCompleter()
     result = prompt(f"{msg}: ", default=init_path, completer=completer)
@@ -456,7 +458,6 @@ def change_owner(path, user, group, silent=False):
         group (_type_): _description_
     """
     if exists_dir(path):
-
         # alternative
         # import pwd
         # import grp
@@ -962,14 +963,14 @@ def get_n_last_csv_rows(path, n=1, *, header_line: int = 0):
 def read_file_to_array(path, remove_new_lines=False, remove_blanks=False):
     """Reads all lines of a file into an array."""
     arr = None
-    with open(path, 'r', encoding='utf-8') as file:
+    with open(path, "r", encoding="utf-8") as file:
         if remove_new_lines:
             arr = file.read().splitlines()
         else:
             arr = file.readlines()
 
     if arr is not None:
-        arr = [x for x in arr if (x != '' and x != '\n')]
+        arr = [x for x in arr if (x != "" and x != "\n")]
 
     return arr
 
@@ -1115,12 +1116,17 @@ def show_processing_time(start_time, item_name="finished"):
     tqdm.write(f"{item_name} - processing time: {pt_formatted} secs")
 
 
-def time_execution(func, msg="Execution time"):
-   """Times a given function and prints out a custom message"""
-   start_time = get_default_time()
-   func()
-   end_time = get_default_time()
-   print(f"{msg}: {end_time - start_time} secs")
+def time_execution(func, msg="Execution time", verbose=True):
+    """Times a given function and prints out a custom message"""
+    start_time = get_default_time()
+    func()
+    end_time = get_default_time()
+    processing_time = end_time - start_time
+
+    if verbose:
+        print(f"{msg}: {end_time - start_time} secs")
+
+    return processing_time
 
 
 def get_current_dir():
@@ -1133,7 +1139,7 @@ def get_script_dir(resolve_symlinks=True):
     # starting from 0, every file has their own frame, take the second to last's file name (= calling file frame)
     calling_file = inspect.stack()[1][1]  # [frame idx] [file name]
     # return directory of calling file
-    if (resolve_symlinks):
+    if resolve_symlinks:
         return os.path.dirname(os.path.abspath(calling_file))
     else:
         return os.path.dirname(calling_file)
