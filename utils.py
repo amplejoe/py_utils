@@ -1118,17 +1118,18 @@ def show_processing_time(start_time, item_name="finished"):
 
 def time_execution(func, *args, msg="Execution time", verbose=True):
     """Times a given function and prints out a custom message
-        usage: time_execution(func, arg1, arg1, msg='exec', verbose=True)
+        usage:
+            time, result = time_execution(func, arg1, arg1, msg='exec', verbose=True)
     """
     start_time = get_default_time()
-    func(*args)
+    func_result = func(*args)
     end_time = get_default_time()
     processing_time = end_time - start_time
 
     if verbose:
         print(f"{msg}: {end_time - start_time} secs")
 
-    return processing_time
+    return processing_time, func_result
 
 
 def get_current_dir():
