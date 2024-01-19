@@ -1112,7 +1112,7 @@ def get_processing_time(start_time, format=True):
 def show_processing_time(start_time, item_name="finished"):
     """Given a timeit start_time this prints the current execution time in seconds."""
     pt_formatted = get_processing_time(start_time)
-    tqdm.write(f"{item_name} - processing time: {pt_formatted} s")
+    tqdm.write(f"{item_name} - processing time: {pt_formatted} secs")
 
 
 def time_execution(func, msg="Execution time"):
@@ -1120,7 +1120,7 @@ def time_execution(func, msg="Execution time"):
    start_time = get_default_time()
    func()
    end_time = get_default_time()
-   print(f"{msg}: {end_time - start_time} seconds")
+   print(f"{msg}: {end_time - start_time} secs")
 
 
 def get_current_dir():
