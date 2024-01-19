@@ -1116,10 +1116,10 @@ def show_processing_time(start_time, item_name="finished"):
     tqdm.write(f"{item_name} - processing time: {pt_formatted} secs")
 
 
-def time_execution(func, msg="Execution time", verbose=True):
+def time_execution(func, *args, msg="Execution time", verbose=True):
     """Times a given function and prints out a custom message"""
     start_time = get_default_time()
-    func()
+    func(*args)
     end_time = get_default_time()
     processing_time = end_time - start_time
 
