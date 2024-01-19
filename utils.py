@@ -1117,7 +1117,9 @@ def show_processing_time(start_time, item_name="finished"):
 
 
 def time_execution(func, *args, msg="Execution time", verbose=True):
-    """Times a given function and prints out a custom message"""
+    """Times a given function and prints out a custom message
+        usage: time_execution(func, arg1, arg1, msg='exec', verbose=True)
+    """
     start_time = get_default_time()
     func(*args)
     end_time = get_default_time()
