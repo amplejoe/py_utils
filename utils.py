@@ -1115,6 +1115,14 @@ def show_processing_time(start_time, item_name="finished"):
     tqdm.write(f"{item_name} - processing time: {pt_formatted} s")
 
 
+def time_execution(func, msg="Execution time"):
+   """Times a given function and prints out a custom message"""
+   start_time = get_default_time()
+   func()
+   end_time = get_default_time()
+   print(f"{msg}: {end_time - start_time} seconds")
+
+
 def get_current_dir():
     """Returns current working directory."""
     return to_path(pathlib.Path.cwd())
