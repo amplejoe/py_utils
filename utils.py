@@ -138,7 +138,7 @@ def confirm_delete_file(path, default=None, msg=None):
 
 def confirm_delete_path(path, default=None, msg=None):
     p = to_path(path, as_string=False)
-    out_msg = "File exists: %s, delete file?" % (path)
+    out_msg = "Path exists: %s, delete file?" % (path)
     if msg:
         out_msg = msg
     if p.is_dir():
@@ -158,10 +158,10 @@ def confirm_overwrite(path, default=None, msg=None):
     p = to_path(path, as_string=False)
     confirmed = False
     if p.is_dir():
-        confirmed = confirm_delete_path(path, default)
+        confirmed = confirm_delete_path(path, default, msg)
         make_dir(path, True)
     elif p.is_file():
-        confirmed = confirm_delete_file(path, default)
+        confirmed = confirm_delete_file(path, default, msg)
     else:
         confirmed = True
         # TODO:  improve this or create separate function for files
