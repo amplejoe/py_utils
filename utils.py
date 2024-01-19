@@ -122,10 +122,13 @@ def confirm(msg=None, default=None):
     return answer == "y"
 
 
-def confirm_delete_file(path, default=None):
+def confirm_delete_file(path, default=None, msg=None):
     p = to_path(path, as_string=False)
+    out_msg = "File exists: %s, delete file?" % (path)
+    if msg:
+        out_msg = msg
     if p.is_file():
-        if confirm("File exists: %s, delete file?" % (path), default):
+        if confirm(out_msg, default):
             remove_file(path)
         else:
             # user explicitly typed 'n'
@@ -133,10 +136,13 @@ def confirm_delete_file(path, default=None):
     return True
 
 
-def confirm_delete_path(path, default=None):
+def confirm_delete_path(path, default=None, msg=None):
     p = to_path(path, as_string=False)
+    out_msg = "File exists: %s, delete file?" % (path)
+    if msg:
+        out_msg = msg
     if p.is_dir():
-        if confirm("Path exists: %s, delete folder?" % (path), default):
+        if confirm(out_msg, default):
             remove_dir(path)
         else:
             # user explicitly typed 'n'
@@ -144,7 +150,7 @@ def confirm_delete_path(path, default=None):
     return True
 
 
-def confirm_overwrite(path, default=None):
+def confirm_overwrite(path, default=None, msg=None):
     """Confirms overwriting a path or a file.
     Dermines items to create by file extension, hence,
     will NOT create new directories if path contains a '.'.
