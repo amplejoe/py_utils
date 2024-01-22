@@ -1118,8 +1118,8 @@ def show_processing_time(start_time, item_name="finished"):
 
 def time_execution(func, *args, msg="Execution time", verbose=True):
     """Times a given function and prints out a custom message
-        usage:
-            time, result = time_execution(func, arg1, arg1, msg='exec', verbose=True)
+    usage:
+        time, result = time_execution(func, arg1, arg1, msg='exec', verbose=True)
     """
     start_time = get_default_time()
     func_result = func(*args)
@@ -1271,6 +1271,50 @@ def get_object_attr(obj, attr, *args):
 def left_pad_zeros(var, num_zeros):
     var = str(var)
     return var.zfill(num_zeros)
+
+
+def left_pad(
+    var: str, num_symbols: int, symbol: str = '-', separator: str = " "
+) -> str:
+    """Left padding with arbitrary symbols, e.g:
+            in: left_pad('hello', 3, '#')
+            out: ### hello
+
+    Args:
+        var (str): variable to be padded
+        symbol (str): padding symbol, e.g. '-'
+        num_symbols (int): number of padding symbols
+        separator (str): inclde separator, e.g. space ' ' or ';'
+
+    Returns:
+        str: padded string
+    """
+    var_to_pad = var
+    if separator is not None:
+        var_to_pad = f"{separator}{var}"
+    return var_to_pad.rjust(len(var_to_pad) + num_symbols, symbol)
+
+
+def right_pad(
+    var: str, num_symbols: int, symbol: str = '-', separator: str = " "
+) -> str:
+    """Right padding with arbitrary symbols, e.g:
+            in: right_pad('hello', 3, '#')
+            out: hello ###
+
+    Args:
+        var (str): variable to be padded
+        symbol (str): padding symbol, e.g. '-'
+        num_symbols (int): number of padding symbols
+        separator (str): inclde separator, e.g. space ' ' or ';'
+
+    Returns:
+        str: padded string
+    """
+    var_to_pad = var
+    if separator is not None:
+        var_to_pad = f"{var}{separator}"
+    return var_to_pad.ljust(len(var_to_pad) + num_symbols, symbol)
 
 
 def get_regex_match_list(in_string, regex):
