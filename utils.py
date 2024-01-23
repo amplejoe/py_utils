@@ -1202,6 +1202,18 @@ def indent_multiline_string(ml_string):
     return "\n".join(parts)
 
 
+def wrap_string(value: str, width: int = 80) -> str:
+    """
+    Generates text wrapped output:
+        print(utils.wrap_key_value_string("a b c d e f g", width=5))
+    creates:
+             a b c
+             d e f
+             g
+    """
+    return textwrap.fill(value, width=width)
+
+
 def wrap_key_value_string(key: str, value: str, width: int = 80) -> str:
     """
     Generates text wrapped output of key value pair, e.g.:
@@ -1276,7 +1288,7 @@ def left_pad_zeros(var, num_zeros):
 
 
 def left_pad(
-    var: str, num_symbols: int, symbol: str = '-', separator: str = " "
+    var: str, num_symbols: int, symbol: str = "-", separator: str = " "
 ) -> str:
     """Left padding with arbitrary symbols, e.g:
             in: left_pad('hello', 3, '#')
@@ -1298,7 +1310,7 @@ def left_pad(
 
 
 def right_pad(
-    var: str, num_symbols: int, symbol: str = '-', separator: str = " "
+    var: str, num_symbols: int, symbol: str = "-", separator: str = " "
 ) -> str:
     """Right padding with arbitrary symbols, e.g:
             in: right_pad('hello', 3, '#')
@@ -1657,7 +1669,10 @@ def run_multithreaded(func, args, num_workers=10, show_progress=True):
 ####    EXECUTION INFO (Exceptions, etc)
 #### ------------------------------------------------------------------------------------------ ####
 
-def get_stacktrace_info(stack_item = -1) -> typing.Union[Dict[str], typing.List[Dict[str]]]:
+
+def get_stacktrace_info(
+    stack_item=-1,
+) -> typing.Union[Dict[str], typing.List[Dict[str]]]:
     """Gets info about the current stack in the formats:
 
         stack_item == -1 -> List[Dict({'file_name': str, 'line_number': str, 'code_line':  str})]
@@ -1668,16 +1683,22 @@ def get_stacktrace_info(stack_item = -1) -> typing.Union[Dict[str], typing.List[
     Args:
         e (Exception): _description_
     """
-    stack_frames = traceback.extract_stack()[:-1] # Exclude the current function from the stack trace
+    stack_frames = traceback.extract_stack()[
+        :-1
+    ]  # Exclude the current function from the stack trace
 
     ret = None
-    if (stack_item == -1):
+    if stack_item == -1:
         ret = []
         for frame in reversed(stack_frames):
             fname = frame.filename
             lineno = frame.lineno
             code_line = linecache.getline(fname, lineno).strip()
-            ret.append(Dict({'file_name': fname, 'line_number': lineno, 'code_line':  code_line}))
+            ret.append(
+                Dict(
+                    {"file_name": fname, "line_number": lineno, "code_line": code_line}
+                )
+            )
     else:
         stack_item_idx = (len(stack_frames) - 1) - stack_item
         if stack_item_idx < 0:
@@ -1687,10 +1708,13 @@ def get_stacktrace_info(stack_item = -1) -> typing.Union[Dict[str], typing.List[
             fname = frame.filename
             lineno = frame.lineno
             code_line = linecache.getline(fname, lineno).strip()
-            ret = Dict({'file_name': fname, 'line_number': lineno, 'code_line':  code_line})
+            ret = Dict(
+                {"file_name": fname, "line_number": lineno, "code_line": code_line}
+            )
     return ret
 
-def get_exception_info(stack_item = -1) -> typing.Union[Dict[str], bool]:
+
+def get_exception_info(stack_item=-1) -> typing.Union[Dict[str], bool]:
     """Gets info about the current exception in the format:
         Dict({'type': str, 'file_name': str, 'line_number': str, 'code_line': str})
 
@@ -1705,7 +1729,14 @@ def get_exception_info(stack_item = -1) -> typing.Union[Dict[str], bool]:
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         lineno = exc_tb.tb_lineno
         code_line = linecache.getline(fname, lineno).strip()
-        return Dict({'type': exc_type.__name__, 'file_name': fname, 'line_number': lineno, 'code_line':  code_line})
+        return Dict(
+            {
+                "type": exc_type.__name__,
+                "file_name": fname,
+                "line_number": lineno,
+                "code_line": code_line,
+            }
+        )
     else:
         return get_stacktrace_info(stack_item)
 
