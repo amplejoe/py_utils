@@ -693,6 +693,24 @@ def overlay_text(
     color_mix: list of RGB color tuples overriding 'color' (each line is created in a different color out of the mix)
     draw_outline: draw outline around text
     outline_color: RGB color tuple for outline - no outline is drawn if set to None (default)
+
+    Known issue:
+        - opencv uses the Hershey font used and this only supports a limited subset of ASCII characters (https://github.com/opencv/opencv/issues/11427)
+        - a workaround could be using PIL:
+
+            import numpy as np
+            from PIL import Image, ImageDraw, ImageFont
+
+            def print_utf8(image, text, color):
+                fontName = 'FreeSerif.ttf'
+                font = ImageFont.truetype(fontName, 18)
+                img_pil = Image.fromarray(image)
+                draw = ImageDraw.Draw(img_pil)
+                draw.text((0, image.shape[0] - 30), text, font=font,
+                    fill=(color[0], color[1], color[2], 0))
+                image = np.array(img_pil)
+                return image
+
     Returns: np.array
         image with a text overlay
     """
