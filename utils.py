@@ -1666,7 +1666,7 @@ def run_multithreaded(func, args, num_workers=10, show_progress=True):
 def exec_shell_command(command, print_output=False, silent=False):
     """Executes a shell command using the subprocess module.
     command: standard shell command (SPACE separated - escape paths with '' or "")
-    print_output: output command result to console
+    print_output: output command outputs to console
     returns: list containing all shell output lines
     """
     if not silent:
