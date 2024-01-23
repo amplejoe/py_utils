@@ -20,6 +20,8 @@
 from io import TextIOWrapper
 import os
 import sys
+import traceback
+import linecache
 import errno
 import json
 import simplejson
@@ -1649,6 +1651,63 @@ def run_multithreaded(func, args, num_workers=10, show_progress=True):
             results = list(executor.map(lambda p: func(*p), args))
 
     return results
+
+
+#### ------------------------------------------------------------------------------------------ ####
+####    EXECUTION INFO (Exceptions, etc)
+#### ------------------------------------------------------------------------------------------ ####
+
+def get_stacktrace_info(stack_item = -1) -> typing.Union[Dict[str], typing.List[Dict[str]]]:
+    """Gets info about the current stack in the formats:
+
+        stack_item == -1 -> List[Dict({'file_name': str, 'line_number': str, 'code_line':  str})]
+        stack_item >= 0 -> Dict({'file_name': str, 'line_number': str, 'code_line':  str})
+        stack_item > len(stack) -> None
+
+        By default the current function is excluded and by setting stack_item a specific stack item can be retried
+    Args:
+        e (Exception): _description_
+    """
+    stack_frames = traceback.extract_stack()[:-1] # Exclude the current function from the stack trace
+
+    ret = None
+    if (stack_item == -1):
+        ret = []
+        for frame in reversed(stack_frames):
+            fname = frame.filename
+            lineno = frame.lineno
+            code_line = linecache.getline(fname, lineno).strip()
+            ret.append(Dict({'file_name': fname, 'line_number': lineno, 'code_line':  code_line}))
+    else:
+        stack_item_idx = (len(stack_frames) - 1) - stack_item
+        if stack_item_idx < 0:
+            return None
+        else:
+            frame = stack_frames[stack_item_idx]
+            fname = frame.filename
+            lineno = frame.lineno
+            code_line = linecache.getline(fname, lineno).strip()
+            ret = Dict({'file_name': fname, 'line_number': lineno, 'code_line':  code_line})
+    return ret
+
+def get_exception_info(stack_item = -1) -> typing.Union[Dict[str], bool]:
+    """Gets info about the current exception in the format:
+        Dict({'type': str, 'file_name': str, 'line_number': str, 'code_line': str})
+
+        If no exception occurred it will return a stacktrace instead
+
+    Args:
+        e (Exception): _description_
+    """
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    if exc_tb is not None:
+        # exception
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        lineno = exc_tb.tb_lineno
+        code_line = linecache.getline(fname, lineno).strip()
+        return Dict({'type': exc_type.__name__, 'file_name': fname, 'line_number': int(lineno), 'code_line':  int(code_line)})
+    else:
+        return get_stacktrace_info(stack_item)
 
 
 #### ------------------------------------------------------------------------------------------ ####
