@@ -1705,7 +1705,7 @@ def get_exception_info(stack_item = -1) -> typing.Union[Dict[str], bool]:
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         lineno = exc_tb.tb_lineno
         code_line = linecache.getline(fname, lineno).strip()
-        return Dict({'type': exc_type.__name__, 'file_name': fname, 'line_number': int(lineno), 'code_line':  int(code_line)})
+        return Dict({'type': exc_type.__name__, 'file_name': fname, 'line_number': lineno, 'code_line':  code_line})
     else:
         return get_stacktrace_info(stack_item)
 
