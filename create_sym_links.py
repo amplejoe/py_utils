@@ -12,18 +12,16 @@ __description__ = """
 # =============================================================================
 
 import sys
-
-MIN_PYTHON = (3, 8)
-if sys.version_info < MIN_PYTHON:
-    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
-
-
 import argparse
 from py_utils import utils
 import sys
 import numpy as np
 from tqdm import tqdm
 import os
+
+MIN_PYTHON = (3, 8)
+if sys.version_info < MIN_PYTHON:
+    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 
 IN_IMG_EXT = [".jpg", ".png"]
 IN_VID_EXT = [".mp4", ".avi", ".mov"]
@@ -45,7 +43,7 @@ def main():
     #     print("Skip folder creation.")
 
 
-    if not g_args.mode in MODES:
+    if g_args.mode not in MODES:
         exit(f"Invalid mode given: {g_args.mode}")
 
     in_items = []
@@ -79,7 +77,7 @@ def main():
                 utils.make_dir(out_root)
                 os.symlink(f, lnk)
                 tqdm.write(f"Created: {f} <===> {lnk}")
-            except:
+            except Exception as e:
                 tqdm.write(f"Error creating link: {lnk}")
                 tqdm.write(
                     "  -> Windows users: this script requires enabled Developer Mode."
