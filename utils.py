@@ -289,6 +289,18 @@ def is_dir_path(path):
         return True
 
 
+def is_valid_filename(filename):
+    # Check if filename contains any illegal characters
+    if any(char in filename for char in '<>:"/\\|?*'):
+        return False
+
+    # Check if filename matches any reserved names
+    if filename in os.listdir('.'):
+        return False
+
+    return True
+
+
 def is_file_path(path):
     """Rudimentary check if (non-existing) path contains a file.
         WARNING: only checks for '.' in last path part (files without extension are ignored!)
