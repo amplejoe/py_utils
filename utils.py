@@ -42,6 +42,7 @@ import concurrent.futures
 import tempfile
 import getpass
 from dictlib import Dict
+from urllib.parse import urlparse
 
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer
@@ -304,6 +305,14 @@ def is_valid_filename(filename):
         return False
 
     return True
+
+
+def is_valid_url(url: str) -> bool:
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc, result.port])
+    except ValueError:
+        return False
 
 
 def is_file_path(path):
