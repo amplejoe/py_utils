@@ -27,8 +27,8 @@ IN_IMG_EXT = [".jpg", ".png"]
 IN_VID_EXT = [".mp4", ".avi", ".mov"]
 IN_DATA_EXT = [".npy", ".csv", ".json"]
 
-MODES = ['file', 'folder']
-DEFAULT_MODE = 'file'
+MODES = ['target', 'files', 'folders']
+DEFAULT_MODE = 'target'
 
 def main():
 
@@ -47,16 +47,22 @@ def main():
         exit(f"Invalid mode given: {g_args.mode}")
 
     in_items = []
-    if g_args.recursive:
-        if g_args.mode == "file":
-            in_items = utils.get_file_paths(g_args.input)
-        else:
-            in_items = utils.get_folders(g_args.input, False)
+
+    if g_args.mode == 'target':
+        # link target only, e.g. ./my_link <==> ./some/folder
+        in_items.append(utils.to_path(g_args.input))
     else:
-        if g_args.mode == "file":
-            in_items = utils.get_immediate_subfiles(g_args.input)
+        # link all sub files or folders (optionally recursive)
+        if g_args.recursive:
+            if g_args.mode == 'files':
+                in_items = utils.get_file_paths(g_args.input)
+            else:
+                in_items = utils.get_folders(g_args.input, False)
         else:
-            in_items = utils.get_immediate_subdirs(g_args.input)
+            if g_args.mode == 'files':
+                in_items = utils.get_immediate_subfiles(g_args.input)
+            else:
+                in_items = utils.get_immediate_subdirs(g_args.input)
 
 
     for f in tqdm(in_items):
@@ -66,7 +72,10 @@ def main():
             rel_path = utils.path_to_relative_path(f, g_args.input, remove_file=True)
             out_root = utils.join_paths(g_args.output, rel_path)
         # do NOT join paths here as symlinks are resolved - build own path instead
-        lnk = f"{utils.to_path(out_root)}/{fn_full}"
+        if g_args.mode != 'target':
+            lnk = f"{utils.to_path(out_root)}/{fn_full}"
+        else:
+            lnk = utils.to_path(out_root)
         # dont use utils.confirm_overwrite here - they follow symlinks
         if utils.exists_file(lnk) and not utils.confirm(f"File exists: {lnk} - overwrite?", "n"):
             tqdm.write(f"Skipping existing link: {lnk}")
@@ -74,7 +83,8 @@ def main():
             try:
                 if utils.exists_file(lnk):
                   os.unlink(lnk)
-                utils.make_dir(out_root)
+                if g_args.mode != 'target':
+                    utils.make_dir(out_root)
                 os.symlink(f, lnk)
                 tqdm.write(f"Created: {f} <===> {lnk}")
             except Exception as e:
