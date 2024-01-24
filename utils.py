@@ -290,6 +290,11 @@ def is_dir_path(path):
 
 
 def is_valid_filename(filename):
+
+    # check for invalid input
+    if filename is None or filename == '':
+        return False
+
     # Check if filename contains any illegal characters
     if any(char in filename for char in '<>:"/\\|?*'):
         return False
