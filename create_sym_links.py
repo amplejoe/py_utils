@@ -65,33 +65,34 @@ def main():
                 in_items = utils.get_immediate_subdirs(g_args.input)
 
 
-    for f in tqdm(in_items):
-        fn_full = utils.get_file_name(f, True)
+    for source in tqdm(in_items):
+        fn_full = utils.get_file_name(source, True)
         out_root = g_args.output
         if g_args.keep_dir_structure:
-            rel_path = utils.path_to_relative_path(f, g_args.input, remove_file=True)
+            rel_path = utils.path_to_relative_path(source, g_args.input, remove_file=True)
             out_root = utils.join_paths(g_args.output, rel_path)
         # do NOT join paths here as symlinks are resolved - build own path instead
-        if g_args.mode != 'target':
-            lnk = f"{utils.to_path(out_root)}/{fn_full}"
-        else:
-            lnk = utils.to_path(out_root)
+        dest = f"{utils.to_path(out_root)}/{fn_full}"
+        if g_args.mode == 'target':
+            dest = utils.to_path(out_root)
+
         # dont use utils.confirm_overwrite here - they follow symlinks
-        if utils.exists_file(lnk) and not utils.confirm(f"File exists: {lnk} - overwrite?", "n"):
-            tqdm.write(f"Skipping existing link: {lnk}")
+        if (utils.exists_file(dest) or utils.exists_dir(dest))  and not utils.confirm(f"File exists: {dest} - overwrite?", "y"):
+            tqdm.write(f"Skipping existing link: {dest}")
         else:
             try:
-                if utils.exists_file(lnk):
-                  os.unlink(lnk)
+                if utils.exists_file(dest) or utils.exists_dir(dest):
+                  os.unlink(dest)
                 if g_args.mode != 'target':
                     utils.make_dir(out_root)
-                os.symlink(f, lnk)
-                tqdm.write(f"Created: {f} <===> {lnk}")
+                os.symlink(source, dest)
+                tqdm.write(f"Created: {source} <===> {dest}")
             except Exception as e:
-                tqdm.write(f"Error creating link: {lnk}")
+                tqdm.write(f"Error creating link: {dest}")
                 tqdm.write(
                     "  -> Windows users: this script requires enabled Developer Mode."
                 )
+                tqdm.write(e)
 
 
 def exit(msg=None):
