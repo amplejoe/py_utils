@@ -39,9 +39,6 @@ def main():
     ):
         exit("IN cannot be the same as OUT, '.' or script path.")
 
-    # if not (utils.confirm_overwrite(g_args.output, "n")):
-    #     print("Skip folder creation.")
-
 
     if g_args.mode not in MODES:
         exit(f"Invalid mode given: {g_args.mode}")
@@ -77,22 +74,32 @@ def main():
             dest = utils.to_path(out_root)
 
         # dont use utils.confirm_overwrite here - they follow symlinks
-        if (utils.exists_file(dest) or utils.exists_dir(dest))  and not utils.confirm(f"File exists: {dest} - overwrite?", "y"):
-            tqdm.write(f"Skipping existing link: {dest}")
-        else:
-            try:
-                if utils.exists_file(dest) or utils.exists_dir(dest):
-                  os.unlink(dest)
-                if g_args.mode != 'target':
-                    utils.make_dir(out_root)
-                os.symlink(source, dest)
-                tqdm.write(f"Created: {source} <===> {dest}")
-            except Exception as e:
-                tqdm.write(f"Error creating link: {dest}")
-                tqdm.write(
-                    "  -> Windows users: this script requires enabled Developer Mode."
-                )
-                tqdm.write(e)
+        if (utils.exists_file(dest) or utils.exists_dir(dest)):
+            do_overwrite = False
+            if g_args.yes:
+                do_overwrite = True
+            elif g_args.no:
+                do_overwrite = False
+            else:
+               do_overwrite = utils.confirm(f"File exists: {dest} - overwrite?", "y")
+
+            if not do_overwrite:
+                tqdm.write(f"Skipping existing link: {dest}")
+            else:
+                try:
+                    tqdm.write(f"Overwriting existing link: {dest}")
+                    if utils.exists_file(dest) or utils.exists_dir(dest):
+                        os.unlink(dest)
+                    if g_args.mode != 'target':
+                        utils.make_dir(out_root)
+                    os.symlink(source, dest)
+                    tqdm.write(f"Created: {source} <===> {dest}")
+                except Exception as e:
+                    tqdm.write(f"Error creating link: {dest}")
+                    tqdm.write(
+                        "  -> Windows users: this script requires enabled Developer Mode."
+                    )
+                    tqdm.write(e)
 
 
 def exit(msg=None):
@@ -136,6 +143,20 @@ def parse_args():
         "--recursive",
         dest="recursive",
         help="recursively traverse source dir",
+        action="store_true",
+    )
+    ap.add_argument(
+        "-y",
+        "--yes",
+        dest="yes",
+        help="yes to all confirmations (CAUTION: data could be overwritten!)",
+        action="store_true",
+    )
+    ap.add_argument(
+        "-n",
+        "--no",
+        dest="no",
+        help="no to all confirmations",
         action="store_true",
     )
     ap.add_argument(
