@@ -99,7 +99,7 @@ def main():
                     tqdm.write(
                         "  -> Windows users: this script requires enabled Developer Mode."
                     )
-                    tqdm.write(e)
+                    tqdm.write(str(e))
 
 
 def exit(msg=None):
