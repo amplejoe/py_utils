@@ -85,21 +85,23 @@ def main():
 
             if not do_overwrite:
                 tqdm.write(f"Skipping existing link: {dest}")
+                return
             else:
-                try:
-                    tqdm.write(f"Overwriting existing link: {dest}")
-                    if utils.exists_file(dest) or utils.exists_dir(dest):
-                        os.unlink(dest)
-                    if g_args.mode != 'target':
-                        utils.make_dir(out_root)
-                    os.symlink(source, dest)
-                    tqdm.write(f"Created: {source} <===> {dest}")
-                except Exception as e:
-                    tqdm.write(f"Error creating link: {dest}")
-                    tqdm.write(
-                        "  -> Windows users: this script requires enabled Developer Mode."
-                    )
-                    tqdm.write(str(e))
+                tqdm.write(f"Overwriting existing link: {dest}")
+
+        try:
+            if utils.exists_file(dest) or utils.exists_dir(dest):
+                os.unlink(dest)
+            if g_args.mode != 'target':
+                utils.make_dir(out_root)
+            os.symlink(source, dest)
+            tqdm.write(f"Created: {source} <===> {dest}")
+        except Exception as e:
+            tqdm.write(f"Error creating link: {dest}")
+            tqdm.write(
+                "  -> Windows users: this script requires enabled Developer Mode."
+            )
+            tqdm.write(str(e))
 
 
 def exit(msg=None):
