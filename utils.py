@@ -310,7 +310,7 @@ def is_valid_filename(filename):
 def is_valid_url(url: str) -> bool:
     try:
         result = urlparse(url)
-        return all([result.scheme, result.netloc, result.port])
+        return all([result.scheme, result.netloc]) or all([result.scheme, result.netloc, result.port])
     except ValueError:
         return False
 
