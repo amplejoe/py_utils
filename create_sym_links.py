@@ -18,6 +18,7 @@ import sys
 import numpy as np
 from tqdm import tqdm
 import os
+from dictlib import Dict
 
 MIN_PYTHON = (3, 8)
 if sys.version_info < MIN_PYTHON:
@@ -33,12 +34,14 @@ DEFAULT_MODE = 'target'
 def main():
 
     if (
-        g_args.output == g_args.input
-        or g_args.output == "."
+        g_args.output == "."
         or g_args.output == g_args.script_dir
     ):
         exit("IN cannot be the same as OUT, '.' or script path.")
 
+
+    if g_args.output == g_args.input:
+        exit(f"IN and OUT paths are already linked: {Dict({'in': g_args.input, 'out': g_args.output})}")
 
     if g_args.mode not in MODES:
         exit(f"Invalid mode given: {g_args.mode}")
