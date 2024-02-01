@@ -55,6 +55,12 @@ import csv
 import typing
 import timeit
 
+INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}
+if os.name == 'nt': # Windows
+    INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}
+elif os.name == 'posix': # Unix
+    INVALID_CHARS = {'/', '\0', '\n', '\r', '\t', '\x0b', '\x0c', '\ue000'}
+
 
 #### ------------------------------------------------------------------------------------------ ####
 ####    USER INPUT
@@ -296,8 +302,8 @@ def is_valid_filename(filename):
     if filename is None or filename == '':
         return False
 
-    # Check if filename contains any illegal characters
-    if any(char in filename for char in '<>:"/\\|?*'):
+    # Check if filename contains any illegal characters (based on os)
+    if any(char in filename for char in INVALID_CHARS):
         return False
 
     # Check if filename matches any reserved names
@@ -359,7 +365,11 @@ def to_path(*p, as_string=True):
     without checking whether it really exists.
     """
     pl_path = pathlib.Path(*p)
-    ret = pl_path.resolve(strict=False)  # default return in case it is absolute path
+    ret = pl_path
+
+    # prevent resolving invalid paths
+    if not any(any(char in INVALID_CHARS for char in str(part)) for part in p):
+        ret = ret.resolve(strict=False)  # default return in case it is absolute path
 
     if not pl_path.is_absolute():
         # don't resolve relative paths (pathlib makes them absolute otherwise)
@@ -1436,8 +1446,7 @@ def remove_invalid_file_chars(input_string):
     """
     Removes invalid chars (Windows) from string.
     """
-    invalid = '<>:"/\\|?* '
-    for char in invalid:
+    for char in INVALID_CHARS:
         input_string = input_string.replace(char, "")
     return input_string
 
