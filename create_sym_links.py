@@ -77,7 +77,7 @@ def main():
             dest = utils.to_path(out_root)
 
         # dont use utils.confirm_overwrite here - they follow symlinks
-        if (utils.exists_file(dest) or utils.exists_dir(dest)):
+        if os.path.islink(dest):
             do_overwrite = False
             if g_args.yes:
                 do_overwrite = True
@@ -93,7 +93,7 @@ def main():
                 tqdm.write(f"Overwriting existing link: {dest}")
 
         try:
-            if utils.exists_file(dest) or utils.exists_dir(dest):
+            if os.path.islink(dest):
                 os.unlink(dest)
             if g_args.mode != 'target':
                 utils.make_dir(out_root)
