@@ -19,6 +19,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 from dictlib import Dict
+from pathlib import Path
 
 MIN_PYTHON = (3, 8)
 if sys.version_info < MIN_PYTHON:
@@ -76,15 +77,23 @@ def main():
         if g_args.mode == 'target':
             dest = utils.to_path(out_root)
 
-        # dont use utils.confirm_overwrite here - they follow symlinks
-        if os.path.islink(dest):
+        # don't use utils.confirm_overwrite here - they follow symlinks
+        dest_exists = False
+        try:
+            dest_exists = Path(dest).is_symlink() or Path(dest).is_file()
+        except Exception as e:
+            # error occurred, assume broken symlink
+            tqdm.write(f"Error accessing file: {e}")
+            dest_exists = True
+
+        if dest_exists:
             do_overwrite = False
             if g_args.yes:
                 do_overwrite = True
             elif g_args.no:
                 do_overwrite = False
             else:
-               do_overwrite = utils.confirm(f"File exists: {dest} - overwrite?", "y")
+               do_overwrite = utils.confirm(f"Link exists: {dest} - overwrite?", "y")
 
             if not do_overwrite:
                 tqdm.write(f"Skipping existing link: {dest}")
@@ -93,11 +102,14 @@ def main():
                 tqdm.write(f"Overwriting existing link: {dest}")
 
         try:
-            if os.path.islink(dest):
-                os.unlink(dest)
+            if dest_exists:
+                # os.unlink(dest)
+                Path(dest).unlink(missing_ok=True)
             if g_args.mode != 'target':
                 utils.make_dir(out_root)
-            os.symlink(source, dest)
+            # old method
+            # os.symlink(source, dest)
+            Path(dest).symlink_to(source)
             tqdm.write(f"Created: {source} <===> {dest}")
         except Exception as e:
             tqdm.write(f"Error creating link: {dest}")
