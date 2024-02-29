@@ -56,7 +56,7 @@ LINUX_ARROW_KEY_CODES = {"up": 65362, "down": 65364, "left": 65361, "right": 653
 TEXT_FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 # https://gist.github.com/xcsrz/8938a5d4a47976c745407fe2788c813a
-def get_text_size(text, font=TEXT_FONT, scale=1, thickness=1):
+def get_text_size(text, font=TEXT_FONT, scale: float = 1, thickness=1):
     lines = text.split("\n")
     num_rows = len(lines)
     longest_string = max(lines, key=len)
@@ -391,7 +391,7 @@ def shift_image(img_or_path, x_shift, y_shift):
     img_alt = get_image(img_or_path, True)
     img_dims = get_img_dimensions(img_alt)
     # src: https://www.youtube.com/watch?v=FWg2BPmXvdk
-    matrix = np.float32([[1, 0, x_shift], [0, 1, y_shift]])
+    matrix = np.float32([[1, 0, x_shift], [0, 1, y_shift]]) # type: ignore
     return cv2.warpAffine(img_alt, matrix, (img_dims["width"], img_dims["height"]))
 
 
@@ -678,7 +678,7 @@ def overlay_text(
     *,
     x_pos=10,
     y_pos=25,
-    scale=1,
+    scale: float = 1,
     color=COLOR_WHITE,
     color_mix=None,
     thickness=1,
@@ -970,7 +970,8 @@ def is_window_visible(window_title):
     """
     try:
         return cv2.getWindowProperty(window_title, cv2.WND_PROP_VISIBLE) >= 1
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 

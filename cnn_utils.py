@@ -23,10 +23,11 @@ import cv2
 import numpy as np
 import math
 import csv
+import typing
 
 # detectron2 imports
-from detectron2.data.datasets import register_coco_instances
-from detectron2.config import get_cfg
+from detectron2.data.datasets import register_coco_instances # type: ignore
+from detectron2.config import get_cfg # type: ignore
 import ctypes
 
 # load dll on windows systems
@@ -111,7 +112,7 @@ def set_d2_cfg_attr(cfg, setting, evaluate=False):
     return setattr(get_d2_cfg_attr(cfg, pre) if pre else cfg, post, value)
 
 
-def register_datasets(ds_info=""):
+def register_datasets(ds_info: typing.Union[typing.Dict, str] = ""):
     """Registers datasets for further addressing in later steps.
 
        Info (2021.01.12): simplified dataset name
@@ -125,15 +126,15 @@ def register_datasets(ds_info=""):
     """
     # simple dataset name
     ds_name = "ds"
-    old_ds_name = ds_info["ds_name"]
+    old_ds_name = ds_info["ds_name"] # type: ignore
     register_coco_instances(
-        f"{ds_name}_train", {}, ds_info["ds_train"], ds_info["image_path"]
+        f"{ds_name}_train", {}, ds_info["ds_train"], ds_info["image_path"] # type: ignore
     )
     register_coco_instances(
-        f"{ds_name}_val", {}, ds_info["ds_val"], ds_info["image_path"]
+        f"{ds_name}_val", {}, ds_info["ds_val"], ds_info["image_path"] # type: ignore
     )
     register_coco_instances(
-        f"{ds_name}_test", {}, ds_info["ds_test"], ds_info["image_path"]
+        f"{ds_name}_test", {}, ds_info["ds_test"], ds_info["image_path"] # type: ignore
     )
 
 
@@ -303,7 +304,9 @@ def create_d2_cfgs(ds_info, cnn_cfg, script_dir, use_validation=True):
     """
 
     coco_ds = utils.read_json(ds_info["ds_train"])
-    num_classes = len(coco_ds["categories"])
+    num_classes = 0
+    if coco_ds is not None:
+        num_classes = len(coco_ds["categories"])
 
     # print(f"#images: {num_train_images}")
 
@@ -403,6 +406,10 @@ def get_ds_info(ds_path):
     # ds_config = utils.read_json(ds_config_pth)
     dataset_info = {}
     ds_config = common.get_ds_config(ds_path, has_annots=False)
+    if ds_config is None:
+        ds_config = {
+            "images_full": None
+        }
     dataset_info["image_path"] = ds_config["images_full"]
     ds_name = utils.get_nth_parentdir(ds_path)
     dataset_info["ds_name"] = ds_name
@@ -437,8 +444,11 @@ def get_ds_info(ds_path):
     dataset_info["num_total_images"] = len(
         utils.get_file_paths(dataset_info["image_path"], *DEFAULT_IMG_EXT)
     )
-    dataset_info["train_images_json"] = utils.get_attribute_from_json(
+    train_img_json_attr = utils.get_attribute_from_json(
         dataset_info["ds_train"], "images"
     )
+    dataset_info["train_images_json"] = []
+    if train_img_json_attr is not None:
+        dataset_info["train_images_json"] = train_img_json_attr
     dataset_info["num_train_images"] = len(dataset_info["train_images_json"])
     return dataset_info

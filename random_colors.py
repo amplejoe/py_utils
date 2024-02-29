@@ -16,7 +16,6 @@
 # https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
 
 import colorsys
-import itertools
 from random import randint
 
 # from pprint import pprint

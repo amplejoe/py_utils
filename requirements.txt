@@ -3,6 +3,7 @@ matplotlib==3.5.2
 natsort==8.2.0
 numpy==1.22.0
 opencv_contrib_python==4.6.0.66
+opencv-stubs
 pandas==1.5.2
 Pillow==9.3.0
 scipy==1.8.0

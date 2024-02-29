@@ -32,4 +32,5 @@ class CLASS_NAME:
 
     @classmethod
     def get_name(self):
-        return __qualname__
+        qualname = getattr(CLASS_NAME, '__qualname__', 'DefaultClassName')
+        return qualname
