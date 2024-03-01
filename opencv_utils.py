@@ -22,8 +22,6 @@ from tqdm import tqdm
 import math
 from PIL import Image
 
-from . import utils
-
 
 # colors in opencv BGR
 COLOR_WHITE = (255, 255, 255)

@@ -318,7 +318,7 @@ def is_valid_filename(filename):
     return True
 
 
-def is_valid_url(url: str) -> bool:
+def is_valid_url(url: typing.Any) -> bool:
     try:
         if not isinstance(url, str):
             return False
