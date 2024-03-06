@@ -899,6 +899,21 @@ def print_dict_pretty(in_dict, indent_amount=4):
     print(json.dumps(in_dict, indent=indent_amount))
 
 
+def print_color_gradient():
+    """Test if Terminal supports 24-bit colors. Output should be a smooth color gradient."""
+    for i in range(0, 256, 5):
+        print(f"\x1b[48;2;{i};{0};{0}m ", end="")
+    print("\x1b[0m")
+
+
+def color_text(rgb: typing.Tuple[int, int, int], text: str):
+    return f"\x1b[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\x1b[0m"
+
+
+def print_colored_text(rgb: typing.Tuple[int, int, int], text: str):
+    print(color_text(rgb, text), end='')
+
+
 def write_json(path, data, pretty_print=False, handle_nan=False):
     """Writes a json dict variable to a file.
     Parameters:
