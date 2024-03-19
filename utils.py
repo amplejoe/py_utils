@@ -904,7 +904,7 @@ def get_attribute_from_json(path, attr):
     return read_json(path)[attr]
 
 
-def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWriter]:
+def get_csv_dict_writer(path, headers, encoding='utf-8') -> typing.Tuple[TextIOWrapper, csv.DictWriter]:
     """Gets csv writer and creates OR opens an existing csv in append mode.
        Writer usage:
             writer.writerow(dict)
@@ -923,7 +923,7 @@ def get_csv_dict_writer(path, headers) -> typing.Tuple[TextIOWrapper, csv.DictWr
         fileHandle = open(path, mode="w", newline="")
         is_new_file = True
 
-    writer = csv.DictWriter(fileHandle, fieldnames=headers)
+    writer = csv.DictWriter(fileHandle, fieldnames=headers, encoding=encoding)
     if is_new_file:
         writer.writeheader()
 
