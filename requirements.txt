@@ -14,3 +14,4 @@ yattag==1.13.2
 prompt_toolkit
 wslconv
 dictlib
+chardet

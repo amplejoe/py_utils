@@ -20,7 +20,6 @@
 from io import TextIOWrapper
 import os
 import sys
-import platform
 import traceback
 import linecache
 import errno
@@ -55,6 +54,7 @@ import pandas as pd
 import csv
 import typing
 import timeit
+import chardet
 
 INVALID_CHARS = {'<', '>', ':', '"', '/', '\\', '|', '?', '*'}
 if os.name == 'nt': # Windows
@@ -88,8 +88,7 @@ def select_option(options, *, msg=None, default=0):
     accepted_answers = list(range(0, len(options)))
     user_prompt = f"[0-{len(options)-1}]"
     if default is not None and default in accepted_answers:
-        # allows users to press enter
-        accepted_answers.append("")  # type: ignore
+        accepted_answers.append("")  # allows users to press enter
         user_prompt = user_prompt + f" ({default})"
     if msg is not None:
         print(msg)
@@ -102,13 +101,10 @@ def select_option(options, *, msg=None, default=0):
             print(f"{i}. {o}")
 
     while answer not in accepted_answers:
-        answerInput = input("user_prompt ")
-        if answerInput == "":
+        answer = input(f"user_prompt ")
+        if answer == "":
             answer = default
-        try:
-            answer = int(answerInput)
-        except ValueError:
-            print(f"{answer} is not a valid integer. Please try again.")
+        answer = int(answer)
     return answer, options[answer]
 
 
@@ -318,7 +314,7 @@ def is_valid_filename(filename):
     return True
 
 
-def is_valid_url(url: typing.Any) -> bool:
+def is_valid_url(url: str) -> bool:
     try:
         if not isinstance(url, str):
             return False
@@ -362,17 +358,8 @@ def to_path_url_str(*p):
     """
     return to_path_url(*p)
 
-@typing.overload
-def to_path(*p: typing.Union[str, pathlib.Path], as_string: typing.Literal[True]) -> str: ...
 
-@typing.overload
-def to_path(*p: typing.Union[str, pathlib.Path], as_string: typing.Literal[False]) -> pathlib.Path: ...
-
-# Default catch-all overload
-@typing.overload
-def to_path(*p: typing.Union[str, pathlib.Path], as_string: bool = ...) -> typing.Union[pathlib.Path, str]: ...
-
-def to_path(*p, as_string=True) -> typing.Union[pathlib.Path, str]:
+def to_path(*p, as_string=True):
     """Convert string to pathlib path.
     INFO: Path resolving removes stuff like ".." with 'strict=False' the
     path is resolved as far as possible -- any remainder is appended
@@ -455,7 +442,7 @@ def make_temp_dir(path, prefix="", show_info=False):
             make_dir(path)
         tempdir = tempfile.mkdtemp(dir=path, prefix=prefix)
     except OSError as e:
-        tqdm.write(f"Unexpected error: {str(e.errno)}")
+        tqdm.write("Unexpected error: %s", str(e.errno))
         raise  # This was not a "directory exists" error..
     if show_info:
         tqdm.write(f"Created dir: {path}")
@@ -479,7 +466,7 @@ def make_dir(path, show_info=False, overwrite=False):
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
-            tqdm.write(f"Unexpected error: {str(e.errno)}", )
+            tqdm.write("Unexpected error: %s", str(e.errno))
             raise  # This was not a "directory exists" error..
         # tqdm.write("Directory exists: %s", path)
         return False
@@ -488,35 +475,19 @@ def make_dir(path, show_info=False, overwrite=False):
     return True
 
 
-def get_owner_and_group(path):
-    """Get the owner and group of a folder/file. Returns usernames and group names."""
-    owner_name = None
-    group_name = None
+def get_owner(path):
+    """Gets owner and group of a path.
 
-    # Check if the path exists
-    if not path.exists():
-        raise FileNotFoundError(f"Path {path} does not exist.")
+    Args:
+        path (_type_): _description_
 
-    try:
-        # For Unix/Linux/MacOS
-        if platform.system() != "Windows":
-            import pwd
-            import grp
-
-            stat_info = path.stat()
-            owner_name = pwd.getpwuid(stat_info.st_uid).pw_name # type: ignore
-            group_name = grp.getgrgid(stat_info.st_gid).gr_name # type: ignore
-        else:
-            # Windows: Fetching owner; group concept is not directly applicable
-            import win32security  # Requires pywin32
-            sd = win32security.GetFileSecurity(str(path), win32security.OWNER_SECURITY_INFORMATION)
-            owner_sid = sd.GetSecurityDescriptorOwner()
-            owner_name, _, _ = win32security.LookupAccountSid(None, owner_sid) # type: ignore
-            group_name = "Not applicable on Windows"
-    except Exception as e:
-        print(f"Error fetching owner/group: {e}")
-
-    return owner_name, group_name
+    Returns:
+        _type_: _description_
+    """
+    path = to_path(path, as_string=False)
+    if exists_dir(path):
+        return path.owner(), path.group()
+    return False, False
 
 
 def change_owner(path, user, group, silent=False):
@@ -899,21 +870,6 @@ def print_dict_pretty(in_dict, indent_amount=4):
     print(json.dumps(in_dict, indent=indent_amount))
 
 
-def print_color_gradient():
-    """Test if Terminal supports 24-bit colors. Output should be a smooth color gradient."""
-    for i in range(0, 256, 5):
-        print(f"\x1b[48;2;{i};{0};{0}m ", end="")
-    print("\x1b[0m")
-
-
-def color_text(rgb: typing.Tuple[int, int, int], text: str):
-    return f"\x1b[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\x1b[0m"
-
-
-def print_colored_text(rgb: typing.Tuple[int, int, int], text: str):
-    print(color_text(rgb, text), end='')
-
-
 def write_json(path, data, pretty_print=False, handle_nan=False):
     """Writes a json dict variable to a file.
     Parameters:
@@ -946,11 +902,7 @@ def read_json_arr(json_path):
 
 def get_attribute_from_json(path, attr):
     """gets attribute from json file"""
-    res = read_json(path)
-    if res is None:
-        return None
-    else:
-        return res[attr]
+    return read_json(path)[attr]
 
 
 def get_csv_dict_writer(path, headers, encoding='utf-8') -> typing.Tuple[TextIOWrapper, csv.DictWriter]:
@@ -966,13 +918,15 @@ def get_csv_dict_writer(path, headers, encoding='utf-8') -> typing.Tuple[TextIOW
     """
     fileHandle = None
     is_new_file = False
+    use_enc = encoding
     if exists_file(path):
         fileHandle = open(path, mode="a", newline="")
+        use_enc = chardet.detect(fileHandle.read())
     else:
-        fileHandle = open(path, mode="w", newline="")
+        fileHandle = open(path, mode="w", newline="", encoding=use_enc)
         is_new_file = True
 
-    writer = csv.DictWriter(fileHandle, fieldnames=headers, encoding=encoding)
+    writer = csv.DictWriter(fileHandle, fieldnames=headers)
     if is_new_file:
         writer.writeheader()
 
@@ -1223,7 +1177,7 @@ def time_execution(func, *args, msg="Execution time", verbose=True):
 
 def get_current_dir():
     """Returns current working directory."""
-    return to_path(pathlib.Path.cwd(), as_string=True)
+    return to_path(pathlib.Path.cwd())
 
 
 def get_script_dir(resolve_symlinks=True):
@@ -1529,13 +1483,7 @@ def float_to_string(float_var, precision=3):
 def get_decimals(float_number):
     """Gets the number of decimals in a float number"""
     d = decimal.Decimal(str(float_number))
-    exponent = d.as_tuple().exponent
-
-    # Check if the exponent is an integer, which it always should be in this context
-    if not isinstance(exponent, int):
-        raise ValueError(f"Unexpected exponent type: {type(exponent)}")
-
-    return abs(exponent)
+    return abs(d.as_tuple().exponent)
 
 
 def round_half_up(num):
@@ -1672,7 +1620,7 @@ def find_most_frequent(List):
 #### ------------------------------------------------------------------------------------------ ####
 
 
-def create_dict_key(in_dict, key, value: typing.Union[typing.Any, typing.List[typing.Any]] = 0):
+def create_dict_key(in_dict, key, value=0):
     """Adds key to dict if necessary, init'd with value"""
     if key not in in_dict.keys():
         in_dict[f"{key}"] = value
@@ -1764,7 +1712,7 @@ def run_multithreaded(func, args, num_workers=10, show_progress=True):
 
 def get_stacktrace_info(
     stack_item=-1,
-) -> typing.Union[Dict, typing.List[Dict], None]:
+) -> typing.Union[Dict[str], typing.List[Dict[str]]]:
     """Gets info about the current stack in the formats:
 
         stack_item == -1 -> List[Dict({'file_name': str, 'line_number': str, 'code_line':  str})]
@@ -1785,8 +1733,6 @@ def get_stacktrace_info(
         for frame in reversed(stack_frames):
             fname = frame.filename
             lineno = frame.lineno
-            if lineno is None:
-                continue
             code_line = linecache.getline(fname, lineno).strip()
             ret.append(
                 Dict(
@@ -1801,15 +1747,14 @@ def get_stacktrace_info(
             frame = stack_frames[stack_item_idx]
             fname = frame.filename
             lineno = frame.lineno
-            if lineno is not None:
-                code_line = linecache.getline(fname, lineno).strip()
-                ret = Dict(
-                    {"file_name": fname, "line_number": lineno, "code_line": code_line}
-                )
+            code_line = linecache.getline(fname, lineno).strip()
+            ret = Dict(
+                {"file_name": fname, "line_number": lineno, "code_line": code_line}
+            )
     return ret
 
 
-def get_exception_info(stack_item=-1) -> typing.Union[Dict, typing.List[Dict], None]:
+def get_exception_info(stack_item=-1) -> typing.Union[Dict[str], bool]:
     """Gets info about the current exception in the format:
         Dict({'type': str, 'file_name': str, 'line_number': str, 'code_line': str})
 
@@ -1874,12 +1819,11 @@ def exec_shell_command(command, print_output=False, silent=False):
 
     output = []
     # execute reading output line by line
-    if process.stdout is not None:
-        for line in iter(process.stdout.readline, b""):
-            line = line.decode(sys.stdout.encoding)
-            output.append(line.replace("\n", ""))
-            if print_output:
-                sys.stdout.write(line)
+    for line in iter(process.stdout.readline, b""):
+        line = line.decode(sys.stdout.encoding)
+        output.append(line.replace("\n", ""))
+        if print_output:
+            sys.stdout.write(line)
     return output
 
 
