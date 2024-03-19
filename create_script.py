@@ -56,7 +56,7 @@ def main():
     template_path = utils.join_paths_str(g_args.script_dir, TEMPLATE_OPTIONS[g_args.type])
 
     if utils.exists_dir(g_args.output):
-        print(f"Error: target path is a directory!")
+        print("Error: target path is a directory!")
         sys.exit(0)
     elif utils.exists_file(g_args.output):
         if not utils.confirm_delete_file(g_args.output, "n"):
@@ -122,7 +122,7 @@ def parse_args():
         "--author",
         dest="author",
         type=str,
-        help=f"author name",
+        help="author name",
         nargs="?",
         default=utils.get_user_name()
     )

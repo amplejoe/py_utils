@@ -14,6 +14,7 @@
 
 
 # import the necessary packages
+import typing
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
@@ -23,7 +24,7 @@ from PIL import Image  # (pip install Pillow)
 
 # import imutils
 import copy
-from yattag import Doc  # for html out
+from yattag.doc import Doc  # for html out
 from . import utils
 
 COLORS_FILE = "colors.txt"
@@ -205,7 +206,7 @@ class ColorLabeler:
         cv2.destroyWindow(win_title)
 
     # for imgaug of masks
-    def to_segmap(self, annot_or_path) -> np.array:
+    def to_segmap(self, annot_or_path) -> typing.Tuple[np.ndarray, OrderedDict]:
 
         annot = opencv_utils.get_image(annot_or_path)
 
@@ -463,4 +464,7 @@ class ColorLabeler:
             if d < minDist[0]:
                 minDist = (d, i)
         # return the name of the color with the smallest distance
-        return self.colorNames[minDist[1]]
+        if minDist[1] is not None:
+            return self.colorNames[minDist[1]]
+        else:
+            return None

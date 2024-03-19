@@ -93,7 +93,10 @@ def get_mask_info(frame_or_annot_path):
     ret["path"] = frame_or_annot_path
     ret["file_name"] = utils.get_file_name(frame_or_annot_path)
     ret["file_ext"] = utils.get_file_ext(frame_or_annot_path)
-    ret["frame"] = int(utils.get_attribute_from(ret["file_name"], "f"))
+    ret["frame"] = None
+    fr = utils.get_attribute_from(ret["file_name"], "f")
+    if fr is not None:
+        ret["frame"] = int(fr)
     ret["video"] = utils.get_attribute_from(ret["file_name"], "v")
     ret["case"] = utils.get_attribute_from(ret["file_name"], "c")
     ret["is_gt"] = (
@@ -305,6 +308,8 @@ def get_sketch_frame_mapping(frame_list, sketch_list, classes_list):
         # 1. iterate over sketches (because they are fewer than frames)
         for s in cl_sketch_list:
             sketch_info = get_info(s)
+            if sketch_info is None:
+                continue
             sketch_info["class"] = cl
             # 2. look for corrsponding frame
             video_frames = utils.filter_list_by_partial_word(

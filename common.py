@@ -46,6 +46,9 @@ def get_ds_config(ds_root, *, has_annots=False):
     # re-read pot. changed config
     cfg = utils.read_json(cfg_location)
 
+    if cfg is None:
+        return None
+
     # runtime parameters (never saved to file!!)
     cfg["config_path"] = cfg_location
     cfg[f"{IMAGE_KEY}_full"] = utils.join_paths(ds_root, cfg[IMAGE_KEY])

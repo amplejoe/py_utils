@@ -12,7 +12,7 @@
 #
 ###
 
-from typing import List, Set, Dict, Tuple, Optional
+from typing import Tuple
 import tkinter as tk
 from tkinter import filedialog
 from . import utils
@@ -41,11 +41,9 @@ class GUITools:
         root = tk.Tk()
         root.withdraw()
 
-        file_types = None
+        file_types = ("all files", "*.*")
         if files is not None:
             file_types = (files, ("all files", "*.*"))
-        else:
-            file_types = ("all files", "*.*")
 
         selected_file = filedialog.askopenfilename(
             initialdir=dir,

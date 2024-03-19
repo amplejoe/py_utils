@@ -146,7 +146,7 @@ class VideoCutter:
     def timedelta_to_str(self, datetime_object: timedelta) -> str:
         return str(datetime_object)
 
-    def secs_to_timedelta(self, sec_float: float) -> str:
+    def secs_to_timedelta(self, sec_float: float) -> timedelta:
         seconds = int(sec_float)
         microseconds = (sec_float * 1000000) % 1000000
         return timedelta(0, seconds, microseconds)
@@ -442,15 +442,15 @@ class VideoCutter:
         if use_WriteGear:
             writer.close()
         else:
-            writer.release()
+            writer.close()
         cv2.destroyAllWindows()
 
     def multi_cut(self, **kwargs):
         """Multi cut video with parameters, i.e. every S seconds or every F frames.
 
         kwargs:
-        seconds (float):    (optional) periodic cut interval in seconds
-        frames (int):       (optional - alt: to_time/duration) number of frames (default if no alts given: video length)
+        seconds (float):    periodic cut interval in seconds (default: 1)
+        frames (int):       (option 2) to_time/duration) number of frames (default if no alts given: video length)
         out_file (str):     (optional) output file name (default: input file name with timestamps)
         """
 
@@ -465,19 +465,18 @@ class VideoCutter:
         in_file_ext = utils.get_file_ext(self.video)
         if self.mode == "opencv":
             in_file_ext = f".{self.conversion['container']}"
-        num_seconds = None
+        num_seconds: int = 1 # default
         if "seconds" in kwargs.keys():
-            num_seconds = float(kwargs["seconds"])
+            num_seconds = int(kwargs["seconds"])
         elif "frames" in kwargs.keys():
-            num_seconds = self.frame_to_secs(
-                self.get_compensated_frame(kwargs["frames"])
-            )
+            # TODO: compensation ?
+            num_seconds = int(self.frame_to_secs(float(kwargs["frames"])))
 
+        kf_list = []
         if self.mode == "ffmpeg":
             # re-encode video making keyframes in given seconds interval
             duration = self.str_to_timedelta(self.total_duration)
-            total_seconds = self.timedelta_to_secs(duration)
-            kf_list = []
+            total_seconds = int(self.timedelta_to_secs(duration))
             for cur_sec in range(0, total_seconds, num_seconds):
                 from_kf_sec = cur_sec
                 to_kf_sec = cur_sec + num_seconds
@@ -487,14 +486,15 @@ class VideoCutter:
                     to_kf = self.secs_to_timedelta(total_seconds)
                 kf_list.append(from_kf)
                 kf_list.append(to_kf)
-            # init progress bar (before video encoding for prettier output)
-            kf_list_pbar = tqdm(
-                range(0, len(kf_list), 2),
-                desc=f"{in_file_name}{in_file_ext}",
-                position=0,
-                leave=False,
-            )
             self.re_encode_with_keyframes(kf_list)
+
+        # init progress bar (before video encoding for prettier output)
+        kf_list_pbar = tqdm(
+            range(0, len(kf_list), 2),
+            desc=f"{in_file_name}{in_file_ext}",
+            position=0,
+            leave=False,
+        )
 
         # cut video in intervals
         for i in kf_list_pbar:
@@ -522,7 +522,7 @@ class VideoCutter:
                 # TODO: make more efficient instead of opening a capture for every segment
                 video_cap = cv2.VideoCapture(self.video)
                 # self.fps = video_cap.get(cv2.CAP_PROP_FPS)
-                self.run_opencv(video_cap, from_time, to_time, duration)
+                self.run_opencv(video_cap, from_time, to_time, duration, out_path)
                 video_cap.release()
         # pot clean up tmp file (ffmpeg mode)
         utils.remove_file(self.tmp_file_path)
