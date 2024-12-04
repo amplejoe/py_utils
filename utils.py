@@ -1025,6 +1025,13 @@ def write_string_to_file(str_to_write, file_path, show_info=True):
         tqdm.write(f"Wrote: {file_path}")
 
 
+def dump_variable_to_file(var_to_dump, file_path, show_info=True):
+    with open(file_path, 'w') as f:
+        json.dump(var_to_dump, f)
+    if show_info:
+        tqdm.write(f"Wrote: {file_path}")
+
+
 def replace_file_text(file, text, replace_text):
     """Replaces a string in a file with another string.
 
