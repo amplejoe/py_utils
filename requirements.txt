@@ -6,6 +6,5 @@ simplejson==3.18.0
 tqdm==4.48.0
 yattag==1.13.2
 prompt_toolkit
-wslconv
 dictlib
 chardet

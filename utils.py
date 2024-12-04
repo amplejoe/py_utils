@@ -47,7 +47,6 @@ from urllib.parse import urlparse
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer
 from prompt_toolkit.completion import PathCompleter
-import wslconv
 
 import textwrap
 import pandas as pd
