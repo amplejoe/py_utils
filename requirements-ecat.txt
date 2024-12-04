@@ -1,0 +1,2 @@
+opencv_contrib_python==4.6.0.66
+opencv-stubs
